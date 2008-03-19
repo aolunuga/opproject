@@ -8,8 +8,6 @@ require "onepoint/project/scripts/error.jes";
 require "onepoint/project/modules/user/scripts/permissions_tab.jes";
 require "onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
 require "onepoint/project/modules/project/scripts/project_helper.jes";
-require "onepoint/project/modules/project_planning/scripts/attachments.jes";
-require "onepoint/project/modules/documents/scripts/documents.jes";
 
 import onepoint.express.XValidator;
 import onepoint.express.XDisplay;
@@ -22,6 +20,7 @@ function ok(event) {
    project_data.Type = 3;
    project_data.PortfolioID = form.findComponent("PortfolioID").getStringValue();
    project_data.Name = form.findComponent("Name").getStringValue();
+   project_data.CustomTypeLocator = form.findComponent("SubTypeField").getStringValue();
    project_data.TemplateNode = form.findComponent("TemplateField").getStringValue();
    project_data.Description = form.findComponent("Description").getStringValue();
    project_data.Start = form.findComponent("Start").getValue();
@@ -40,7 +39,6 @@ function ok(event) {
    goals_set = XDisplay.getActiveForm().findComponent("GoalsSet");
 
    assigned_resource_set = XDisplay.getActiveForm().findComponent("AssignedResourceDataSet");
-   attachmentList = getAttachments();
 
    project_data.PermissionSet = form.findComponent("PermissionSet");
    
@@ -49,10 +47,8 @@ function ok(event) {
    request.setArgument("project_data", project_data);
    request.setArgument("goals_set", goals_set);
    request.setArgument("resource_set", assigned_resource_set);
+   addAdditionalArguments(request);
 
-   //put the list of attachments into a XComponent so that the file can be replaced with it's path
-   attachmentListDataSet = addAttachmentListToDataSet(attachmentList);
-   request.setArgument("attachments_list_set", attachmentListDataSet);
    response = XDisplay.getClient().invokeMethod(request);
 
    if (handleError(form, response, "ErrorLabel") == true) {
@@ -69,19 +65,14 @@ function ok(event) {
       XDisplay.findFrame("MainFrame").refreshForm();
       // Refresh project navigation frame
    }
-   else {
-      //in case of an error obtain the modified attachment list from the response and put  these values on the
-      //attachment set (files were replaced by content ids)
-      responseAttachmentSet = response.getArgument("attachmentSet");
-      if (responseAttachmentSet != null) {
-         form.findComponent("AttachmentListDataSet").removeAllChildren();
-         responseAttachmentList = responseAttachmentSet.getChild(0).getChild(0).getValue();
-         updateAttachmentsSetFromList(responseAttachmentList);
-      }
-   }
+}
+
+function addAdditionalArguments(request) {
+}
+
+function subTypeChanged(event) {
 }
 
 function cancel(event) {
-   clearContents(event);
    XDisplay.getActiveWindow().close();
 }

@@ -70,9 +70,6 @@ public class OpAttachment extends OpObject {
       if (getActivity() != null) {
          return getActivity();
       }
-      if (getProjectNode() != null) {
-         return getProjectNode();
-      }
       return getCostRecord();
    }
 
@@ -87,35 +84,32 @@ public class OpAttachment extends OpObject {
       if (OpTypeManager.getPrototypeForObject(object).getName().equals(OpActivity.ACTIVITY)) {
          setActivity((OpActivity) object);
       }
-      if (OpTypeManager.getPrototypeForObject(object).getName().equals(OpProjectNode.PROJECT_NODE)) {
-         setProjectNode((OpProjectNode) object);
-      }
       if (OpTypeManager.getPrototypeForObject(object).getName().equals(OpCostRecord.COST_RECORD)) {
          setCostRecord((OpCostRecord) object);
       }
    }
 
-   private void setActivity(OpActivity activity) {
+   public void setActivity(OpActivity activity) {
       this.activity = activity;
    }
 
-   private OpActivity getActivity() {
+   public OpActivity getActivity() {
       return activity;
    }
 
-   private OpCostRecord getCostRecord() {
+   public OpCostRecord getCostRecord() {
       return costRecord;
    }
 
-   private void setCostRecord(OpCostRecord costRecord) {
+   public void setCostRecord(OpCostRecord costRecord) {
       this.costRecord = costRecord;
    }
 
-   private OpProjectNode getProjectNode() {
+   public OpProjectNode getProjectNode() {
       return projectNode;
    }
 
-   private void setProjectNode(OpProjectNode projectNode) {
+   public void setProjectNode(OpProjectNode projectNode) {
       this.projectNode = projectNode;
    }
 }

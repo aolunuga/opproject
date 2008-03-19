@@ -3,6 +3,7 @@
  */
 package onepoint.project.modules.configuration_wizard.test;
 
+import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.configuration.OpConfigurationValuesHandler;
 import onepoint.project.configuration.OpDatabaseConfiguration;
@@ -95,14 +96,17 @@ public class OpConfigurationWizardTest extends OpBaseOpenTestCase {
       response = OpTestDataFactory.getConfigurationWizardService().writeDatabaseConfigurationFile(session, request);
       assertError(response, OpDbConfigurationWizardError.INVALID_CONNECTION_STRING);
 
-      params.put("database_url", dbURL);
-      params.put("database_login", "a");
-      params.put("database_password", "a");
+      //if client authentication will be needed for Derby the following if can be taken out
+      if (dbType != OpHibernateSource.DERBY) {
+         params.put("database_url", dbURL);
+         params.put("database_login", "a");
+         params.put("database_password", "a");
 
-      request = new XMessage();
-      request.setArgument("parameters", new HashMap(params));
-      response = OpTestDataFactory.getConfigurationWizardService().writeDatabaseConfigurationFile(session, request);
-      assertError(response, OpDbConfigurationWizardError.INVALID_CREDENTIALS);
+         request = new XMessage();
+         request.setArgument("parameters", new HashMap(params));
+         response = OpTestDataFactory.getConfigurationWizardService().writeDatabaseConfigurationFile(session, request);
+         assertError(response, OpDbConfigurationWizardError.INVALID_CREDENTIALS);
+      }
    }
 
    /**

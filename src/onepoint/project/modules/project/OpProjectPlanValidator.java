@@ -4,11 +4,24 @@
 
 package onepoint.project.modules.project;
 
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.TreeSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 import onepoint.express.XComponent;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpTransaction;
+import onepoint.persistence.OpTransactionLock;
+import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project.components.OpIncrementalValidator;
 import onepoint.project.modules.settings.OpSettings;
@@ -16,12 +29,7 @@ import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendar;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendarManager;
 import onepoint.project.modules.user.OpUser;
-import onepoint.project.OpProjectSession;
 import onepoint.util.XCalendar;
-
-import java.sql.Date;
-import java.util.*;
-import java.util.concurrent.*;
 
 /**
  * Class responsible for (re)validating project plans.
@@ -52,6 +60,7 @@ public class OpProjectPlanValidator {
 
    /**
     * Validates this validator's project plan.
+    * @param session 
     *
     * @param broker       a <code>OpBroker</code> used for persistence operations. Note that the state of this broker
     *                     (opened/closed) is not maintained by this method and therefore must be handled elsewhere.
@@ -59,56 +68,62 @@ public class OpProjectPlanValidator {
     * @param creatorField Allows to specify a name for the "validation-creator", meaning the creator for the revalidated versions.
     *                     If set to null, will default to session user.
     */
-   public void validateProjectPlan(OpBroker broker, PlanModifier modifier, String creatorField) {
+   public void validateProjectPlan(OpProjectSession session, OpBroker broker, PlanModifier modifier, String creatorField) {
       OpTransaction tx = broker.newTransaction();
+      try {
+         OpProjectNode projectNode = projectPlan.getProjectNode();
+         HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
 
-      OpProjectNode projectNode = projectPlan.getProjectNode();
-      HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
+         logger.info("Revalidating plan for " + projectNode.getName());
 
-      logger.info("Revalidating plan for " + projectNode.getName());
+         //obtain the holiday calendar settings from the project plan
+         OpHolidayCalendar holidayCalendar = null;
+         if (OpHolidayCalendarManager.getHolidayCalendarsMap() != null) {
+            holidayCalendar = (OpHolidayCalendar) OpHolidayCalendarManager.getHolidayCalendarsMap().get(projectPlan.getHolidayCalendar());
+         }
 
-      //obtain the holiday calendar settings from the project plan
-      OpHolidayCalendar holidayCalendar = null;
-      if (OpHolidayCalendarManager.getHolidayCalendarsMap() != null) {
-         holidayCalendar = (OpHolidayCalendar) OpHolidayCalendarManager.getHolidayCalendarsMap().get(projectPlan.getHolidayCalendar());
+         //obtain the calendar settings from OpSettings
+         int firstWorkday = Integer.valueOf(OpSettingsService.getService().get(broker, OpSettings.CALENDAR_FIRST_WORKDAY));
+         int lastWorkday = Integer.valueOf(OpSettingsService.getService().get(broker, OpSettings.CALENDAR_LAST_WORKDAY));
+         double dayWorkTime = Double.valueOf(OpSettingsService.getService().get(broker, OpSettings.CALENDAR_DAY_WORK_TIME));
+         double weekWorkTime = Double.valueOf(OpSettingsService.getService().get(broker, OpSettings.CALENDAR_WEEK_WORK_TIME));
+
+         OpGanttValidator validator = this.createValidator(resources);
+
+         //obtain the original calendar settings from the newly created OpGantValidator
+         XCalendar.PlanningSettings originalPlanningSettings = validator.getCalendar().getPlanningSettings();
+
+         if (holidayCalendar != null) {
+            //create a new Planning Settings object by combining the sessionPlanningSettings with the holiday calendar
+            //from the project plan
+            XCalendar.PlanningSettings updatedPlanningSettings = new XCalendar.PlanningSettings(firstWorkday, lastWorkday,
+                  dayWorkTime, weekWorkTime, new TreeSet(holidayCalendar.getHolidayDates()), projectPlan.getHolidayCalendar());
+            //update the validator calendar with the values from the OpSettings and project plan
+            validator.getCalendar().setPlanningSettings(updatedPlanningSettings);
+         }
+
+         if (creatorField != null) {
+            projectPlan.setCreator(creatorField);
+         }
+         this.validateWorkingVersionPlan(session, broker, validator, modifier, resources);
+         this.validatePlan(session, broker, validator, modifier, resources);
+
+         //restore the original settings of the validator
+         if (holidayCalendar != null) {
+            validator.getCalendar().setPlanningSettings(originalPlanningSettings);
+         }
+
+         tx.commit();
       }
-
-      //obtain the calendar settings from OpSettings
-      int firstWorkday = Integer.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_FIRST_WORKDAY));
-      int lastWorkday = Integer.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_LAST_WORKDAY));
-      double dayWorkTime = Double.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_DAY_WORK_TIME));
-      double weekWorkTime = Double.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_WEEK_WORK_TIME));
-
-      OpGanttValidator validator = this.createValidator(resources);
-
-      //obtain the original calendar settings from the newly created OpGantValidator
-      XCalendar.PlanningSettings originalPlanningSettings = validator.getCalendar().getPlanningSettings();
-
-      if (holidayCalendar != null) {
-         //create a new Planning Settings object by combining the sessionPlanningSettings with the holiday calendar
-         //from the project plan
-         XCalendar.PlanningSettings updatedPlanningSettings = new XCalendar.PlanningSettings(firstWorkday, lastWorkday,
-              dayWorkTime, weekWorkTime, new TreeSet(holidayCalendar.getHolidayDates()), projectPlan.getHolidayCalendar());
-         //update the validator calendar with the values from the OpSettings and project plan
-         validator.getCalendar().setPlanningSettings(updatedPlanningSettings);
+      catch (RuntimeException exc) {
+         tx.rollback();
+         throw exc;
       }
-
-      if (creatorField != null) {
-         projectPlan.setCreator(creatorField);
-      }
-      this.validateWorkingVersionPlan(broker, validator, modifier, resources);
-      this.validatePlan(broker, validator, modifier, resources);
-
-      //restore the original settings of the validator
-      if (holidayCalendar != null) {
-         validator.getCalendar().setPlanningSettings(originalPlanningSettings);
-      }
-
-      tx.commit();
    }
 
    /**
     * Validates the working plan versions for the given project plan.
+    * @param session 
     *
     * @param broker           a <code>OpBroker</code> used for persistence operations.
     * @param modifier         a <code>PlanModifier</code> instance, that allows a hook into the validation mechanism.
@@ -116,7 +131,7 @@ public class OpProjectPlanValidator {
     * @param startTransaction a <code>boolean</code> whether to start a transaction or not for
     *                         the validation operation.
     */
-   public void validateProjectPlanWorkingVersion(OpBroker broker, PlanModifier modifier, boolean startTransaction) {
+   public void validateProjectPlanWorkingVersion(OpProjectSession session, OpBroker broker, PlanModifier modifier, boolean startTransaction) {
       OpTransaction tx = startTransaction ? broker.newTransaction() : null;
 
       OpProjectNode projectNode = projectPlan.getProjectNode();
@@ -131,10 +146,10 @@ public class OpProjectPlanValidator {
       }
 
       //obtain the calendar settings from OpSettings
-      int firstWorkday = Integer.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_FIRST_WORKDAY));
-      int lastWorkday = Integer.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_LAST_WORKDAY));
-      double dayWorkTime = Double.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_DAY_WORK_TIME));
-      double weekWorkTime = Double.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_WEEK_WORK_TIME));
+      int firstWorkday = Integer.valueOf(OpSettingsService.getService().get(broker, OpSettings.CALENDAR_FIRST_WORKDAY));
+      int lastWorkday = Integer.valueOf(OpSettingsService.getService().get(broker, OpSettings.CALENDAR_LAST_WORKDAY));
+      double dayWorkTime = Double.valueOf(OpSettingsService.getService().get(broker, OpSettings.CALENDAR_DAY_WORK_TIME));
+      double weekWorkTime = Double.valueOf(OpSettingsService.getService().get(broker, OpSettings.CALENDAR_WEEK_WORK_TIME));
 
       OpGanttValidator validator = this.createValidator(resources);
 
@@ -150,7 +165,7 @@ public class OpProjectPlanValidator {
          validator.getCalendar().setPlanningSettings(updatedPlanningSettings);
       }
 
-      this.validateWorkingVersionPlan(broker, validator, modifier, resources);
+      this.validateWorkingVersionPlan(session, broker, validator, modifier, resources);
 
       //restore the original settings of the validator
       if (holidayCalendar != null) {
@@ -171,16 +186,23 @@ public class OpProjectPlanValidator {
     *                  Can be <code>null</code>.
     * @param resources a <code>HashMap</code> of project resources.
     */
-   private void validatePlan(OpBroker broker, OpGanttValidator validator, PlanModifier modifier, HashMap resources) {
+   private void validatePlan(OpProjectSession session, OpBroker broker, OpGanttValidator validator, PlanModifier modifier, HashMap resources) {
       //always update the project plan
-      XComponent dataSet = new XComponent(XComponent.DATA_SET);
-      OpActivityDataSetFactory.retrieveActivityDataSet(broker, projectPlan, dataSet, true);
-      validator.setDataSet(dataSet);
-      if (modifier != null) {
-         modifier.modifyPlan(validator);
+      String projectNodeLocator = projectPlan.getProjectNode().locator();
+      OpTransactionLock.getInstance().writeLock(projectNodeLocator);
+      try {
+         XComponent dataSet = new XComponent(XComponent.DATA_SET);
+         OpActivityDataSetFactory.retrieveActivityDataSet(broker, projectPlan, dataSet, true);
+         validator.setDataSet(dataSet);
+         if (modifier != null) {
+            modifier.modifyPlan(validator);
+         }
+         validator.validateEntireDataSet();
+         OpActivityDataSetFactory.getInstance().storeActivityDataSet(session, broker, dataSet, resources, projectPlan, null);
       }
-      validator.validateEntireDataSet();
-      OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, resources, projectPlan, null);
+      finally {
+         OpTransactionLock.getInstance().unlock(projectNodeLocator);
+      }
    }
 
    /**
@@ -188,7 +210,7 @@ public class OpProjectPlanValidator {
     *
     * @see OpProjectPlanValidator#validateProjectPlan(onepoint.persistence.OpBroker, onepoint.project.modules.project.OpProjectPlanValidator.PlanModifier, String)
     */
-   private void validateWorkingVersionPlan(OpBroker broker, OpGanttValidator validator, PlanModifier modifier, HashMap resources) {
+   private void validateWorkingVersionPlan(OpProjectSession session, OpBroker broker, OpGanttValidator validator, PlanModifier modifier, HashMap resources) {
       //if there is a working plan, validate it
       OpProjectPlanVersion workingPlan = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, projectPlan, OpProjectPlan.WORKING_VERSION_NUMBER);
       if (workingPlan != null) {
@@ -200,7 +222,7 @@ public class OpProjectPlanValidator {
             modifier.modifyPlan(validator);
          }
          validator.validateEntireDataSet();
-         OpActivityVersionDataSetFactory.storeActivityVersionDataSet(broker, dataSet, workingPlan, resources, false);
+         OpActivityVersionDataSetFactory.getInstance().storeActivityVersionDataSet(session, broker, dataSet, workingPlan, resources, false);
       }
    }
 
@@ -255,14 +277,19 @@ public class OpProjectPlanValidator {
          long projectPlanId = it.next();
          it.remove();
          OpBroker broker = session.newBroker();
-         OpProjectPlan projectPlan = broker.getObject(OpProjectPlan.class, projectPlanId);
-         PlanValidatorTask validationTask = new OpProjectPlanValidator(projectPlan).new PlanValidatorTask(broker);
-         if (validationTasks.size() < queSize) {
-            validationTasks.add(validationTask);
+         try {
+            OpProjectPlan projectPlan = broker.getObject(OpProjectPlan.class, projectPlanId);
+            PlanValidatorTask validationTask = new OpProjectPlanValidator(projectPlan).new PlanValidatorTask(session, broker);
+            if (validationTasks.size() < queSize) {
+               validationTasks.add(validationTask);
+            }
+            else {
+               executeValidationTasks(validationTasks, executorService);
+               validationTasks.clear();
+            }
          }
-         else {
-            executeValidationTasks(validationTasks, executorService);
-            validationTasks.clear();
+         finally {
+            broker.close();
          }
       }
       if (!validationTasks.isEmpty()) {
@@ -315,12 +342,15 @@ public class OpProjectPlanValidator {
        * A  broker to perform db operations.
        */
       private OpBroker broker = null;
+      private OpProjectSession session;
 
       /**
        * Creates a new validation task instance.
+       * @param session 
        * @param broker a <code>OpBroker</code> used for db operations.
        */
-      private PlanValidatorTask(OpBroker broker) {
+      private PlanValidatorTask(OpProjectSession session, OpBroker broker) {
+         this.session = session;
          this.broker = broker;
       }
 
@@ -328,7 +358,7 @@ public class OpProjectPlanValidator {
        * @see Runnable#run()
        */
       public void run() {
-         OpProjectPlanValidator.this.validateProjectPlan(broker, null, OpUser.SYSTEM_USER_NAME);
+         OpProjectPlanValidator.this.validateProjectPlan(session, broker, null, OpUser.SYSTEM_USER_NAME);
          broker.closeAndEvict();
       }
    }

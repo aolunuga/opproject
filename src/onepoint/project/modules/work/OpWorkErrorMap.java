@@ -35,6 +35,7 @@ public class OpWorkErrorMap extends XErrorMap {
       registerErrorCode(OpWorkError.TIME_RECORDS_OVERLAP, OpWorkError.TIME_RECORDS_OVERLAP_NAME);
       registerErrorCode(OpWorkError.WORK_SLIP_NOT_EDITABLE, OpWorkError.WORK_SLIP_NOT_EDITABLE_NAME);
       registerErrorCode(OpWorkError.WORK_SLIP_IS_CONTROLLED, OpWorkError.WORK_SLIP_IS_CONTROLLED_NAME);
+      registerErrorCode(OpWorkError.WORK_SLIP_PERMISSION_DENIED, OpWorkError.WORK_SLIP_PERMISSION_DENIED_NAME);
    }
 
 }

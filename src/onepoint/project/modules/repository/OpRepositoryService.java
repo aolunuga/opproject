@@ -7,6 +7,7 @@ package onepoint.project.modules.repository;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpSource;
 import onepoint.persistence.OpSourceManager;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpInitializerFactory;
@@ -132,6 +133,7 @@ public class OpRepositoryService extends OpProjectService {
 
    /**
     * Revalidates a previously invalidated session.
+    *
     * @param activeSession a <code>OpProjectSession</code> which has been invalidated.
     */
    protected void revalidateSession(OpProjectSession activeSession) {
@@ -140,6 +142,7 @@ public class OpRepositoryService extends OpProjectService {
 
    /**
     * Invalidates all the servers sessions of the server of the given session.
+    *
     * @param activeSession a <code>OpProjectSession</code> a server session.
     */
    protected void invalidateSessions(OpProjectSession activeSession) {
@@ -214,7 +217,7 @@ public class OpRepositoryService extends OpProjectService {
          OpSettingsService.getService().loadSettings(projectSession);
 
          //clear everything from the current session
-         projectSession.clearSession();
+         clearSession(projectSession);
       }
       catch (Exception e) {
          logger.error("Cannot restore repository because:" + e.getMessage(), e);
@@ -245,17 +248,17 @@ public class OpRepositoryService extends OpProjectService {
          this.invalidateSessions(projectSession);
 
          logger.info("Stopping modules");
-         OpModuleManager.stop();
+         OpModuleManager.stop(projectSession.getSourceName());
 
          //remove all objects and clear sources
          OpBackupManager.getBackupManager().removeAllObjects(projectSession);
          OpSourceManager.clearAllSources();
 
          logger.info("Starting modules");
-         OpModuleManager.start();
+         OpModuleManager.start(projectSession.getSourceName());
 
          //clear this session
-         projectSession.clearSession();
+         clearSession(projectSession);
       }
       catch (Exception e) {
          logger.error("An error occured during reset:" + e.getMessage(), e);
@@ -265,6 +268,16 @@ public class OpRepositoryService extends OpProjectService {
          revalidateSession(projectSession);
       }
       return null;
+   }
+
+   /**
+    * Clear current session
+    *
+    * @param session session to clear
+    */
+   protected void clearSession(OpProjectSession session) {
+      // clear this session
+      session.clearSession();
    }
 
    /**
@@ -278,14 +291,18 @@ public class OpRepositoryService extends OpProjectService {
       //check whether the user entered a valid admin password
       XMessage reply = null;
       OpBroker broker = projectSession.newBroker();
-      if (OpEnvironmentManager.isMultiUser()) {
-         String adminPassword = projectSession.user(broker).getPassword();
-         String enteredAdminPassword = (String) request.getArgument(ADMIN_PASSWORD_PARAMETER);
-         if (!adminPassword.equals(enteredAdminPassword)) {
-            reply = createErrorMessage(projectSession, OpRepositoryError.INVALID_ADMIN_PASSWORD);
+      try {
+         if (OpEnvironmentManager.isMultiUser()) {
+            String adminPassword = projectSession.user(broker).getPassword();
+            String enteredAdminPassword = (String) request.getArgument(ADMIN_PASSWORD_PARAMETER);
+            if (!adminPassword.equals(enteredAdminPassword)) {
+               reply = createErrorMessage(projectSession, OpRepositoryError.INVALID_ADMIN_PASSWORD);
+            }
          }
       }
-      broker.close();
+      finally {
+         broker.close();
+      }
       return reply;
    }
 

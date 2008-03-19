@@ -1,6 +1,8 @@
 <locale-map>
-   <locale id="en" name="English"/>
-   <locale id="de" name="Deutsch"/>
-   <locale id="ru" name="Russian"/>
-   <locale id="fr" name="French"/>
+   <locale language="en" country="US" name="English (US &amp; Canada)"/>
+   <locale language="en" country="GB" name="English (UK)"/>
+   <locale language="en" country="DE" name="English (Europe)"/>
+   <locale language="de"/>
+   <locale language="ru"/>
+   <locale language="fr"/>      
 </locale-map>

@@ -56,13 +56,12 @@ public class OpProjectStatusTestDataFactory extends OpTestDataFactory {
     */
    public OpProjectStatus getProjectStatusById(String locator) {
       OpBroker broker = session.newBroker();
-
-      OpProjectStatus status = (OpProjectStatus) broker.getObject(locator);
-      // just to inialize the collection
-      status.getProjects().size();
-      broker.close();
-
-      return status;
+      try {
+         return (OpProjectStatus) broker.getObject(locator);
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -72,18 +71,20 @@ public class OpProjectStatusTestDataFactory extends OpTestDataFactory {
     * @return the uniq identifier (locator) of an entity
     */
    public Long getProjectStatusId(String statusName) {
-      OpBroker broker = session.newBroker();
-      Long statusId = null;
-
-      OpQuery query = broker.newQuery(SELECT_STATUS_ID_BY_NAME_QUERY);
-      query.setString(0, statusName);
-      Iterator statusIt = broker.iterate(query);
-      if (statusIt.hasNext()) {
-         statusId = (Long) statusIt.next();
+     OpBroker broker = session.newBroker();
+      try {
+         Long statusId = null;
+         OpQuery query = broker.newQuery(SELECT_STATUS_ID_BY_NAME_QUERY);
+         query.setString(0, statusName);
+         Iterator statusIt = broker.iterate(query);
+         if (statusIt.hasNext()) {
+            statusId = (Long) statusIt.next();
+         }
+         return statusId;
       }
-
-      broker.close();
-      return statusId;
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -93,11 +94,13 @@ public class OpProjectStatusTestDataFactory extends OpTestDataFactory {
     */
    public List getAllProjectsStatus() {
       OpBroker broker = session.newBroker();
-
-      OpQuery query = broker.newQuery("from OpProjectStatus as status order by status.Sequence asc");
-      List result = broker.list(query);
-      broker.close();
-
-      return result;
+      try {
+         OpQuery query = broker.newQuery("from OpProjectStatus as status order by status.Sequence asc");
+         List result = broker.list(query);
+         return result;
+      }
+      finally {
+         broker.close();
+      }
    }
 }

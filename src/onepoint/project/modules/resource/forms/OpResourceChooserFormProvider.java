@@ -11,7 +11,9 @@ import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.service.server.XSession;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class OpResourceChooserFormProvider implements XFormProvider {
 
@@ -49,7 +51,7 @@ public class OpResourceChooserFormProvider implements XFormProvider {
       }
 
       //filter
-      List filteredLocators = (List) parameters.get(FILTERED_OUT_LOCATORS);
+      Set<String> filteredLocators = (Set<String>) parameters.get(FILTERED_OUT_LOCATORS);
       form.findComponent(FILTERED_OUT_LOCATORS).setValue(filteredLocators);
 
       // Put all resource names into project data-set (values are IDs)

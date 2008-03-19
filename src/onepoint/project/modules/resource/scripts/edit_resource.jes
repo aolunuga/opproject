@@ -38,6 +38,7 @@ function ok_edit(event) {
 
    resource_id = form.findComponent("ResourceID").getStringValue();
    resource_data.Name = form.findComponent("Name").getStringValue();
+   resource_data.CustomTypeLocator = form.findComponent("SubTypeField").getStringValue();
    resource_data.Description = form.findComponent("Description").getStringValue();
    resource_data.Available = form.findComponent("Available").getDoubleValue();
    resource_data.HourlyRate = form.findComponent("HourlyRate").getDoubleValue();
@@ -85,6 +86,7 @@ function ok_edit(event) {
          request.setArgument("originalHourlyRate", originalHourlyRate);
          request.setArgument("originalExternalRate", originalExternalRate);        
       }
+      addAdditionalArguments(request);
       response = XDisplay.getClient().invokeMethod(request);
       hasAssignments = response.getArgument("Assignments");      
       if (hasAssignments){
@@ -107,6 +109,8 @@ function ok_edit(event) {
    request.setAction("ResourceService.updateResource");
    request.setArgument("resource_id", resource_id);
    request.setArgument("resource_data", resource_data);
+   addAdditionalArguments(request);
+
    response = XDisplay.getClient().invokeMethod(request);
 
    if (handleError(form, response, "ErrorLabel") == true) {
@@ -123,6 +127,12 @@ function checkExtendedHourlyRates(resource_data, resource_id){
 //do nothing ... advanced functionality
 function addHourlyRatesToRequest(resource_data, request){
    return request;
+}
+
+function addAdditionalArguments(request) {
+}
+
+function subTypeChanged(event) {
 }
 
 function cancel(event) {

@@ -338,7 +338,7 @@ public class OpUserServiceImpl implements OpService {
       }
 
       //configuration doesn't allow empty password fields
-      if ((!Boolean.valueOf(OpSettingsService.getService().get(OpSettings.ALLOW_EMPTY_PASSWORD))) &&
+      if ((!Boolean.valueOf(OpSettingsService.getService().get(session, OpSettings.ALLOW_EMPTY_PASSWORD))) &&
            (user.passwordIsEmpty())) {
          throw new XServiceException(session.newError(ERROR_MAP, OpUserError.PASSWORD_MISSING));
       }
@@ -571,7 +571,7 @@ public class OpUserServiceImpl implements OpService {
          OpPreference preference = null;
          while (preferences.hasNext()) {
             preference = (OpPreference) preferences.next();
-            if (preference.getName().equals(OpPreference.LOCALE)) {
+            if (preference.getName().equals(OpPreference.LOCALE_ID)) {
                // Set user locale
                user_locale = XLocaleManager.findLocale(preference.getValue());
             }
@@ -581,7 +581,7 @@ public class OpUserServiceImpl implements OpService {
       // Fallback: Global locale setting in the database
       if (user_locale == null) {
          logger.info("Cannot determine user locale. Using global locale");
-         user_locale = XLocaleManager.findLocale(OpSettingsService.getService().get(OpSettings.USER_LOCALE));
+         user_locale = XLocaleManager.findLocale(OpSettingsService.getService().get(session, OpSettings.USER_LOCALE_ID));
       }
       session.setLocale(user_locale);
    }
@@ -726,7 +726,7 @@ public class OpUserServiceImpl implements OpService {
       }
 
       //check if configuration allows empty password fields
-      if (!Boolean.valueOf(OpSettingsService.getService().get(OpSettings.ALLOW_EMPTY_PASSWORD)).booleanValue()) {
+      if (!Boolean.valueOf(OpSettingsService.getService().get(session, OpSettings.ALLOW_EMPTY_PASSWORD)).booleanValue()) {
          if (user.validatePassword(null)) {
             throw new XServiceException(session.newError(ERROR_MAP, OpUserError.PASSWORD_MISSING));
          }

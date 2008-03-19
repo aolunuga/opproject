@@ -8,20 +8,14 @@ import onepoint.express.XValidator;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.project.OpActivity;
-import onepoint.project.modules.project.OpActivityDataSetFactory;
-import onepoint.project.modules.project.OpAssignment;
-import onepoint.project.modules.project.OpProjectNode;
+import onepoint.project.modules.project.*;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.work.validators.OpWorkCostValidator;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Helper class needed to form OpCostRecord entities from data sets and vice versa
@@ -70,12 +64,13 @@ public class OpCostRecordDataSetFactory {
     * @return a <code>List</code> of <code>OpCostRecord</code> entities, each entity corresponding to a row in the
     *         data set.
     */
-   public static Set<OpCostRecord> createCostRecords(OpBroker broker, XComponent costDataSet) {
+   public static Set<OpCostRecord> createCostRecords(OpBroker broker, XComponent costDataSet,
+        Map<XComponent, List<OpAttachment>> unmodifiedAttachmentsMap) {
       Set<OpCostRecord> costRecords = new HashSet<OpCostRecord>();
       OpCostRecord costRecord;
 
       for (int i = 0; i < costDataSet.getChildCount(); i++) {
-         costRecord = createCostEntity(broker, (XComponent) costDataSet.getChild(i));
+         costRecord = createCostEntity(broker, (XComponent) costDataSet.getChild(i), unmodifiedAttachmentsMap);
          costRecords.add(costRecord);
       }
 
@@ -250,7 +245,8 @@ public class OpCostRecordDataSetFactory {
     * @param broker  - the <code>OpBroker</code> needed to persist the attachments and contents
     * @return an <code>OpCostRecord</code> entity created from the data row's cell's values
     */
-   private static OpCostRecord createCostEntity(OpBroker broker, XComponent dataRow) {
+   private static OpCostRecord createCostEntity(OpBroker broker, XComponent dataRow,
+        Map<XComponent, List<OpAttachment>> unmodifiedAttachmentsMap) {
       OpCostRecord costRecord = new OpCostRecord();
 
       //the work record will not be set on the costRecord
@@ -274,6 +270,14 @@ public class OpCostRecordDataSetFactory {
       costRecord.setRemainingCosts(remainingCost);
       //set comments
       costRecord.setComment(((XComponent) dataRow.getChild(OpWorkCostValidator.COMMENTS_COST_INDEX)).getStringValue());
+      //if the data row has unmodified attachments set the newly formed cost record on the existing attachment. This was
+      // done so that the attachments don't lose their creation date.
+      if(unmodifiedAttachmentsMap != null && unmodifiedAttachmentsMap.get(dataRow) != null) {
+         for(OpAttachment attachment : unmodifiedAttachmentsMap.get(dataRow)) {
+            attachment.setCostRecord(costRecord);
+         }
+      }
+
       //set the attachments
       List<List> attachmentList = ((XComponent) dataRow.getChild(OpWorkCostValidator.ATTACHMENT_INDEX)).getListValue();
       if (attachmentList != null && !attachmentList.isEmpty()) {

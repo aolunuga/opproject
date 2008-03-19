@@ -7,13 +7,18 @@ package onepoint.project.modules.work;
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
+import onepoint.project.modules.project.OpAttachment;
 import onepoint.project.modules.project.OpProjectNode;
+import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
+import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.work.validators.OpWorkEffortValidator;
 
 import java.sql.Date;
@@ -32,6 +37,24 @@ public class OpWorkSlipDataSetFactory {
    public static final int COST_RECORD_SET_INDEX = 2;
 
    public final static long ALL_PROJECTS_ID = -1;
+
+   public final static Map<Integer, String> workSlipStates = new HashMap<Integer, String>();
+   public final static Map<String, Integer> workSlipStatesReversed = new HashMap<String, Integer>();
+
+   private final static String STATE_EDITABLE = "editable";
+   private final static String STATE_LOCKED = "locked";
+   private final static String STATE_APPROVED = "approved";
+
+   static {
+      workSlipStates.put(0, STATE_EDITABLE);
+      workSlipStates.put(1, STATE_LOCKED);
+      workSlipStates.put(2, STATE_APPROVED);
+
+      workSlipStatesReversed.put(STATE_EDITABLE, 0);
+      workSlipStatesReversed.put(STATE_LOCKED, 1);
+      workSlipStatesReversed.put(STATE_APPROVED, 2);
+   }
+
 
    /**
     * Utility class.
@@ -215,7 +238,7 @@ public class OpWorkSlipDataSetFactory {
     * @return a <code>List</code> of <code>OpWorkRecord</code> entities
     */
    public static List<OpWorkRecord> formWorkRecordsFromDataSets(OpBroker broker, XComponent workEffortDataSet,
-        XComponent timeRecordDataSet, XComponent costRecordDataSet) {
+        XComponent timeRecordDataSet, XComponent costRecordDataSet, Map<XComponent, List<OpAttachment>> unmodifiedAttachmentsMap) {
       List<OpWorkRecord> workRecords = new ArrayList<OpWorkRecord>();
       XComponent workDataRow;
       List<XComponent> costRecordRowsList;
@@ -231,7 +254,7 @@ public class OpWorkSlipDataSetFactory {
 
          //obtain the sub data set of cost records which belong to the work record
          XComponent costRecordSubset = filterDataSet(costRecordDataSet, workDataRow);
-         workRecord.addCostRecords(OpCostRecordDataSetFactory.createCostRecords(broker, costRecordSubset));
+         workRecord.addCostRecords(OpCostRecordDataSetFactory.createCostRecords(broker, costRecordSubset, unmodifiedAttachmentsMap));
          workRecords.add(workRecord);
       }
 
@@ -246,7 +269,7 @@ public class OpWorkSlipDataSetFactory {
          XComponent tempDataSet = new XComponent();
          costRecordDataSet.removeChild(costDataRow);
          tempDataSet.addChild(costDataRow);
-         Set<OpCostRecord> costRecordSet = OpCostRecordDataSetFactory.createCostRecords(broker, tempDataSet);
+         Set<OpCostRecord> costRecordSet = OpCostRecordDataSetFactory.createCostRecords(broker, tempDataSet, unmodifiedAttachmentsMap);
 
          for (OpWorkRecord emptyWorkRecord : emptyWorkRecords) {
             //if there already is an "empty" work record for the cost row's assignment
@@ -254,7 +277,7 @@ public class OpWorkSlipDataSetFactory {
                existsEmptyWorkRecord = true;
                emptyWorkRecord.getCostRecords().addAll(costRecordSet);
                //set the work record on each cost record
-               for(OpCostRecord costRecord : costRecordSet) {
+               for (OpCostRecord costRecord : costRecordSet) {
                   costRecord.setWorkRecord(emptyWorkRecord);
                }
                break;
@@ -821,5 +844,89 @@ public class OpWorkSlipDataSetFactory {
       sortOrders.put(OpActivity.START, OpObjectOrderCriteria.ASCENDING);
       sortOrders.put(OpActivity.PRIORITY, OpObjectOrderCriteria.ASCENDING);
       return new OpObjectOrderCriteria(OpActivity.ACTIVITY, sortOrders);
+   }
+
+
+   /**
+    * @param userID   user to fill the work slips for
+    * @param time     start period for workslips
+    * @param data_set work slip data set
+    * @param broker   current broker
+    */
+   public static void fillWorkSlipsDataSet(Iterator work_slips, XComponent data_set) {
+      OpWorkSlip work_slip;
+
+      XComponent data_row;
+      XComponent data_cell;
+      while (work_slips.hasNext()) {
+         work_slip = (OpWorkSlip) (work_slips.next());
+         data_row = new XComponent(XComponent.DATA_ROW);
+         data_row.setStringValue(work_slip.locator());
+         data_set.addChild(data_row);
+         // #0
+         data_cell = new XComponent(XComponent.DATA_CELL);
+         data_cell.setValue(work_slip.getNumber());
+         data_row.addChild(data_cell);
+         // #1
+         data_cell = new XComponent(XComponent.DATA_CELL);
+         data_cell.setValue(work_slip.getDate());
+         data_row.addChild(data_cell);
+         // #2
+         data_cell = new XComponent(XComponent.DATA_CELL);
+         data_cell.setValue(work_slip.getTotalActualEffort());
+         data_row.addChild(data_cell);
+         // #3
+         data_cell = new XComponent(XComponent.DATA_CELL);
+         data_cell.setValue(workSlipStates.get(work_slip.getState()));
+         data_row.addChild(data_cell);
+         // #4
+         data_cell = new XComponent(XComponent.DATA_CELL);
+         data_cell.setValue(XValidator.choice(workSlipStates.get(work_slip.getState()), " ",
+              work_slip.getState()));
+         // data_cell.setIntValue(work_slip.getNumber());
+         data_row.addChild(data_cell);
+      }
+   }
+
+   /**
+    * Adds the work record information that is "pre-filled" by the system (for effort and time records).
+    *
+    * @param broker current broker
+    * @param activityRows activity rows that have to be pre-filled
+    * @param workEffortDataSet effort data set
+    * @param workTimeDataSet time data set
+    */
+   public static void addPrefilledAssignments(OpBroker broker, List<XComponent> activityRows, XComponent workEffortDataSet, XComponent workTimeDataSet) {
+
+      boolean timeTrackingEnabled = false;
+      String timeTracking = OpSettingsService.getService().get(broker, OpSettings.ENABLE_TIME_TRACKING);
+      if (timeTracking != null) {
+         timeTrackingEnabled = Boolean.valueOf(timeTracking);
+      }
+
+      for (XComponent activityRow : activityRows) {
+         String activityLocator = activityRow.getStringValue();
+         List<String> resources = OpGanttValidator.getResources(activityRow);
+         for (String resourceLocator : resources) {
+            OpQuery query = broker.newQuery("select assignment from OpAssignment assignment where assignment.Activity.ID = :activityID and assignment.Resource.ID = :resourceID");
+            query.setLong("activityID", OpLocator.parseLocator(activityLocator).getID());
+            query.setLong("resourceID", OpLocator.parseLocator(resourceLocator).getID());
+            Iterator iterator = broker.iterate(query);
+            if (iterator.hasNext()) {
+               OpAssignment assignment = (OpAssignment) iterator.next();
+               if (!workEffortDataSet.contains(-1, assignment.locator())) {
+
+                  if (timeTrackingEnabled) {
+                     XComponent timeRow = OpTimeRecordDataSetFactory.createTimeRowFromAssignment(assignment);
+                     workTimeDataSet.addChild(timeRow);
+                  }
+
+                  XComponent effortRow = OpWorkEffortDataSetFactory.createEffortRowFromAssignment(assignment);
+                  workEffortDataSet.addChild(effortRow);
+
+               }
+            }
+         }
+      }
    }
 }

@@ -3,5 +3,6 @@
  */
 
 function ok(event) {
-   System.exitApplication(1);
+   XDisplay.getClient().quit();
+//   System.exitApplication(1);
 }

@@ -1,0 +1,10 @@
+<prototype name="OpFolder" instance-class="onepoint.project.modules.documents.OpFolder" super-type="OpObject">
+   <field name="Name" type="String" mandatory="true"/>
+   <field name="Description" type="String"/>
+   <field name="CreatedOn" type="Date"/>
+   <relationship name="Creator" type="OpUser" />
+   <relationship name="DocumentNodes" type="OpDocumentNode" collection-type="Set" back-relationship="Folder" inverse="true"/>
+   <relationship name="SuperFolder" type="OpFolder" back-relationship="SubFolders" recursive="true"/>
+   <relationship name="SubFolders" type="OpFolder" collection-type="Set" back-relationship="SuperFolder" inverse="true" cascade="delete"/>
+   <relationship name="ProjectNode" type="OpProjectNode" back-relationship="Folders"/>
+</prototype>

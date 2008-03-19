@@ -42,12 +42,18 @@ public class OpUserTestDataFactory extends OpTestDataFactory {
    /**
     * Retrieve all users from database.
     *
+    * @param session
     * @return a list of <code>OpUser</code> instances.
-    * @param broker
     */
-   public List<OpUser> getAllUsers(OpBroker broker) {
-      OpQuery query = broker.newQuery(SELECT_USERS_QUERY);
-      return (List<OpUser>) broker.list(query);
+   public List<OpUser> getAllUsers(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      try {
+         OpQuery query = broker.newQuery(SELECT_USERS_QUERY);
+         return (List<OpUser>) broker.list(query);
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -56,12 +62,12 @@ public class OpUserTestDataFactory extends OpTestDataFactory {
     * @param userName user name to look for.
     * @return found user or null.
     */
-   public OpUser getUserByName(OpBroker broker, String userName) {
+   public OpUser getUserByName(String userName) {
       Long id = getSubjectId(userName);
       if (id != null) {
          String locator = OpLocator.locatorString(OpUser.USER, Long.parseLong(id.toString()));
 
-         return getUserById(broker, locator);
+         return getUserById(locator);
       }
 
       return null;
@@ -71,11 +77,16 @@ public class OpUserTestDataFactory extends OpTestDataFactory {
     * Retrieve all groups from database.
     *
     * @return a list of <code>OpGroup</code> instances.
-    * @param broker
     */
-   public List<OpGroup> getAllGroups(OpBroker broker) {
-      OpQuery query = broker.newQuery(SELECT_GROUPS_QUERY);
-      return (List<OpGroup>)broker.list(query);
+   public List<OpGroup> getAllGroups() {
+      OpBroker broker = session.newBroker();
+      try {
+         OpQuery query = broker.newQuery(SELECT_GROUPS_QUERY);
+         return (List<OpGroup>) broker.list(query);
+      }
+      finally {
+         broker.close();
+      }
    }
 
 
@@ -85,8 +96,8 @@ public class OpUserTestDataFactory extends OpTestDataFactory {
     * @param locator id/locator to look for.
     * @return found user or null.
     */
-   public OpUser getUserById(OpBroker broker, String locator) {
-      return (OpUser) getSubjectById(broker, locator);
+   public OpUser getUserById(String locator) {
+      return (OpUser) getSubjectById(locator);
    }
 
    /**
@@ -95,12 +106,12 @@ public class OpUserTestDataFactory extends OpTestDataFactory {
     * @param groupName group  name to look for.
     * @return found group or null.
     */
-   public OpGroup getGroupByName(OpBroker broker, String groupName) {
+   public OpGroup getGroupByName(String groupName) {
       Long id = getSubjectId(groupName);
       if (id != null) {
          String locator = OpLocator.locatorString(OpGroup.GROUP, Long.parseLong(id.toString()));
 
-         return getGroupById(broker, locator);
+         return getGroupById(locator);
       }
 
       return null;
@@ -112,8 +123,8 @@ public class OpUserTestDataFactory extends OpTestDataFactory {
     * @param locator id/locator to look for.
     * @return found group or null.
     */
-   public OpGroup getGroupById(OpBroker broker, String locator) {
-      return (OpGroup) getSubjectById(broker, locator);
+   public OpGroup getGroupById(String locator) {
+      return (OpGroup) getSubjectById(locator);
    }
 
    /**
@@ -122,24 +133,18 @@ public class OpUserTestDataFactory extends OpTestDataFactory {
     * @param locator subject locator.
     * @return found subject (instace of <code>OpUser</code> or <code>OpGroup</code>) or null.
     */
-   private OpSubject getSubjectById(OpBroker broker, String locator) {
-      OpSubject subject = (OpSubject) broker.getObject(locator);
-      if (subject instanceof OpUser) {
-         OpUser user = (OpUser) subject;
-         // we have to do this to initialize lazy collection
-         user.getPreferenceValue(OpPreference.LOCALE);
-         user.getAssignments().size();
+   private OpSubject getSubjectById(String locator) {
+      OpBroker broker = session.newBroker();
+      try {
+         OpSubject subject = (OpSubject) broker.getObject(locator);
+         OpTestDataFactory.initializeLazyRelationships(subject);
+         return subject;
       }
-      else if (subject instanceof OpGroup) {
-         // initialize lazy collections.
-         OpGroup group = (OpGroup) subject;
-         group.getSubGroupAssignments().size();
-         group.getSuperGroupAssignments().size();
-         group.getUserAssignments().size();
+      finally {
+         broker.close();
       }
-
-      return subject;
    }
+
 
    /**
     * This method serach for a user with a given username and returns an instance of <code>OpUser</code>.
@@ -149,19 +154,22 @@ public class OpUserTestDataFactory extends OpTestDataFactory {
     */
    private Long getSubjectId(String userName) {
       OpBroker broker = session.newBroker();
-      Long subjectId = null;
+      try {
+         Long subjectId = null;
 
-      OpQuery query = broker.newQuery(SELECT_SUBJECT_ID_BY_NAME_QUERY);
-      query.setString(0, userName);
-      Iterator subjectsIt = broker.iterate(query);
-      if (subjectsIt.hasNext()) {
-         subjectId = (Long) subjectsIt.next();
+         OpQuery query = broker.newQuery(SELECT_SUBJECT_ID_BY_NAME_QUERY);
+         query.setString(0, userName);
+         Iterator subjectsIt = broker.iterate(query);
+         if (subjectsIt.hasNext()) {
+            subjectId = (Long) subjectsIt.next();
+         }
+
+         return subjectId;
       }
-
-      broker.close();
-      return subjectId;
+      finally {
+         broker.close();
+      }
    }
-
 
    /**
     * Creates the map of data necessary for user creation/update.

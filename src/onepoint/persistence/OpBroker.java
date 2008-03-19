@@ -11,13 +11,18 @@ import java.sql.Blob;
 import java.sql.Connection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Stack;
 
 public class OpBroker {
    private static final XLog logger = XLogFactory.getServerLogger(OpBroker.class);
 
    private OpConnection defaultConnection;
    private OpSource default_source;
+   
+   // used for debugging only !!
+   private static Stack<String> brokerStack = null;
 
+   
    /**
     * Creates a new broker.
     *
@@ -28,6 +33,18 @@ public class OpBroker {
       default_source = OpSourceManager.getSource(sourceName);
       if (default_source != null) {
          defaultConnection = default_source.newConnection(this);
+      }
+      if (logger.isLoggable(XLog.DEBUG)) {
+         if (brokerStack == null) {
+            brokerStack = new Stack<String>();
+         }
+         brokerStack.add(new Throwable().getStackTrace()[3].toString());
+         if (brokerStack.size() > 1) {
+            logger.debug("duplicate brokers at: ");
+            for (String st : brokerStack) {
+               logger.debug(st);
+            }
+         }
       }
    }
 
@@ -57,6 +74,11 @@ public class OpBroker {
       logger.debug("/OpBroker.updateObject()");
    }
 
+   public void refreshObject(OpObject object) {
+      logger.debug("OpBroker.refreshObject()");
+      defaultConnection.refreshObject(object);
+      logger.debug("/OpBroker.refreshObject()");
+   }
    public void deleteObject(OpObject object) {
       logger.debug("OpBroker.deleteObject()");
       defaultConnection.deleteObject(object);
@@ -141,7 +163,15 @@ public class OpBroker {
    }
 
    public void close() {
-      // Probably rename this function
+      if (logger.isLoggable(XLog.DEBUG) && (brokerStack != null)) {
+         if (brokerStack.size() < 1) {
+            logger.debug("closing non opened broker: "+new Throwable().getStackTrace()[3].toString());
+         }
+         else {
+            brokerStack.pop();
+         }
+      }
+         // Probably rename this function
       if (defaultConnection != null) {
          defaultConnection.close();
          defaultConnection = null;
@@ -161,6 +191,7 @@ public class OpBroker {
     */
    public void clear() {
       if (defaultConnection != null) {
+         defaultConnection.clear();
          default_source.clear();
       }
    }

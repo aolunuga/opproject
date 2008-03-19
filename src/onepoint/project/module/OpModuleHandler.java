@@ -4,12 +4,16 @@
 
 package onepoint.project.module;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.StringTokenizer;
+
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.xml.XContext;
 import onepoint.xml.XNodeHandler;
-
-import java.util.*;
 
 public class OpModuleHandler implements XNodeHandler {
    public final static String MODULE = "module";

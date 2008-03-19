@@ -1,10 +1,11 @@
 <prototype name="OpControllingRecord" instance-class="onepoint.project.modules.project_controlling.OpControllingRecord" super-type="OpObject">
    <field name="RecordEffortSubTotal" type="Double"/>
    <field name="RowEffortBilled" type="Double"/>
-   <field name="CloseAssignment" type="Boolean" />
+   <field name="CloseActivity" type="Boolean" />
+   <field name="Comment" type="Text"/>
    
    <relationship name="ControllingSheet" type="OpControllingSheet" back-relationship="Records"/>
    <relationship name="WorkRecords" type="OpWorkRecord" collection-type="Set" back-relationship="ControllingRecord" inverse="true"/>
-   <relationship name="Assignment" type="OpAssignment" back-relationship="ControllingRecords"/>
+   <relationship name="Activity" type="OpActivity" back-relationship="ControllingRecords"/>
    
 </prototype>

@@ -104,7 +104,7 @@ public class OpPrototype extends OpType {
     *
     * @return a <code>List</code> of <code>XProptotype</code> representing the dependent prototypes.
     */
-   public List getBackupDependencies() {
+   public List<OpPrototype> getSubsequentBackupDependencies() {
       if (backupDependencies == null) {
          backupDependencies = new ArrayList<OpPrototype>();
 
@@ -113,9 +113,9 @@ public class OpPrototype extends OpType {
             OpMember member = (OpMember) it.next();
             if (member instanceof OpRelationship) {
                OpRelationship relationship = (OpRelationship) member;
-               if (!relationship.getInverse() && !relationship.getRecursive()) {
+               if (!relationship.getInverse() && !relationship.getRecursive() && !relationship.isTransient()) {
                   OpPrototype dependentType = OpTypeManager.getPrototype(relationship.getTypeName());
-                  if (dependentType.getBackupDependencies().contains(this)) {
+                  if (dependentType.getSubsequentBackupDependencies().contains(this)) {
                      StringBuffer exceptionMessage = new StringBuffer("Detected circular dependency caused by relationships between ");
                      exceptionMessage.append(this.getName());
                      exceptionMessage.append("<");
@@ -130,6 +130,44 @@ public class OpPrototype extends OpType {
          }
       }
       return backupDependencies;
+   }
+
+   public List<OpPrototype> getDeleteDependencies() {
+      ArrayList<OpPrototype> dependencies = new ArrayList<OpPrototype>();
+
+      Iterator it = this.getDeclaredMembers();
+      while (it.hasNext()) {
+         OpMember member = (OpMember) it.next();
+         if (member instanceof OpRelationship) {
+            OpRelationship relationship = (OpRelationship) member;
+            if (relationship.getInverse() &&
+                  //!relationship.getRecursive()) {
+                  (OpRelationship.CASCADE_ALL.equals(relationship.getCascadeMode()) || 
+                   OpRelationship.CASCADE_DELETE.equals(relationship.getCascadeMode()))) {
+               OpPrototype dependentType = OpTypeManager.getPrototype(relationship.getTypeName());
+               dependencies.add(dependentType);
+            }
+         }
+      }
+      return dependencies;
+   }
+
+   public List<OpPrototype> getNonInverseNonRecursiveDependencies() {
+      ArrayList<OpPrototype> dependencies = new ArrayList<OpPrototype>();
+
+      Iterator it = this.getDeclaredMembers();
+      while (it.hasNext()) {
+         OpMember member = (OpMember) it.next();
+         if (member instanceof OpRelationship) {
+            OpRelationship relationship = (OpRelationship) member;
+//            if (!relationship.getInverse() && !relationship.getRecursive()) {
+            if (!relationship.getInverse() && !relationship.getRecursive() && !relationship.isTransient()) {
+               OpPrototype dependentType = OpTypeManager.getPrototype(relationship.getTypeName());
+               dependencies.add(dependentType);
+            }
+         }
+      }
+      return dependencies;
    }
 
    /**
@@ -152,13 +190,14 @@ public class OpPrototype extends OpType {
     * Returns the recursive relationship this prototype has, or null if it doesn't have any (there shouldn't be prototypes with more than 1 recursive relationships)
     * @return a <code>OpRelationship</code> or <code>null</code>.
     */
-   public OpRelationship getRecursiveRelationship() {
+   public List<OpRelationship> getRecursiveRelationships() {
+      List<OpRelationship> ret = new LinkedList<OpRelationship>();
       for (OpMember member : members.values()) {
          if (member instanceof OpRelationship && ((OpRelationship) member).getRecursive()) {
-            return (OpRelationship) member;
+            ret.add((OpRelationship) member);
          }
       }
-      return null;
+      return ret;
    }
 
    /**
@@ -188,4 +227,10 @@ public class OpPrototype extends OpType {
    public void setBatchSize(Integer batchSize) {
       this.batchSize = batchSize;
    }
+
+   @Override
+   public String toString() {
+      return getName();
+   }
+
 }

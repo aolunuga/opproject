@@ -117,7 +117,7 @@ function importActivities(event) {
       return;
    }
    importProject = XDisplay.getActiveForm().findComponent("ImportProjectTitle").getText();
-   fileName = XDisplay.showFileDialog(importProject, true, null, "*.mpp,*.mpx", true);
+   fileName = XDisplay.showFileDialog(importProject, true, null, "*.xml,*.mpp,*.mpt,*.mpx", true);
    if (fileName == null) {
       return;
    }
@@ -230,17 +230,17 @@ function print(event) {
    }
 }
 
-function autoSave(event) {
+function save(form) {
    Console.println("AUTO-SAVING: Check if necessary");
-   project_id = event.sourceForm.findComponent("ProjectIDField").getStringValue();
+   project_id = form.findComponent("ProjectIDField").getStringValue();
    // Only try to auto-save if a project is loaded and edit mode is on
    if (project_id != null) {
       Console.println("   Project id set");
-      edit_mode = event.sourceForm.findComponent("EditModeField").getBooleanValue();
+      edit_mode = form.findComponent("EditModeField").getBooleanValue();
       if (edit_mode) {
-         working_plan_version_id_field = event.sourceForm.findComponent("WorkingPlanVersionIDField");
+         working_plan_version_id_field = form.findComponent("WorkingPlanVersionIDField");
          working_plan_version_id = working_plan_version_id_field.getStringValue();
-         activity_set = event.sourceForm.findComponent("ActivitySet");
+         activity_set = form.findComponent("ActivitySet");
          activity_set.removeDummyRows();
          request = new XMessage;
          request.setAction("PlanningService.saveActivities");
@@ -250,6 +250,39 @@ function autoSave(event) {
          response = XDisplay.getClient().invokeMethod(request);
       }
    }
+}
+
+function autoSave(event) {
+   form = event.sourceForm;
+   save(form);
+}
+
+function projectChanged(newProjectDescriptor) {
+   form = XDisplay.findFrame("ProjectContentFrame").currentForm();
+   if (newProjectDescriptor.equals("p") || newProjectDescriptor.equals("t")) {
+      if (newProjectDescriptor.equals("t")) {
+         //disable import/export buttons
+         disableImportExportButtons(form);
+         form.repaint();
+      }
+      //auto save
+      save(form);
+   }
+   else {
+      //disable toolbar buttons
+      form.findComponent("EditButton").setEnabled(false);
+      form.findComponent("SaveButton").setEnabled(false);
+      form.findComponent("CheckInButton").setEnabled(false);
+      form.findComponent("PrintButton").setEnabled(false);
+      form.findComponent("RevertButton").setEnabled(false);
+      disableImportExportButtons(form);
+      form.repaint();
+   }
+}
+
+function disableImportExportButtons(form) {
+   form.findComponent("ImportButton").setEnabled(false);
+   form.findComponent("ExportButton").setEnabled(false);   
 }
 
 function checkInActivities(event) {
@@ -616,31 +649,31 @@ function updatePersonnelSum(event) {
 function updateTravelSum(event) {
    dataCell = event.event_source;
    mainIndex = dataCell.getIndex();
-   updateCostSum(mainIndex, 4);
+   updateCostSum(mainIndex, 3);
 }
 
 function updateMaterialSum(event) {
    dataCell = event.event_source;
    mainIndex = dataCell.getIndex();
-   updateCostSum(mainIndex, 5);
+   updateCostSum(mainIndex, 4);
 }
 
 function updateExternalSum(event) {
    dataCell = event.event_source;
    mainIndex = dataCell.getIndex();
-   updateCostSum(mainIndex, 6);
+   updateCostSum(mainIndex, 5);
 }
 
 function updateMiscSum(event) {
    dataCell = event.event_source;
    mainIndex = dataCell.getIndex();
-   updateCostSum(mainIndex, 7);
+   updateCostSum(mainIndex, 6);
 }
 
 function updateProceedsSum(event) {
    dataCell = event.event_source;
    mainIndex = dataCell.getIndex();
-   updateCostSum(mainIndex, 8);
+   updateCostSum(mainIndex, 7);
 }
 
 function updateCostSum(mainIndex, footerIndex) {
@@ -677,6 +710,7 @@ function updateSum(mainDataSet, mainIndex, footerDataSet, footerIndex) {
 
 
 function updateSums(event) {
+
    //base effort
    mainIndex = 7;
    updateEffortSum(mainIndex, 7);

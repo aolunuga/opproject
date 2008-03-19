@@ -2,7 +2,7 @@
    
    <resource-map id="my_projects.module">
       <resource id="ProjectsTool">Projects</resource>
-      <resource id="MyToolGroup">MY</resource>
+      <resource id="MyToolGroup">MY WORK</resource>
    </resource-map>
 
    <resource-map id="my_projects.my_projects">
@@ -45,5 +45,7 @@
 
       <resource id="SaveCSV">Save as Table...</resource>
       <resource id="SaveImage">Save as Image...</resource>
+
+      <resource id="Sum">Total</resource>
    </resource-map>
 </language-kit>

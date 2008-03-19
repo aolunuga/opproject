@@ -61,9 +61,9 @@ public class OpCustomAttribute extends OpObject {
    }
 
    public void setName(String name) {
-      if (name == null) {
-         throw new IllegalArgumentException("name must not be null");
-      }
+//      if (name == null) {
+//         throw new IllegalArgumentException("name must not be null");
+//      }
       this.name = name;
    }
    

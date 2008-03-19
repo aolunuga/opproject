@@ -11,7 +11,7 @@ public class OpPreference extends OpObject {
    public final static String PREFERENCE = "OpPreference";
    
    // Preference names
-   public final static String LOCALE = "Locale";
+   public final static String LOCALE_ID = "Locale";
    public static final String SHOW_ASSIGNMENT_IN_HOURS = "ShowHours";
 
    public final static String NAME = "Name";

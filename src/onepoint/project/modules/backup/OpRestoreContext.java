@@ -9,6 +9,8 @@ import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
 import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.OpProjectSession;
+import onepoint.project.util.Pair;
+import onepoint.project.util.Triple;
 import onepoint.xml.XContext;
 
 import java.util.*;
@@ -23,7 +25,7 @@ public class OpRestoreContext extends XContext {
    /**
     * The maximum number of operations done per a transaction.
     */
-   private final static int MAX_INSERTS_PER_TRANSACTION = 300;
+   public final static int MAX_INSERTS_PER_TRANSACTION = 300;
 
    /**
     * This class's logger.
@@ -89,6 +91,9 @@ public class OpRestoreContext extends XContext {
     * Numbers of objects which have been added.
     */
    private int insertCount = 0;
+
+   private LinkedList<Triple<String, String, OpBackupMember>> delayedRelations = new LinkedList<Triple<String, String, OpBackupMember>>();
+   private LinkedList<Triple<OpObject, Long, OpBackupMember>> delayedRelationsPerTransaction = new LinkedList<Triple<OpObject, Long, OpBackupMember>>();
 
    /**
     * Creates a new restore context with the given broker.
@@ -158,20 +163,24 @@ public class OpRestoreContext extends XContext {
          if (queryString != null) {
             logger.debug("QUERY: " + queryString);
             OpBroker broker = session.newBroker();
-            OpQuery query = broker.newQuery(queryString);
-            Iterator iterator = broker.forceIterate(query);
-            if (iterator.hasNext()) {
-               //if a system object already exists in the db, make sure you mark the active object as existent.
-               long id = (Long) iterator.next();
-               OpObject systemObject = broker.getObject(activePrototype.getInstanceClass(), id);
+            try {
+               OpQuery query = broker.newQuery(queryString);
+               Iterator iterator = broker.forceIterate(query);
+               if (iterator.hasNext()) {
+                  //if a system object already exists in the db, make sure you mark the active object as existent.
+                  long id = (Long) iterator.next();
+                  OpObject systemObject = broker.getObject(activePrototype.getInstanceClass(), id);
 
-               //delete the already existent system object - otherwise inconsistencie might happen with system objects which are restored
-               OpTransaction t = broker.newTransaction();
-               logger.info("Deleting system object with prototype: " + activePrototype.getName() + " and id:" + systemObject.getID());
-               broker.deleteObject(systemObject);
-               t.commit();
+                  //delete the already existent system object - otherwise inconsistencie might happen with system objects which are restored
+                  OpTransaction t = broker.newTransaction();
+                  logger.info("Deleting system object with prototype: " + activePrototype.getName() + " and id:" + systemObject.getID());
+                  broker.deleteObject(systemObject);
+                  t.commit();
+               }
             }
-            broker.closeAndEvict();
+            finally {
+               broker.closeAndEvict();
+            }
          }
          else {
             logger.warn("No  [ " + activeSystem + " ] found when persisting Active Objects");
@@ -240,10 +249,10 @@ public class OpRestoreContext extends XContext {
     * @return a <code>OpObject</code> instance or <code>null</code> if the object with the given id hasn't been activated
     *         yet.
     */
-   OpObject getRelationshipOwner(Long id) {
+   OpObject getRelationshipOwner(OpBroker broker, Long id) {
       OpObject opObject = persistedObjectsMap.get(id);
       if (opObject == null) {
-         opObject = this.getObjectFromDb(id);
+         opObject = this.getObjectFromDb(broker, id);
       }
       return opObject;
    }
@@ -255,12 +264,26 @@ public class OpRestoreContext extends XContext {
       if (objectsToAdd.size() > 0) {
          logger.info("Inserting objects into db...");
          OpBroker broker = session.newBroker();
-         OpTransaction t = broker.newTransaction();
-         for (OpObject anObjectsToAdd : objectsToAdd) {
-            broker.makePersistent(anObjectsToAdd);
+         try {
+            OpTransaction t = broker.newTransaction();
+            for (OpObject anObjectsToAdd : objectsToAdd) {
+               broker.makePersistent(anObjectsToAdd);
+            }
+            t.commit();
+            ListIterator<Triple<OpObject, Long, OpBackupMember>> iter = delayedRelationsPerTransaction.listIterator();
+            Triple<OpObject, Long, OpBackupMember> triple;
+            while (iter.hasNext()) {
+               triple = iter.next();
+               OpObject destination = persistedObjectsMap.get(triple.getSecond());
+               if (destination != null) {
+                  delayedRelations.add(new Triple<String, String, OpBackupMember>(triple.getFirst().locator(), destination.locator(), triple.getThird()));
+                  iter.remove();
+               }
+            }
          }
-         t.commit();
-         broker.closeAndEvict();
+         finally {
+            broker.closeAndEvict();
+         }
          session.cleanupSession(true);
          logger.info("Objects persisted");
          objectsToAdd.clear();
@@ -269,9 +292,10 @@ public class OpRestoreContext extends XContext {
       for (Long activeMapId : persistedObjectsMap.keySet()) {
          idToLocatorMap.put(activeMapId, persistedObjectsMap.get(activeMapId).locator());
       }
+      
       persistedObjectsMap.clear();
    }
-
+   
    /**
     * Retrieves an object from the database, using the back-up ID of the object before
     * it was inserted.
@@ -279,14 +303,12 @@ public class OpRestoreContext extends XContext {
     * @param activeId a <code>long</code> the back-up id of an object
     * @return an <code>OpObject</code> instance.
     */
-   private OpObject getObjectFromDb(long activeId) {
-      OpBroker broker = session.newBroker();
+   private OpObject getObjectFromDb(OpBroker broker, long activeId) {
       String locator = idToLocatorMap.get(activeId);
       if (locator == null) {
          return null;
       }
       OpObject object = broker.getObject(locator);
-      broker.close();
       return object;
    }
 
@@ -308,4 +330,29 @@ public class OpRestoreContext extends XContext {
       objectsToAdd.clear();
       objectsToAdd = null;
    }
+
+   /**
+    * @return
+    * @pre
+    * @post
+    */
+   OpProjectSession getSession() {
+      return session;
+   }
+
+   /**
+    * @param locator
+    * @param id
+    * @param backupMember 
+    * @pre
+    * @post
+    */
+   public void putRelationDelayed(OpObject object, Long id, OpBackupMember backupMember) {
+      delayedRelationsPerTransaction.add(new Triple<OpObject, Long, OpBackupMember>(object, id, backupMember));
+   }
+
+   public Iterator<Triple<String, String, OpBackupMember>> relationDelayedIterator() {
+      return delayedRelations.iterator();
+   }
 }
+

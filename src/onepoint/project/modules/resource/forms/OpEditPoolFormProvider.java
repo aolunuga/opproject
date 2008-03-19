@@ -29,6 +29,8 @@ public class OpEditPoolFormProvider implements XFormProvider {
    private final static String RESOURCE_OBJECTS = "resource.objects";
    private final static String PERMISSIONS_TAB = "PermissionsTab";
 
+   public final static String SUB_TYPE_FIELD = "SubTypeField";
+
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
 
@@ -37,64 +39,69 @@ public class OpEditPoolFormProvider implements XFormProvider {
       Boolean edit_mode = (Boolean) parameters.get(OpResourceService.EDIT_MODE);
 
       OpBroker broker = ((OpProjectSession) session).newBroker();
-      OpResourcePool pool = (OpResourcePool) (broker.getObject(id_string));
+      try {
+         OpResourcePool pool = (OpResourcePool) (broker.getObject(id_string));
 
-      // Downgrade edit mode to view mode if no manager access
-      byte accessLevel = session.effectiveAccessLevel(broker, pool.getID());
-      if (edit_mode.booleanValue() && (accessLevel < OpPermission.MANAGER)) {
-         edit_mode = Boolean.FALSE;
-      }
+         // Downgrade edit mode to view mode if no manager access
+         byte accessLevel = session.effectiveAccessLevel(broker, pool.getID());
+         form.findComponent(SUB_TYPE_FIELD).setEnabled(false);
+         if (edit_mode.booleanValue() && (accessLevel < OpPermission.MANAGER)) {
+            edit_mode = Boolean.FALSE;
+         }
 
-      // Fill form with data
-      form.findComponent(POOL_ID).setStringValue(id_string);
-      form.findComponent(EDIT_MODE).setBooleanValue(edit_mode.booleanValue());
+         // Fill form with data
+         form.findComponent(POOL_ID).setStringValue(id_string);
+         form.findComponent(EDIT_MODE).setBooleanValue(edit_mode.booleanValue());
 
-      // Localizer is used to localize name and description of root resource pool
-      XLocalizer localizer = new XLocalizer();
-      localizer.setResourceMap(session.getLocale().getResourceMap(RESOURCE_OBJECTS));
-      XComponent name = form.findComponent(OpResourcePool.NAME);
-      name.setStringValue(localizer.localize(pool.getName()));
-      XComponent desc = form.findComponent(OpResourcePool.DESCRIPTION);
-      desc.setStringValue(localizer.localize(pool.getDescription()));
-      if (desc.getStringValue() == null) {
-         desc.setStringValue("");
-      }
-      // TODO: Should be of type double
-      XComponent hourlyRate = form.findComponent(OpResourcePool.HOURLY_RATE);
-      hourlyRate.setDoubleValue(pool.getHourlyRate());
-      XComponent externalRate = form.findComponent(OpResourcePool.EXTERNAL_RATE);
-      externalRate.setDoubleValue(pool.getExternalRate());
-      XComponent originalHourlyRate = form.findComponent(ORIGINAL_HOURLY_RATE);
-      originalHourlyRate.setDoubleValue(pool.getHourlyRate());
-      XComponent originalExternalRate = form.findComponent(ORIGINAL_EXTERNAL_RATE);
-      originalExternalRate.setDoubleValue(pool.getExternalRate());
+         // Localizer is used to localize name and description of root resource pool
+         XLocalizer localizer = new XLocalizer();
+         localizer.setResourceMap(session.getLocale().getResourceMap(RESOURCE_OBJECTS));
+         XComponent name = form.findComponent(OpResourcePool.NAME);
+         name.setStringValue(localizer.localize(pool.getName()));
+         XComponent desc = form.findComponent(OpResourcePool.DESCRIPTION);
+         desc.setStringValue(localizer.localize(pool.getDescription()));
+         if (desc.getStringValue() == null) {
+            desc.setStringValue("");
+         }
+         // TODO: Should be of type double
+         XComponent hourlyRate = form.findComponent(OpResourcePool.HOURLY_RATE);
+         hourlyRate.setDoubleValue(pool.getHourlyRate());
+         XComponent externalRate = form.findComponent(OpResourcePool.EXTERNAL_RATE);
+         externalRate.setDoubleValue(pool.getExternalRate());
+         XComponent originalHourlyRate = form.findComponent(ORIGINAL_HOURLY_RATE);
+         originalHourlyRate.setDoubleValue(pool.getHourlyRate());
+         XComponent originalExternalRate = form.findComponent(ORIGINAL_EXTERNAL_RATE);
+         originalExternalRate.setDoubleValue(pool.getExternalRate());
 
-      if (!edit_mode.booleanValue()) {
-         name.setEnabled(false);
-         desc.setEnabled(false);
-         hourlyRate.setEnabled(false);
-         externalRate.setEnabled(false);
-         form.findComponent("Cancel").setVisible(false);
-         String title = session.getLocale().getResourceMap("resource.Info").getResource("InfoPool").getText();
-         form.setText(title);
-      }
-      else if (pool.getName().equals(OpResourcePool.ROOT_RESOURCE_POOL_NAME)) {
-         // Root resource pool name and description are not editable at all
-         name.setEnabled(false);
-         desc.setEnabled(false);
-      }
+         if (!edit_mode.booleanValue()) {
+            name.setEnabled(false);
+            desc.setEnabled(false);
+            hourlyRate.setEnabled(false);
+            externalRate.setEnabled(false);
+            form.findComponent("Cancel").setVisible(false);
+            String title = session.getLocale().getResourceMap("resource.Info").getResource("InfoPool").getText();
+            form.setText(title);
+         }
+         else if (pool.getName().equals(OpResourcePool.ROOT_RESOURCE_POOL_NAME)) {
+            // Root resource pool name and description are not editable at all
+            name.setEnabled(false);
+            desc.setEnabled(false);
+         }
 
-      if (OpEnvironmentManager.isMultiUser()) {
-         // Locate permission data set in form
-         XComponent permissionSet = form.findComponent(PERMISSION_SET);
-         OpPermissionDataSetFactory.retrievePermissionSet(session, broker, pool.getPermissions(), permissionSet,
-              OpResourceModule.POOL_ACCESS_LEVELS, session.getLocale());
-         OpPermissionDataSetFactory.administratePermissionTab(form, edit_mode.booleanValue(), accessLevel);
+         if (OpEnvironmentManager.isMultiUser()) {
+            // Locate permission data set in form
+            XComponent permissionSet = form.findComponent(PERMISSION_SET);
+            OpPermissionDataSetFactory.retrievePermissionSet(session, broker, pool.getPermissions(), permissionSet,
+                  OpResourceModule.POOL_ACCESS_LEVELS, session.getLocale());
+            OpPermissionDataSetFactory.administratePermissionTab(form, edit_mode.booleanValue(), accessLevel);
+         }
+         else {
+            form.findComponent(PERMISSIONS_TAB).setHidden(true);
+         }
       }
-      else {
-         form.findComponent(PERMISSIONS_TAB).setHidden(true);
+      finally {
+         broker.close();
       }
-      broker.close();
    }
 
 }

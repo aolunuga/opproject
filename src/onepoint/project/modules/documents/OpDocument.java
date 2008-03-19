@@ -13,8 +13,9 @@ import onepoint.project.modules.user.OpUser;
  * @author horia.chiorean
  */
 public class OpDocument extends OpObject {
-   
+
    public final static String DOCUMENT = "OpDocument";
+   public final static String NAME = "Name";
 
    /**
     * The name of the report.
@@ -32,48 +33,54 @@ public class OpDocument extends OpObject {
    private OpUser creator = null;
 
    /**
-    * Gets the name of the report.
-    * @return a <code>String</code> representing the name of the report.
+    * Gets the name of the document.
+    *
+    * @return a <code>String</code> representing the name of the document.
     */
    public String getName() {
       return name;
    }
 
    /**
-    * Sets the name of the report.
-    * @param name a <code>String</code> representing the name of the report.
+    * Sets the name of the document.
+    *
+    * @param name a <code>String</code> representing the name of the document.
     */
    public void setName(String name) {
       this.name = name;
    }
 
    /**
-    * Gets the content of the report.
-    * @return a <code>OpContent</code> object representing the content of the report.
+    * Gets the content of the document.
+    *
+    * @return a <code>OpContent</code> object representing the content of the document.
     */
    public OpContent getContent() {
       return content;
    }
 
    /**
-    * Sets the content of the report.
-    * @param content a <code>OpContent</code> object representing the content of the report.
+    * Sets the content of the document.
+    *
+    * @param content a <code>OpContent</code> object representing the content of the document.
     */
    public void setContent(OpContent content) {
       this.content = content;
    }
 
    /**
-    * Gets the creator of the report.
-    * @return a <code>OpUser</code> representing the creator of the report.
+    * Gets the creator of the document.
+    *
+    * @return a <code>OpUser</code> representing the creator of the document.
     */
    public OpUser getCreator() {
       return creator;
    }
 
    /**
-    * Sets the creator of the report.
-    * @param creator a <code>OpUser</code> representing the creator of the report.
+    * Sets the creator of the document.
+    *
+    * @param creator a <code>OpUser</code> representing the creator of the document.
     */
    public void setCreator(OpUser creator) {
       this.creator = creator;

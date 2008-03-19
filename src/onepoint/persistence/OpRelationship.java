@@ -11,11 +11,19 @@ public class OpRelationship extends OpMember {
    public final static int AGGREGATION = 1;
    public final static int COMPOSITION = 2;
 
+   /**
+    * Cascade mode possible values
+    */
+   public final static String CASCADE_DELETE = "delete";
+   public final static String CASCADE_SAVEUPDATE = "save-update";
+   public final static String CASCADE_ALL = "all";
+
    private int relationshipType;
    private String backRelationshipName;
    private OpRelationship backRelationship; // Resolved on registration
    private boolean inverse = false;
    private boolean recursive = false; // Used for export and (logical) backup
+   private boolean transientRelation = false;
 
    /**
     * Indicates whether cascadeMode mode should be used for this relationship.
@@ -129,6 +137,19 @@ public class OpRelationship extends OpMember {
     */
    public void setOrderBy(String orderBy) {
       this.orderBy = orderBy;
+   }
+
+   /**
+    * @return
+    * @pre
+    * @post
+    */
+   public boolean isTransient() {
+      return transientRelation;
+   }
+   
+   public void setTransient(boolean transientRelation) {
+      this.transientRelation = transientRelation;
    }
 
 }

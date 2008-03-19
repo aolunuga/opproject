@@ -7,13 +7,8 @@
  */
 package onepoint.persistence;
 
-import java.util.Arrays;
 import java.util.EventObject;
 import java.util.LinkedList;
-
-import org.hibernate.event.EventSource;
-
-import onepoint.project.OpProjectSession;
 
 /**
  * @author dfreis
@@ -28,6 +23,8 @@ public class OpEvent extends EventObject {
    private Class sourceType;
    private OpBroker broker;
    private String[] propertyNames;
+   private Object[] initialState;
+   private boolean last;
 
    public static final int UPDATE = 1;
    public static final int INSERT = 2;
@@ -36,14 +33,15 @@ public class OpEvent extends EventObject {
    public static final int POST_FLUSH = 16;   
    
    public OpEvent(OpBroker broker, OpObject source, int action,
-         String[] propertyNames, Object[] oldState, Object[] newState) {
+         String[] propertyNames, Object[] oldState, Object[] newState, Object[] initialState, boolean last) {
       super(source);
       this.broker = broker;
-//      this.sourceType = sourceType;
       this.action = action;
       this.propertyNames = propertyNames;
       this.oldState = oldState;
       this.newState = newState;
+      this.last = last;
+      this.initialState = initialState;
    }
 
    public void setAction(int action) {
@@ -72,6 +70,14 @@ public class OpEvent extends EventObject {
 
    public String[] getPropertyNames() {
       return propertyNames;
+   }
+
+   public Object[] getInitialState() {
+      return initialState;
+   }
+
+   public boolean isLast() {
+      return last;
    }
 
    /**
@@ -113,6 +119,44 @@ public class OpEvent extends EventObject {
    }
 
    /**
+    * @return
+    * @pre
+    * @post
+    */
+   public int[] getInitialChangedPropertyPos() {
+      int max = 0;
+      if (initialState != null) {
+         max = initialState.length;
+      }
+      else if (newState != null) {
+         max = newState.length;
+      }
+         
+      LinkedList<Integer> values = new LinkedList<Integer>();
+      for (int pos = 0; pos < max; pos++) {
+         if (initialState == null) { // add all ne values
+            values.add(pos);
+         }
+         if (initialState[pos] == null) {
+            if (newState[pos] != null) {
+               values.add(pos);               
+            }
+         }
+         else if ((initialState[pos] != newState[pos]) && (!initialState[pos].equals(newState[pos]))) {
+            values.add(pos);
+         }
+//         values.add(pos);
+      }
+      int[] ret = new int[values.size()];
+      int pos = 0;
+      for (Integer value : values) {
+         ret[pos] = value.intValue();
+         pos++;
+      }
+      return ret;
+   }
+
+   /**
     * @param version_number
     * @return
     * @pre
@@ -129,8 +173,8 @@ public class OpEvent extends EventObject {
          
       for (int pos = 0; pos < max; pos++) {
          if (name.equals(propertyNames[pos])) {
-            if (oldState == null) { // add all ne values
-               return pos;
+            if (oldState == null) { // add all new values
+               return newState[pos] == null ? -1 : pos;
             }
             if (oldState[pos] == null) {
                if (newState[pos] != null) {
@@ -145,4 +189,39 @@ public class OpEvent extends EventObject {
       }
       return -1;
    }
+
+   /**
+    * @param version_number
+    * @return
+    * @pre
+    * @post
+    */
+   public int getInitialChangedPropertyPos(String name) {
+      int max = 0;
+      if (initialState != null) {
+         max = initialState.length;
+      }
+      else if (newState != null) {
+         max = newState.length;
+      }
+         
+      for (int pos = 0; pos < max; pos++) {
+         if (name.equals(propertyNames[pos])) {
+            if (initialState == null) { // add all new values
+               return newState[pos] == null ? -1 : pos;
+            }
+            if (initialState[pos] == null) {
+               if (newState[pos] != null) {
+                  return pos;
+               }
+            }
+            else if ((initialState[pos] != newState[pos]) && (!initialState[pos].equals(newState[pos]))) {
+               return pos;
+            }
+            return -1;
+         }
+      }
+      return -1;
+   }
+
 }

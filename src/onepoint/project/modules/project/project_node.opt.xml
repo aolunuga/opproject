@@ -1,7 +1,6 @@
 <prototype name="OpProjectNode" instance-class="onepoint.project.modules.project.OpProjectNode" super-type="OpObject">
    <field name="Name" type="String" mandatory="true" unique="true"/>
    <field name="Type" type="Byte" mandatory="true"/>
-   <field name="CustomTypeName" type="String" />
    <field name="Description" type="Text"/>
    <field name="Start" type="Date"/>
    <field name="Finish" type="Date"/>
@@ -9,6 +8,7 @@
    <field name="Priority" type="Integer"/>
    <field name="Probability" type="Integer"/>
    <field name="Archived" type="Boolean"/>
+   <relationship name="CustomType" type="OpCustomType"/>
    <relationship name="SuperNode" type="OpProjectNode" back-relationship="SubNodes" recursive="true"/>
    <relationship name="SubNodes" type="OpProjectNode" collection-type="Set" back-relationship="SuperNode" inverse="true"/>
    <relationship name="TemplateNode" type="OpProjectNode" back-relationship="InstanceNodes" recursive="true"/>
@@ -20,4 +20,5 @@
    <relationship name="Status" type="OpProjectStatus" back-relationship="Projects"/>
    <relationship name="Attachments" type="OpAttachment" collection-type="Set" back-relationship="ProjectNode" inverse="true" cascade="all"/>
    <relationship name="Reports" type="OpReport" collection-type="Set" back-relationship="Project" inverse="true"/>
+   <relationship name="Folders" type="OpFolder" collection-type="Set" back-relationship="ProjectNode" inverse="true" cascade="all"/>
 </prototype>

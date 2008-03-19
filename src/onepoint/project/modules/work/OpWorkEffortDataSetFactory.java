@@ -9,6 +9,8 @@ import onepoint.persistence.OpBroker;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.project.OpProjectNode;
+import onepoint.project.modules.project.OpProjectPlan;
+import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.work.validators.OpWorkEffortValidator;
 
@@ -28,13 +30,20 @@ public class OpWorkEffortDataSetFactory {
     * @return a data row with the cell's values set from the <code>OpWorkRecord</code> entity
     */
    public static XComponent createEffortRow(OpWorkRecord workRecord) {
+      OpAssignment assignment = workRecord.getAssignment();
+      return createRow(workRecord, assignment);
+   }
+
+   private static XComponent createRow(OpWorkRecord workRecord, OpAssignment assignment) {
+
+      OpActivity activity = assignment.getActivity();
+      OpProjectPlan plan = activity.getProjectPlan();
+      OpProjectNode project = plan.getProjectNode();
+      OpResource resource = assignment.getResource();
+
       OpWorkEffortValidator effortValidator = new OpWorkEffortValidator();
       XComponent dataRow = effortValidator.newDataRow();
       XComponent dataCell;
-
-      OpActivity activity = workRecord.getAssignment().getActivity();
-      OpProjectNode project = activity.getProjectPlan().getProjectNode();
-      OpResource resource = workRecord.getAssignment().getResource();
 
       //0 - set the name of the project
       dataCell = (XComponent) dataRow.getChild(OpWorkEffortValidator.PROJECT_NAME_INDEX);
@@ -55,7 +64,7 @@ public class OpWorkEffortDataSetFactory {
          dataCell.setValue(null);
       }
       else {
-         dataCell.setDoubleValue(workRecord.getAssignment().getBaseEffort());
+         dataCell.setDoubleValue(assignment.getBaseEffort());
       }
       dataCell.setEnabled(false);
 
@@ -66,14 +75,24 @@ public class OpWorkEffortDataSetFactory {
          dataCell.setEnabled(false);
       }
       else {
-         dataCell.setDoubleValue(workRecord.getActualEffort());
+         if (workRecord != null) {
+            dataCell.setDoubleValue(workRecord.getActualEffort());
+         }
+         else {
+            dataCell.setDoubleValue(0);
+         }
       }
 
       //5 - set the remaining effort
       dataCell = (XComponent) dataRow.getChild(OpWorkEffortValidator.REMAINING_EFFORT_INDEX);
-      dataCell.setDoubleValue(workRecord.getRemainingEffort());
+      if (workRecord != null) {
+         dataCell.setDoubleValue(workRecord.getRemainingEffort());
+      }
+      else {
+         dataCell.setDoubleValue(assignment.getRemainingEffort());
+      }
 
-      boolean progressTracked = activity.getProjectPlan().getProgressTracked();
+      boolean progressTracked = plan.getProgressTracked();
       if (!progressTracked || activity.getType() == OpActivity.MILESTONE || activity.getType() == OpActivity.ADHOC_TASK) {
          dataCell.setValue(null);
          dataCell.setEnabled(false);
@@ -81,8 +100,13 @@ public class OpWorkEffortDataSetFactory {
 
       //6 - set completed
       dataCell = (XComponent) dataRow.getChild(OpWorkEffortValidator.COMPLETED_INDEX);
-      if (workRecord.getAssignment().getProjectPlan().getProgressTracked() || activity.getType() == OpActivity.ADHOC_TASK) {
-         dataCell.setBooleanValue(workRecord.getCompleted());
+      if (assignment.getProjectPlan().getProgressTracked() || activity.getType() == OpActivity.ADHOC_TASK) {
+         if (workRecord != null) {
+            dataCell.setBooleanValue(workRecord.getCompleted());
+         }
+         else {
+            dataCell.setBooleanValue(false);
+         }
       }
       else {
          dataCell.setValue(null);
@@ -91,11 +115,13 @@ public class OpWorkEffortDataSetFactory {
 
       //7 - set comment
       dataCell = (XComponent) dataRow.getChild(OpWorkEffortValidator.COMMENTS_INDEX);
-      dataCell.setStringValue(workRecord.getComment());
+      if (workRecord != null) {
+         dataCell.setStringValue(workRecord.getComment());
+      }
 
       //8 - set the original remaining
       dataCell = (XComponent) dataRow.getChild(OpWorkEffortValidator.ORIGINAL_REMAINING_INDEX);
-      dataCell.setDoubleValue(workRecord.getAssignment().getRemainingEffort());
+      dataCell.setDoubleValue(assignment.getRemainingEffort());
 
       //9 - set the activity type
       dataCell = (XComponent) dataRow.getChild(OpWorkEffortValidator.ACTIVITY_TYPE_INDEX);
@@ -107,13 +133,18 @@ public class OpWorkEffortDataSetFactory {
 
       //11 - set the actual + remaining sum
       dataCell = (XComponent) dataRow.getChild(OpWorkEffortValidator.ACTUAL_REMAINING_SUM_INDEX);
-      dataCell.setDoubleValue(workRecord.getActualEffort() + workRecord.getRemainingEffort());
+      if (workRecord != null) {
+         dataCell.setDoubleValue(workRecord.getActualEffort() + workRecord.getRemainingEffort());
+      }
+      else {
+         dataCell.setDoubleValue(assignment.getBaseEffort());
+      }
       if (!progressTracked || activity.getType() == OpActivity.MILESTONE || activity.getType() == OpActivity.ADHOC_TASK) {
          dataCell.setValue(null);
       }
 
       //set the activity's assignment on the dataRow
-      dataRow.setValue(workRecord.getAssignment().locator());
+      dataRow.setValue(assignment.locator());
 
       return dataRow;
    }
@@ -204,5 +235,38 @@ public class OpWorkEffortDataSetFactory {
       //sort the project & resources data-sets ascending after name
       choiceProjectSet.sort();
       choiceResourceSet.sort();
+   }
+
+   /**
+    * Creates a <code>XComponent</code> effort data row with the cell's values set from the given assignment.
+    *
+    * @param assignment - the <code>OpAssignment</code> entity whose atributes will be set on the data row
+    * @return a data row with the work effort information related to the given assignment
+    */
+   public static XComponent createEffortRowFromAssignment(OpAssignment assignment) {
+      return createRow(null, assignment);
+   }
+
+   /**
+    * Disable the work data set when time tracking is on.
+    *
+    * @param workEffortDataSet Effort data set.
+    */
+   public static void disableDataSetForTimeTracking(XComponent workEffortDataSet) {
+      //disable non-milestone activities on data set
+      for (int i = 0; i < workEffortDataSet.getChildCount(); i++) {
+         XComponent row = (XComponent) workEffortDataSet.getChild(i);
+         if (!((XComponent) row.getChild(OpWorkEffortValidator.ACTIVITY_TYPE_INDEX)).getValue().equals(OpGanttValidator.MILESTONE)) {
+            ((XComponent) row.getChild(OpWorkEffortValidator.ENABLED_INDEX)).setValue(Boolean.FALSE);
+         }
+
+         //<FIXME author="Mihai Costin" description="This is hiding a milestone related bug! This code should be inside the previous if">
+         row.getChild(OpWorkEffortValidator.PROJECT_NAME_INDEX).setEnabled(false);
+         row.getChild(OpWorkEffortValidator.ACTIVITY_NAME_INDEX).setEnabled(false);
+         row.getChild(OpWorkEffortValidator.RESOURCE_NAME_INDEX).setEnabled(false);
+         row.getChild(OpWorkEffortValidator.ACTUAL_EFFORT_INDEX).setEnabled(false);
+         //</FIXME>
+
+      }
    }
 }

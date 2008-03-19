@@ -9,6 +9,7 @@ import onepoint.project.modules.project.components.OpGanttValidator;
 
 import java.sql.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 public class OpProjectPlan extends OpObject {
@@ -249,5 +250,19 @@ public class OpProjectPlan extends OpObject {
          activityAssignments = new HashSet<OpAssignment>();
       }
       activityAssignments.add(assignment);
+   }
+
+   public OpProjectPlanVersion getWorkingVersion() {
+      if (getVersions() == null) {
+         return null;
+      }
+      Iterator<OpProjectPlanVersion> versionIt = getVersions().iterator();
+      while (versionIt.hasNext()) {
+         OpProjectPlanVersion version = versionIt.next();
+         if (version.getVersionNumber() == OpProjectPlan.WORKING_VERSION_NUMBER) {
+            return version;
+         }
+      }
+      return null;
    }
 }

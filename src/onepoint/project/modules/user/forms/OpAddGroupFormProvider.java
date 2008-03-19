@@ -39,52 +39,54 @@ public class OpAddGroupFormProvider implements XFormProvider {
       }
 
       OpBroker broker = ((OpProjectSession) session).newBroker();
+      try {
+         OpGroup group = null;
+         logger.debug("ADD-GROUP " + id_string);
 
-      OpGroup group = null;
-      logger.debug("ADD-GROUP " + id_string);
-
-      // Ignore if id-string it is not a group ID
-      if ((id_string != null) && (id_string.length() > 0)) {
-         OpLocator locator = OpLocator.parseLocator(id_string);
-         if (locator.getPrototype().getInstanceClass() == OpGroup.class)
-            group = (OpGroup) (broker.getObject(id_string));
-      }
-
-      // *** For now: Find all groups; later on (v2.0) -- hierarchical
-      // *** Maybe grey-out (enabled=false) already assigned groups?
-      // ==> Problem: Only really possible if single-selection in users.oxf
-      XComponent assignable_group_data_set = form.findComponent(ASSIGNABLE_GROUP_DATA_SET);
-
-      XComponent assignedGroupsDataSet = (XComponent)parameters.get(ASSIGNED_GROUP_DATA_SET);
-
-      StringBuffer queryBuffer = new StringBuffer("select group from OpGroup as group");
-      if (group != null) {
-         queryBuffer.append(" where group.ID != ?");
-      }
-       // configure group sort order
-      OpObjectOrderCriteria groupOrderCriteria = new OpObjectOrderCriteria(OpGroup.GROUP, OpGroup.NAME, OpObjectOrderCriteria.ASCENDING);
-      queryBuffer.append(groupOrderCriteria.toHibernateQueryString("group"));
-
-      OpQuery query = broker.newQuery(queryBuffer.toString());
-      if (group != null) {
-         query.setLong(0, group.getID());
-      }
-
-      Iterator groups = broker.iterate(query);
-      group = null;
-      XComponent data_row = null;
-      while (groups.hasNext()) {
-         group = (OpGroup) (groups.next());
-         String choice = XValidator.choice(group.locator(), group.getName());
-         if (!isAlreadyAssigned(choice,assignedGroupsDataSet)){
-            data_row = new XComponent(XComponent.DATA_ROW);
-            data_row.setStringValue(choice);
-            assignable_group_data_set.addChild(data_row);
+         // Ignore if id-string it is not a group ID
+         if ((id_string != null) && (id_string.length() > 0)) {
+            OpLocator locator = OpLocator.parseLocator(id_string);
+            if (locator.getPrototype().getInstanceClass() == OpGroup.class)
+               group = (OpGroup) (broker.getObject(id_string));
          }
+
+         // *** For now: Find all groups; later on (v2.0) -- hierarchical
+         // *** Maybe grey-out (enabled=false) already assigned groups?
+         // ==> Problem: Only really possible if single-selection in users.oxf
+         XComponent assignable_group_data_set = form.findComponent(ASSIGNABLE_GROUP_DATA_SET);
+
+         XComponent assignedGroupsDataSet = (XComponent)parameters.get(ASSIGNED_GROUP_DATA_SET);
+
+         StringBuffer queryBuffer = new StringBuffer("select group from OpGroup as group");
+         if (group != null) {
+            queryBuffer.append(" where group.ID != ?");
+         }
+         // configure group sort order
+         OpObjectOrderCriteria groupOrderCriteria = new OpObjectOrderCriteria(OpGroup.GROUP, OpGroup.NAME, OpObjectOrderCriteria.ASCENDING);
+         queryBuffer.append(groupOrderCriteria.toHibernateQueryString("group"));
+
+         OpQuery query = broker.newQuery(queryBuffer.toString());
+         if (group != null) {
+            query.setLong(0, group.getID());
+         }
+
+         Iterator groups = broker.iterate(query);
+         group = null;
+         XComponent data_row = null;
+         while (groups.hasNext()) {
+            group = (OpGroup) (groups.next());
+            String choice = XValidator.choice(group.locator(), group.getName());
+            if (!isAlreadyAssigned(choice,assignedGroupsDataSet)){
+               data_row = new XComponent(XComponent.DATA_ROW);
+               data_row.setStringValue(choice);
+               assignable_group_data_set.addChild(data_row);
+            }
+         }
+
       }
-
-      broker.close();
-
+      finally {
+         broker.close();
+      }
    }
 
    /**

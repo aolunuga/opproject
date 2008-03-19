@@ -108,6 +108,7 @@ public class OpOpenServlet extends XExpressServlet {
    /**
     * @see onepoint.express.servlet.XExpressServlet#onInit()
     */
+   @Override
    public void onInit()
         throws ServletException {
       super.onInit();
@@ -172,6 +173,7 @@ public class OpOpenServlet extends XExpressServlet {
       }
    }
 
+   @Override
    public void doGet(HttpServletRequest http_request, HttpServletResponse http_response)
         throws ServletException,
         IOException {
@@ -285,8 +287,9 @@ public class OpOpenServlet extends XExpressServlet {
 
    /**
     * Generates the header of the applet page.
+    *
     * @param request a <code>HttpServletRequest</code> the client HTTP request.
-    * @param out a <code>PrintStream</code> used to write the response onto.
+    * @param out     a <code>PrintStream</code> used to write the response onto.
     */
    protected void generatePageHeader(HttpServletRequest request, PrintStream out) {
       out.println("<head>");
@@ -324,6 +327,7 @@ public class OpOpenServlet extends XExpressServlet {
       OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
       otherAppletParams.put(OpProjectConstants.RUN_LEVEL, String.valueOf(initializer.getRunLevel()));
       otherAppletParams.put(OpProjectConstants.START_FORM, initializer.getStartForm());
+      otherAppletParams.put(OpProjectConstants.AUTO_LOGIN_START_FORM, initializer.getAutoLoginStartForm());
 
       String parameterNames = request.getParameter(PARAMETERS_ARGUMENT);
       if (parameterNames != null) {
@@ -353,6 +357,7 @@ public class OpOpenServlet extends XExpressServlet {
    /**
     * Generates a string which will represent the URL to which the client will issue requests
     * when performing any operation.
+    *
     * @param request a <code>HttpServletRequest</code>.
     * @return a <code>String</code> representing a request URL.
     */
@@ -398,8 +403,7 @@ public class OpOpenServlet extends XExpressServlet {
       OpTransaction t = broker.newTransaction();
 
       try {
-         //set the stream member of the OpContent class to lazy=false so that it is loaded
-         OpContent.setStreamLazy(false);
+         XSession.setSession(session);
 
          OpContent cnt = (OpContent) broker.getObject(contentId);
          if (cnt != null) {
@@ -430,6 +434,16 @@ public class OpOpenServlet extends XExpressServlet {
             catch (IOException e) {
                logger.error("Cannot send contentId", e);
             }
+            finally {
+               if (content != null) {
+                  try {
+                     content.close();
+                  }
+                  catch (IOException e) {
+                     logger.error("Cannot close content stream", e);
+                  }
+               }
+            }
          }
          else {
             http_response.setContentType("text/plain");
@@ -445,10 +459,8 @@ public class OpOpenServlet extends XExpressServlet {
          }
       }
       finally {
-         //reset the lazy loading of the stream member from OpContent
-         OpContent.setStreamLazy(true);
+         XSession.removeSession();
 
-         session.deleteUnreferedContents();
          t.commit();
          broker.close();
       }
@@ -612,15 +624,10 @@ public class OpOpenServlet extends XExpressServlet {
          response.setArgument(OpProjectConstants.RUN_LEVEL, Byte.toString(initializer.getRunLevel()));
          return response;
       }
-      OpProjectSession.setSession((OpProjectSession) session);
-      try {
-         XMessage response = super.processRequest(request, sessionExpired, http_request, http_response, session);
-         addAutoLoginCookie(request, response, http_response);
-         return response;
-      }
-      finally {
-         OpProjectSession.removeSession();
-      }
+
+      XMessage response = super.processRequest(request, sessionExpired, http_request, http_response, session);
+      addAutoLoginCookie(request, response, http_response);
+      return response;
    }
 
    /**
@@ -726,6 +733,14 @@ public class OpOpenServlet extends XExpressServlet {
             return true;
          }
       }
+
+      Set documentNodes = content.getDocumentNodes();
+      for (Object documentObj : documentNodes) {
+         OpObject documentNode = (OpObject) documentObj;
+         if (session.checkAccessLevel(broker, documentNode.getID(), OpPermission.OBSERVER)) {
+            return true;
+         }
+      }
       return false;
    }
 
@@ -773,6 +788,7 @@ public class OpOpenServlet extends XExpressServlet {
                XIOHelper.copy(fis, fos);
                fos.flush();
                fos.close();
+               fis.close();
 
                // use the same new file for each uploaded file that has the same source
                Set<String> refs = getRefIds(id, references);
@@ -784,36 +800,40 @@ public class OpOpenServlet extends XExpressServlet {
             message.insertObjectsIntoArguments(files);
          }
          else {
-         this.checkAttachmentSizes(sizes.values());
-         Map<String, String> contents = new HashMap<String, String>();
+            this.checkAttachmentSizes(sizes.values());
+            Map<String, String> contents = new HashMap<String, String>();
 
-         // Get the session context ('true': create new session if necessary)
-         OpProjectSession session = (OpProjectSession) getSession(request);
-         OpBroker broker = session.newBroker();
+            // Get the session context ('true': create new session if necessary)
+            OpProjectSession session = (OpProjectSession) getSession(request);
+            OpBroker broker = session.newBroker();
+            try {
 
-         for (Map.Entry<String, Long> entry : sizes.entrySet()) {
-            String id = entry.getKey();
-            long size = entry.getValue();
-            String name = names != null ? names.get(id) : null;
-            String mimeType = OpContentManager.getFileMimeType(name != null ? name : "");
+               for (Map.Entry<String, Long> entry : sizes.entrySet()) {
+                  String id = entry.getKey();
+                  long size = entry.getValue();
+                  String name = names != null ? names.get(id) : null;
+                  String mimeType = OpContentManager.getFileMimeType(name != null ? name : "");
 
-            OpContent content = OpContentManager.newContent(new XSizeInputStream(stream, size, true), mimeType, 0);
+                  OpContent content = OpContentManager.newContent(new XSizeInputStream(stream, size, true), mimeType, 0);
 
-            OpTransaction t = broker.newTransaction();
-            broker.makePersistent(content);
-            t.commit();
+                  OpTransaction t = broker.newTransaction();
+                  broker.makePersistent(content);
+                  t.commit();
 
-            // adds the same OpContent locator for each content that refer teh same file.
-            Set<String> refs = getRefIds(id, references);
-            for (String refId : refs) {
-               contents.put(refId, content.locator());
+                  // adds the same OpContent locator for each content that refer teh same file.
+                  Set<String> refs = getRefIds(id, references);
+                  for (String refId : refs) {
+                     contents.put(refId, content.locator());
+                  }
+               }
             }
-         }
-         broker.close();
+            finally {
+               broker.close();
+            }
 
-         message.insertObjectsIntoArguments(contents);
+            message.insertObjectsIntoArguments(contents);
+         }
       }
-   }
    }
 
    /**
@@ -824,7 +844,7 @@ public class OpOpenServlet extends XExpressServlet {
     * @throws IOException if any of the attachment sizes is larget than the configured size.
     */
    private void checkAttachmentSizes(Collection<Long> attachmentSizes)
-         throws IOException {
+        throws IOException {
       OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
       long maxSizeBytes = initializer.getMaxAttachmentSizeBytes();
       for (Long attachmentSize : attachmentSizes) {

@@ -32,7 +32,7 @@ public class OpProjectService extends XService {
       if (transaction != null) {
          transaction.rollbackIfNecessary();
       }
-      if (broker != null && broker.isOpen()) {
+      if (broker != null) {// && broker.isOpen()) {
          broker.close();
       }
    }
@@ -61,7 +61,7 @@ public class OpProjectService extends XService {
       catch (XLocalizableException e) {
          if (e.getErrorMap() != null) {
             XMessage response = new XMessage();
-            XError error = ((OpProjectSession) session).newError(e.getErrorMap(), e.getCode());
+            XError error = ((OpProjectSession) session).newError(e.getErrorMap(), e.getCode(), e.getParameters());
             response.setError(error);
             return response;
          }

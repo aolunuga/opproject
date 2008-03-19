@@ -1,24 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <language-kit locale="fr">
-   <resource-map id="project_dates.module">
-      <resource id="ProjectDatesTool">Dates</resource>
-   </resource-map>
-   <resource-map id="project_dates.project_dates">
-      <resource id="ProjectHistory">Planning</resource>
-	   
-      <resource id="ResourceFilter">Ressources</resource>
-      <resource id="AllResources">Toutes</resource>
-      <resource id="VersionFilter">Version</resource>
-      <resource id="CurrentPlan">Courante</resource>
-      <resource id="PreviousVersion">Précédente</resource>
-      <resource id="Last5Versions">5 Dernières</resource>
-      <resource id="AllVersions">Toutes</resource>
-
-      <resource id="Print">Imprimer</resource>
-      <resource id="PrintTooltip">Imprimer cette vue</resource>
-      <resource id="ChangeTimeUnit">Unité de temps</resource>
-      <resource id="Days">Jours</resource>
-      <resource id="Weeks">Semaines</resource>
-      <resource id="Months">Mois</resource>
-      <resource id="SaveImage">Enregistrez en Image...</resource>
-   </resource-map>
+    <resource-map id="project_dates.project_dates">
+        <resource id="Last5Versions">5 Dernières</resource>
+        <resource id="AllResources">Toutes</resource>
+        <resource id="ProjectHistory">Planning</resource>
+        <resource id="Days">Jours</resource>
+        <resource id="PrintTooltip">Imprimer cette vue</resource>
+        <resource id="VersionFilter">Version</resource>
+        <resource id="SaveImage">Enregistrez en Image...</resource>
+        <resource id="Weeks">Semaines</resource>
+        <resource id="PreviousVersion">Précédente</resource>
+        <resource id="Months">Mois</resource>
+        <resource id="AllVersions">Toutes</resource>
+        <resource id="Print">Imprimer</resource>
+        <resource id="ResourceFilter">Ressources</resource>
+        <resource id="CurrentPlan">Courante</resource>
+        <resource id="ChangeTimeUnit">Unité de temps</resource>
+    </resource-map>
+    <resource-map id="project_dates.module">
+        <resource id="ProjectDatesTool">Dates</resource>
+    </resource-map>
 </language-kit>

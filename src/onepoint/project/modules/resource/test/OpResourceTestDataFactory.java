@@ -61,26 +61,14 @@ public class OpResourceTestDataFactory extends OpTestDataFactory {
     */
    public OpResource getResourceById(String locator) {
       OpBroker broker = session.newBroker();
-
-      OpResource resource = (OpResource) broker.getObject(locator);
-      if (resource != null) {
-         // just to inialize the collection
-         if (resource.getAbsences() != null) {
-            resource.getAbsences().size();
-         }
-         resource.getActivityAssignments().size();
-         resource.getAssignmentVersions().size();
-         resource.getDynamicResources().size();
-         resource.getLocks().size();
-         resource.getPermissions().size();
-         resource.getProjectNodeAssignments().size();
-         if (resource.getPool() != null) {
-            resource.getPool().getName();
-         }
+      try {
+         OpResource resource =  (OpResource) broker.getObject(locator);
+         OpTestDataFactory.initializeLazyRelationships(resource);
+         return resource;
       }
-      broker.close();
-
-      return resource;
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -91,32 +79,39 @@ public class OpResourceTestDataFactory extends OpTestDataFactory {
     */
    public String getResourceId(String resourceName) {
       OpBroker broker = session.newBroker();
-      Long resourceId = null;
-
-      OpQuery query = broker.newQuery(SELECT_RESOURCE_ID_BY_NAME_QUERY);
-      query.setString(0, resourceName);
-      Iterator resourceIt = broker.iterate(query);
-      if (resourceIt.hasNext()) {
-         resourceId = (Long) resourceIt.next();
+      try {
+         Long resourceId = null;
+         OpQuery query = broker.newQuery(SELECT_RESOURCE_ID_BY_NAME_QUERY);
+         query.setString(0, resourceName);
+         Iterator resourceIt = broker.iterate(query);
+         if (resourceIt.hasNext()) {
+            resourceId = (Long) resourceIt.next();
+         }
+         if (resourceId != null) {
+            return OpLocator.locatorString(OpResource.RESOURCE, Long.parseLong(resourceId.toString()));
+         }
+         return null;
       }
-      broker.close();
-
-      if (resourceId != null) {
-         return OpLocator.locatorString(OpResource.RESOURCE, Long.parseLong(resourceId.toString()));
+      finally {
+         broker.close();
       }
-
-      return null;
    }
 
    /**
     * Get all the resourceNames
     *
+    * @param session
     * @return a <code>List</code> of <code>OpResource</code>
-    * @param broker
     */
-   public List<OpResource> getAllResources(OpBroker broker) {
-      OpQuery query = broker.newQuery("from OpResource");
-      return broker.list(query);
+   public List<OpResource> getAllResources(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      try {
+         OpQuery query = broker.newQuery("from OpResource");
+         return broker.list(query);
+      }
+      finally {
+         broker.close();
+      }
    }
 
    public XMessage createResourceMsg(String name, String description, double available, double hourlyrate, double externalrate, boolean inheritrate, String poolid) {
@@ -192,22 +187,14 @@ public class OpResourceTestDataFactory extends OpTestDataFactory {
     */
    public OpResourcePool getResourcePoolById(String locator) {
       OpBroker broker = session.newBroker();
-
-      OpResourcePool pool = (OpResourcePool) broker.getObject(locator);
-      if (pool != null) {
-         // just to inialize the collection
-         pool.getDynamicResources().size();
-         pool.getLocks().size();
-         pool.getPermissions().size();
-         pool.getResources().size();
-         pool.getSubPools().size();
-         if (pool.getSuperPool() != null) {
-            pool.getSuperPool().getName();
-         }
+      try {
+         OpResourcePool pool = (OpResourcePool) broker.getObject(locator);
+         OpTestDataFactory.initializeLazyRelationships(pool);
+         return pool;
       }
-      broker.close();
-
-      return pool;
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -218,32 +205,42 @@ public class OpResourceTestDataFactory extends OpTestDataFactory {
     */
    public String getResourcePoolId(String poolName) {
       OpBroker broker = session.newBroker();
-      Long poolId = null;
+      try {
+         Long poolId = null;
 
-      OpQuery query = broker.newQuery(SELECT_POOL_ID_BY_NAME_QUERY);
-      query.setString(0, poolName);
-      Iterator poolIt = broker.iterate(query);
-      if (poolIt.hasNext()) {
-         poolId = (Long) poolIt.next();
+         OpQuery query = broker.newQuery(SELECT_POOL_ID_BY_NAME_QUERY);
+         query.setString(0, poolName);
+         Iterator poolIt = broker.iterate(query);
+         if (poolIt.hasNext()) {
+            poolId = (Long) poolIt.next();
+         }
+
+         if (poolId != null) {
+            return OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, Long.parseLong(poolId.toString()));
+         }
+
+         return null;
       }
-      broker.close();
-
-      if (poolId != null) {
-         return OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, Long.parseLong(poolId.toString()));
+      finally {
+         broker.close();
       }
-
-      return null;
    }
 
    /**
     * Get all the resource pools
     *
+    * @param session
     * @return a <code>List</code> of <code>OpResourcePool</code>
-    * @param broker
     */
-   public List<OpResourcePool> getAllResourcePools(OpBroker broker) {
-      OpQuery query = broker.newQuery("from OpResourcePool");
-      return broker.list(query);
+   public List<OpResourcePool> getAllResourcePools(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      try {
+         OpQuery query = broker.newQuery("from OpResourcePool");
+         return broker.list(query);
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**

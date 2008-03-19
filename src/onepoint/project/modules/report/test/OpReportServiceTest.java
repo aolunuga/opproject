@@ -7,7 +7,6 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
-import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.report.OpReportError;
 import onepoint.project.modules.report.OpReportService;
@@ -17,8 +16,6 @@ import onepoint.service.XMessage;
 import onepoint.util.XEncodingHelper;
 
 import java.io.File;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * This class test report service methods and form providers.
@@ -30,7 +27,6 @@ public class OpReportServiceTest extends OpBaseOpenTestCase {
    private static final XLog logger = XLogFactory.getServerLogger(OpReportServiceTest.class);
 
    private OpReportService reportService;
-   private OpReportTestDataFactory dataFactory;
 
    private static final String INVALID_FORMAT = "invalidFormat";
    private static final String UNKNOWN_REPORT_NAME = "unknown_Name";
@@ -45,7 +41,6 @@ public class OpReportServiceTest extends OpBaseOpenTestCase {
       super.setUp();
 
       reportService = OpTestDataFactory.getReportService();
-      dataFactory = new OpReportTestDataFactory(session);
    }
 
    /**
@@ -55,14 +50,15 @@ public class OpReportServiceTest extends OpBaseOpenTestCase {
     */
    protected void tearDown()
         throws Exception {
-      cleanUp();
+      clean();
       super.tearDown();
    }
 
    /**
     * Delete reports that could be present into database or file system.
     */
-   private void cleanUp() {
+   protected void clean()
+        throws Exception {
       try {
          reportService.reportsCleanUp(session, new XMessage());
       }
@@ -70,19 +66,7 @@ public class OpReportServiceTest extends OpBaseOpenTestCase {
          logger.error("Could not delete reports.", e);
       }
 
-      // now delete reports from database.
-      List reports = dataFactory.getAllContents();
-      if (reports != null && reports.size() > 0) {
-         Iterator it = reports.iterator();
-         OpBroker broker = session.newBroker();
-         OpTransaction tx = broker.newTransaction();
-         while (it.hasNext()) {
-            OpContent opContent = (OpContent) it.next();
-            broker.deleteObject(opContent);
-         }
-         tx.commit();
-         broker.close();
-      }
+      super.clean();
    }
 
    /**

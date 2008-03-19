@@ -7,12 +7,13 @@ package onepoint.project.modules.my_tasks.forms;
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
-import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpLocator;
-import onepoint.persistence.OpObjectOrderCriteria;
+import onepoint.persistence.*;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.my_tasks.OpMyTasksServiceImpl;
-import onepoint.project.modules.project.*;
+import onepoint.project.modules.project.OpActivity;
+import onepoint.project.modules.project.OpActivityDataSetFactory;
+import onepoint.project.modules.project.OpActivityFilter;
+import onepoint.project.modules.project.OpProjectDataSetFactory;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project_planning.components.OpProjectComponent;
 import onepoint.project.modules.resource.OpResource;
@@ -23,6 +24,7 @@ import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPreference;
 import onepoint.project.modules.user.OpSubjectDataSetFactory;
 import onepoint.project.modules.user.OpUser;
+import onepoint.project.modules.work.OpWorkSlip;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.server.XSession;
 import onepoint.util.XCalendar;
@@ -32,7 +34,7 @@ import java.util.*;
 
 public class OpMyTasksFormProvider implements XFormProvider {
 
-   private final static String ACTIVITY_SET = "ActivitySet";
+   protected final static String ACTIVITY_SET = "ActivitySet";
    private final static String CATEGORY_COLOR_DATA_SET = "CategoryColorDataSet";
    private final static String PRINT_TITLE = "PrintTitle";
    private final static String PROJECT_CHOICE_FIELD = "ProjectChooser";
@@ -41,6 +43,8 @@ public class OpMyTasksFormProvider implements XFormProvider {
    private final static String START_BEFORE_SET = "StartBeforeSet";
    private final static String PROJECT_SET = "ProjectSet";
    private final static String RESOURCES_SET = "FilterResourcesSet";
+   private final static String EXISTING_WORK_SLIP = "ExistingWorkSlip";
+   private final static String EDITABLE_WORK_SLIP = "EditableWorkSlip";
    private final static String DELETE_PERMISSION_SET = "DeletePermissionSet";
    private final static String RESOURCE_AVAILABILITY = "ResourceAvailability";
    private final static String ACTIVITY_GANTT_CHART = "ActivityGanttChart";
@@ -61,10 +65,10 @@ public class OpMyTasksFormProvider implements XFormProvider {
    private final static String NEXT_MONTH = "nm";
    private final static String NEXT_2_MONTHS = "n2m";
 
-   private final static String NEW_COMMENT = "NewCommentButton";
+   private final static String NEW_COMMENT_BUTTON = "NewCommentButton";
    private final static String INFO_BUTTON = "InfoButton";
    private final static String PRINT_BUTTON = "PrintButton";
-   private final static String NEW_ADHOC = "NewAdhocButton";
+   private final static String NEW_ADHOC_BUTTON = "NewAdhocButton";
 
    private final static String NO_RESOURCES_FOR_USER_ID = "NoResourcesForUser";
    private final static String MESSAGE_LABEL_ID = "MessageLabel";
@@ -80,55 +84,82 @@ public class OpMyTasksFormProvider implements XFormProvider {
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
       OpBroker broker = session.newBroker();
+      try {
+         Map<String, List<String>> projectsResourcesMap = OpProjectDataSetFactory.getProjectToResourceMap(session);
 
-      Map<String, List<String>> projectsResourcesMap = this.getProjectToResourcesViewMap(session);
+         //check the case when the current user doesn't  see any resources
+         if (projectsResourcesMap.isEmpty()) {
+            handleNoResources(form);
+            return;
+         }
 
-      //check the case when the current user doesn't  see any resources
-      if (projectsResourcesMap.isEmpty()) {
-         handleNoResources(form);
+         OpUser user = session.user(broker);
+         //check the manager rights
+         if (OpSubjectDataSetFactory.shouldHideFromUser(session, user)) {
+            ((OpProjectComponent) form.findComponent(ACTIVITY_GANTT_CHART)).setShowCosts(false);
+         }
+
+         fillWorkslipData(form, broker, user);
+
+         form.findComponent(PRINT_TITLE).setStringValue(user.getName());
+
+         //fill this form's filters
+         this.fillResourceFilter(form, projectsResourcesMap);
+         this.fillProjectFilter(form, projectsResourcesMap);
+
+         XComponent dataSet = form.findComponent(ACTIVITY_SET);
+
+         if (dataSet.selectedRows().size() == 0) {
+            form.findComponent(NEW_COMMENT_BUTTON).setEnabled(false);
+         }
+
+         //create the activity filter
+         OpActivityFilter activityFilter = createActivityFilter(session, broker, parameters, form, user.getResources(), projectsResourcesMap);
+         //retrieve the activities
+         this.fillActivityDataSet(activityFilter, user, broker, dataSet);
+
+         // check buttons that need enabling or disabling
+         this.checkButtons(dataSet, form, projectsResourcesMap);
+
+         // fill category color data set
+         XComponent categoryColorDataSet = form.findComponent(CATEGORY_COLOR_DATA_SET);
+         OpActivityDataSetFactory.fillCategoryColorDataSet(broker, categoryColorDataSet);
+
+         // fill delete permission data set
+         XComponent deletePermissionSet = form.findComponent(DELETE_PERMISSION_SET);
+         fillDeletePermissionDataSet((OpProjectSession) s, broker, dataSet, deletePermissionSet);
+
+         //fill the availability map
+         XComponent resourceAvailability = form.findComponent(RESOURCE_AVAILABILITY);
+         Map<String, Double> availabilityMap = OpResourceDataSetFactory.createResourceAvailabilityMap(broker);
+         resourceAvailability.setValue(availabilityMap);
+      }
+      finally {
          broker.close();
-         return;
       }
+   }
 
-      OpUser user = (OpUser) (broker.getObject(OpUser.class, session.getUserID()));
-      //check the manager rights
-      if (OpSubjectDataSetFactory.shouldHideFromUser(user)) {
-         ((OpProjectComponent) form.findComponent(ACTIVITY_GANTT_CHART)).setShowCosts(false);
+   /**
+    * Fills the work slip form data fields with existing work slip information.
+    *
+    * @param form my task form
+    * @param broker current  broker
+    * @param user session user
+    */
+   private void fillWorkslipData(XComponent form, OpBroker broker, OpUser user) {
+      Date today = XCalendar.today();
+      OpQuery query = broker.newQuery("select workslip.ID, workslip.State from OpWorkSlip workslip where workslip.Date = :wsDate and workslip.Creator.ID = :user");
+      query.setDate("wsDate", today);
+      query.setLong("user", user.getID());
+      Iterator iterator = broker.iterate(query);
+      if (iterator.hasNext()) {
+         Object[] results = (Object[]) iterator.next();
+         long id = (Long) results[0];
+         String locator = OpLocator.locatorString(OpTypeManager.getPrototypeByClassName(OpWorkSlip.class.getName()), id);
+         form.findComponent(EXISTING_WORK_SLIP).setValue(locator);
+         int state = (Integer) results[1];
+         form.findComponent(EDITABLE_WORK_SLIP).setBooleanValue(state == OpWorkSlip.STATE_EDITABLE);
       }
-      form.findComponent(PRINT_TITLE).setStringValue(user.getName());
-
-      //fill this form's filters
-      this.fillResourceFilter(form, projectsResourcesMap);
-      this.fillProjectFilter(form, projectsResourcesMap);
-
-      XComponent dataSet = form.findComponent(ACTIVITY_SET);
-
-      if (dataSet.selectedRows().size() == 0) {
-         form.findComponent(NEW_COMMENT).setEnabled(false);
-      }
-      
-      //create the activity filter
-      OpActivityFilter activityFilter = createActivityFilter(session, broker, parameters, form, user.getResources(), projectsResourcesMap);
-      //retrieve the activities
-      this.fillActivityDataSet(activityFilter, user, broker, dataSet);
-
-      // check buttons that need enabling or disabling
-      this.checkButtons(dataSet, form, projectsResourcesMap);
-
-      // fill category color data set
-      XComponent categoryColorDataSet = form.findComponent(CATEGORY_COLOR_DATA_SET);
-      OpActivityDataSetFactory.fillCategoryColorDataSet(broker, categoryColorDataSet);
-
-      // fill delete permission data set
-      XComponent deletePermissionSet = form.findComponent(DELETE_PERMISSION_SET);
-      fillDeletePermissionDataSet((OpProjectSession) s, broker, dataSet, deletePermissionSet);
-
-      //fill the availability map
-      XComponent resourceAvailability = form.findComponent(RESOURCE_AVAILABILITY);
-      Map<String, Double> availabilityMap = OpResourceDataSetFactory.createResourceAvailabilityMap(broker);
-      resourceAvailability.setValue(availabilityMap);
-
-      broker.close();
    }
 
    /**
@@ -153,7 +184,7 @@ public class OpMyTasksFormProvider implements XFormProvider {
 
       // Retrieve filtered and ordered activity data-set
       XComponent unsortedDataSet = new XComponent(XComponent.DATA_SET);
-      Boolean showHours = getShowHoursPreference(user);
+      Boolean showHours = getShowHoursPreference(broker, user);
       unsortedDataSet.setValue(showHours);
       OpActivityDataSetFactory.retrieveFilteredActivityDataSet(broker, activityFilter, orderCriteria, unsortedDataSet);
       Map<Integer, String> indexIdMap = createIndexIdMap(unsortedDataSet);
@@ -162,46 +193,6 @@ public class OpMyTasksFormProvider implements XFormProvider {
 
       //rebuild the successors and predecessors indexes in the dataset
       OpActivityDataSetFactory.rebuildPredecessorsSuccessorsIndexes(dataSet, indexIdMap, idIndexMap);
-   }
-
-   /**
-    * Returns a map of projects and list of resources for each project, where the current user is
-    * at least observer on the project.
-    *
-    * @param session Current project session (used for db access and current user)
-    * @return Map of key: project_locator/project_name choice -> value: List of resource_locator/resource_name choices
-    */
-   private Map<String, List<String>> getProjectToResourcesViewMap(OpProjectSession session) {
-      Map<String, List<String>> projectsMap = new HashMap<String, List<String>>();
-      OpBroker broker = session.newBroker();
-      long userId = session.getUserID();
-
-      // add all the resources for which is responsible from project where the user has contributer access
-      List<Byte> levels = new ArrayList<Byte>();
-
-      //add only the responsible resources for the projects where the user is  OBSERVER, CONTRIBUTOR, ADMINISTRATOR or MANAGER
-      levels.add(OpPermission.OBSERVER);
-      levels.add(OpPermission.CONTRIBUTOR);
-      levels.add(OpPermission.ADMINISTRATOR);
-      levels.add(OpPermission.MANAGER);
-      List<Long> projectIds = OpProjectDataSetFactory.getProjectsByPermissions(session, broker, levels);
-      for (Long id : projectIds) {
-         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
-         List<String> allResources = new ArrayList<String>();
-         for (OpProjectNodeAssignment assignment : project.getAssignments()) {
-            OpResource resource = assignment.getResource();
-            boolean isResponsible = resource.getUser() != null && resource.getUser().getID() == userId;
-            if (isResponsible || session.checkAccessLevel(broker, resource.getID(), OpPermission.MANAGER)) {
-               allResources.add(XValidator.choice(resource.locator(), resource.getName()));
-            }
-         }
-         if (!allResources.isEmpty()) {
-            projectsMap.put(XValidator.choice(project.locator(), project.getName()), allResources);
-         }
-      }
-
-      broker.close();
-      return projectsMap;
    }
 
    /**
@@ -233,10 +224,10 @@ public class OpMyTasksFormProvider implements XFormProvider {
     * @param user a <code>OpUser</code> representing the current user.
     * @return a <code>Boolean</code> indicating whether to show assignments in hours or not.
     */
-   private Boolean getShowHoursPreference(OpUser user) {
+   private Boolean getShowHoursPreference(OpBroker broker, OpUser user) {
       String showHoursPref = user.getPreferenceValue(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
       if (showHoursPref == null) {
-         showHoursPref = OpSettingsService.getService().get(OpSettings.SHOW_RESOURCES_IN_HOURS);
+         showHoursPref = OpSettingsService.getService().get(broker, OpSettings.SHOW_RESOURCES_IN_HOURS);
       }
       return Boolean.valueOf(showHoursPref);
    }
@@ -246,19 +237,19 @@ public class OpMyTasksFormProvider implements XFormProvider {
     *
     * @param form a <code>XComponent(FORM)</code> representing the my tasks form.
     */
-   private void handleNoResources(XComponent form) {
-      form.findComponent(NEW_COMMENT).setEnabled(false);
-      form.findComponent(INFO_BUTTON).setEnabled(false);
-      form.findComponent(PRINT_BUTTON).setEnabled(false);
-      form.findComponent(NEW_ADHOC).setEnabled(false);
-      form.findComponent(PROJECT_CHOICE_FIELD).setEnabled(false);
-      form.findComponent(START_TIME_CHOICE_FIELD).setEnabled(false);
-      form.findComponent(RESOURCE_CHOICE_FIELD).setEnabled(false);
-
+   protected void handleNoResources(XComponent form) {
       //show the error
       XComponent errorLabel = form.findComponent(MESSAGE_LABEL_ID);
       errorLabel.setText(form.findComponent(NO_RESOURCES_FOR_USER_ID).getText());
       errorLabel.setVisible(true);
+
+      form.findComponent(NEW_COMMENT_BUTTON).setEnabled(false);
+      form.findComponent(INFO_BUTTON).setEnabled(false);
+      form.findComponent(PRINT_BUTTON).setEnabled(false);
+      form.findComponent(NEW_ADHOC_BUTTON).setEnabled(false);
+      form.findComponent(PROJECT_CHOICE_FIELD).setEnabled(false);
+      form.findComponent(START_TIME_CHOICE_FIELD).setEnabled(false);
+      form.findComponent(RESOURCE_CHOICE_FIELD).setEnabled(false);
    }
 
 
@@ -275,7 +266,7 @@ public class OpMyTasksFormProvider implements XFormProvider {
          XComponent row = (XComponent) dataSet.getChild(i);
          String locator = row.getStringValue();
          OpActivity activity = (OpActivity) broker.getObject(locator);
-         boolean delete = OpMyTasksServiceImpl.deleteGranted(s, activity);
+         boolean delete = OpMyTasksServiceImpl.deleteGranted(s, broker, activity);
          XComponent delRow = new XComponent(XComponent.DATA_ROW);
          delRow.setBooleanValue(delete);
          deletePermissionSet.addChild(delRow);
@@ -306,15 +297,15 @@ public class OpMyTasksFormProvider implements XFormProvider {
     * @param form             current form
     * @param adhocProjectsMap project->(list of resources) map.
     */
-   private void checkButtons(XComponent dataSet, XComponent form, Map adhocProjectsMap) {
+   protected void checkButtons(XComponent dataSet, XComponent form, Map adhocProjectsMap) {
       //if dataset is empty, disable all the buttons
       if (dataSet.getChildCount() == 0) {
-         form.findComponent(NEW_COMMENT).setEnabled(false);
+         form.findComponent(NEW_COMMENT_BUTTON).setEnabled(false);
          form.findComponent(INFO_BUTTON).setEnabled(false);
          form.findComponent(PRINT_BUTTON).setEnabled(false);
       }
       if (adhocProjectsMap.isEmpty()) {
-         form.findComponent(NEW_ADHOC).setEnabled(false);
+         form.findComponent(NEW_ADHOC_BUTTON).setEnabled(false);
       }
    }
 

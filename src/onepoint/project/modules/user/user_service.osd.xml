@@ -1,4 +1,4 @@
-<service name="UserService" class="onepoint.project.modules.user.OpUserService" interceptor="onepoint.project.modules.user.OpUserServiceInterceptor">
+<service name="UserService" class="onepoint.project.modules.user.OpUserService" interceptor="onepoint.project.modules.user.OpPermissionCheckServiceInterceptor">
    <method name="assignToGroup" adminCheck="true">
       <parameter name="subject_ids" instance-class="java.util.ArrayList" mode="input"/>
       <parameter name="target_group_id" instance-class="java.lang.String" mode="input"/>

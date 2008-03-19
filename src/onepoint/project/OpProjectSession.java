@@ -4,11 +4,32 @@
 
 package onepoint.project;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimeZone;
+
 import onepoint.error.XErrorMap;
 import onepoint.express.server.XExpressSession;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.*;
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpObject;
+import onepoint.persistence.OpObjectOrderCriteria;
+import onepoint.persistence.OpPersistenceManager;
+import onepoint.persistence.OpQuery;
+import onepoint.persistence.OpSource;
+import onepoint.persistence.OpSourceManager;
+import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.settings.OpSettings;
@@ -25,19 +46,8 @@ import onepoint.service.XMessage;
 import onepoint.service.XSizeInputStream;
 import onepoint.service.server.XSession;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.*;
-
 public class OpProjectSession extends XExpressSession {
 
-   /**
-    * Thread local OpProjectSession. Used by all Xml-Rpc service implementations to get the
-    * OpProjectSession.
-    */
-   static ThreadLocal<OpProjectSession> opProjectSession = new ThreadLocal<OpProjectSession>();
    /**
     * This class logger.
     */
@@ -64,7 +74,7 @@ public class OpProjectSession extends XExpressSession {
       }
       else {
          super.setLocale(XLocaleManager.getDefaultLocale());
-         super.setLocalizerParameters(OpSettingsService.getI18NParametersMap());
+         super.setLocalizerParameters(OpSettingsService.getI18NParametersMap(this));
       }
    }
 
@@ -88,24 +98,28 @@ public class OpProjectSession extends XExpressSession {
       this.sourceName = sourceName;
 
       OpBroker broker = newBroker();
-      if (broker.getConnection() != null && broker.getConnection().isValid()) {
-         resetLocaleToSystemDefault();
+      try {
+         if (broker.getConnection() != null && broker.getConnection().isValid()) {
+            resetLocaleToSystemDefault();
 
-         lookUpAdministratorID(broker);
-         lookUpEveryoneID(broker);
+            lookUpAdministratorID(broker);
+            lookUpEveryoneID(broker);
+         }
+         else {
+            super.setLocale(XLocaleManager.getDefaultLocale());
+         }
+         super.setLocalizerParameters(OpSettingsService.getI18NParametersMap(this));
+      }
+      finally {
          broker.close();
       }
-      else {
-         super.setLocale(XLocaleManager.getDefaultLocale());
-      }
-      super.setLocalizerParameters(OpSettingsService.getI18NParametersMap());
    }
 
    /**
     * Resets the session locale to the system default locale.
     */
    public void resetLocaleToSystemDefault() {
-      XLocale default_locale = XLocaleManager.findLocale(OpSettingsService.getService().get(OpSettings.USER_LOCALE));
+      XLocale default_locale = XLocaleManager.findLocale(OpSettingsService.getService().get(this, OpSettings.USER_LOCALE_ID));
       super.setLocale(default_locale);
    }
 
@@ -251,29 +265,13 @@ public class OpProjectSession extends XExpressSession {
    }
 
    public byte effectiveAccessLevel(OpBroker broker, long objectId) {
-      // Site administrator has always administrative access
-      if (userId == administratorId) {
-         return OpPermission.ADMINISTRATOR;
-      }
-      // Invoke max-query on the object's permissions
-      // TODO: Cache queries?
-      OpQuery query = broker
-           .newQuery("select max(permission.AccessLevel) from OpPermission as permission where permission.Object.ID = (:objectId) and permission.Subject.ID in (:subjectIds)");
-      query.setLong("objectId", objectId);
-      query.setCollection("subjectIds", getSubjectIds());
-      Iterator result = broker.iterate(query);
-      // No permissions mean access level zero (i.e., no access at all)
-      Byte userAccessLevel = (Byte) result.next();
-      if (userAccessLevel == null) {
-         return 0;
-      }
+      Byte userAccessLevel = effectivePermissions(broker, objectId);
+      
       // Check for locks and respective lock owners
-
-      // Check for locks and respective lock owners
-      query = broker.newQuery("select lock from OpLock as lock where lock.Target.ID = ? and lock.Owner.ID != ?");
+      OpQuery query = broker.newQuery("select lock from OpLock as lock where lock.Target.ID = ? and lock.Owner.ID != ?");
       query.setLong(0, objectId);
       query.setLong(1, getUserID());
-      result = broker.iterate(query);
+      Iterator result = broker.iterate(query);
       // If someone beside the current user has a lock: Downgrade the user access level accordingly
       OpLock lock;
       boolean otherLockersExist = false;
@@ -287,9 +285,36 @@ public class OpProjectSession extends XExpressSession {
       }
       return userAccessLevel;
    }
+   
+   public byte effectivePermissions(OpBroker broker, long objectId) {
+      // Site administrator has always administrative access
+      if (userId == administratorId) {
+         return OpPermission.ADMINISTRATOR;
+      }
+      // Invoke max-query on the object's permissions
+      // TODO: Cache queries?
+      OpQuery query = broker
+           .newQuery("select max(permission.AccessLevel) from OpPermission as permission where permission.Object.ID = (:objectId) and permission.Subject.ID in (:subjectIds)");
+      query.setLong("objectId", objectId);
+      query.setCollection("subjectIds", getSubjectIds());
+      Iterator result = broker.iterate(query);
+      // No permissions mean access level zero (i.e., no access at all)
+      if (result == null) {
+         return 0;
+      }
+      Byte userAccessLevel = (Byte) result.next();
+      if (userAccessLevel == null) {
+         return 0;
+      }
+      return userAccessLevel;
+   }
 
    public boolean checkAccessLevel(OpBroker broker, long objectId, byte accessLevel) {
       return effectiveAccessLevel(broker, objectId) >= accessLevel;
+   }
+
+   public boolean checkPermissions(OpBroker broker, long objectId, byte accessLevel) {
+      return effectivePermissions(broker, objectId) >= accessLevel;
    }
 
    public Map effectiveAccessLevels(OpBroker broker, List objectIds) {
@@ -352,9 +377,19 @@ public class OpProjectSession extends XExpressSession {
       return accessibleIds;
    }
 
+   /**
+    * retrives all object af a certain type w´here I have at least accessLevel to
+    * if objectIds is null, all objects of that type are looked at otherwise 
+    * objectIds are the starting point
+    * @param broker
+    * @param objectIds the set of Ids to start with
+    * @param accessLevel the level I want to have
+    * @param order an order is abused here to specify type and - guess what - an order ;-)
+    * @return
+    */
    public Iterator accessibleObjects(OpBroker broker, Collection objectIds, byte accessLevel, OpObjectOrderCriteria order) {
       // Checks whether objects are accessible (i.e., observer access level) while retrieving them
-      if (objectIds.size() == 0) {
+      if (objectIds != null && objectIds.size() == 0) {
          return objectIds.iterator();
       }
       String entityName = order.getObjectName();
@@ -367,10 +402,15 @@ public class OpProjectSession extends XExpressSession {
          StringBuffer queryString = new StringBuffer();
          queryString.append("select accessibleObject from ");
          queryString.append(entityName);
-         queryString.append(" as accessibleObject where accessibleObject.ID in (:objectIds)");
+         queryString.append(" as accessibleObject ");
+         if (objectIds != null) {
+            queryString.append(" where accessibleObject.ID in (:objectIds)");
+         }
          queryString.append(sortQuery);
          OpQuery query = broker.newQuery(queryString.toString());
-         query.setCollection("objectIds", objectIds);
+         if (objectIds != null) {
+            query.setCollection("objectIds", objectIds);
+         }
          Iterator result = broker.iterate(query);
          OpObject object;
          while (result.hasNext()) {
@@ -390,13 +430,19 @@ public class OpProjectSession extends XExpressSession {
          queryBuffer.append(" from ");
          queryBuffer.append(entityName);
          queryBuffer.append(" as accessibleObject inner join accessibleObject.Permissions as permission");
-         queryBuffer.append(" where accessibleObject.ID in (:objectIds) and permission.Subject.ID in (:subjectIds)");
-         queryBuffer.append(" group by accessibleObject.ID");
+         queryBuffer.append(" where ");
+         if (objectIds != null) {
+            queryBuffer.append("  accessibleObject.ID in (:objectIds) and ");
+         }
+         queryBuffer.append("  permission.Subject.ID in (:subjectIds) ");
+         queryBuffer.append(" group by accessibleObject.ID ");
          queryBuffer.append(groupByString);
          queryBuffer.append(" having max(permission.AccessLevel) >= :accessLevel");
          queryBuffer.append(sortQuery);
          OpQuery query = broker.newQuery(queryBuffer.toString());
-         query.setCollection("objectIds", objectIds);
+         if (objectIds != null) {
+            query.setCollection("objectIds", objectIds);
+         }
          query.setCollection("subjectIds", getSubjectIds());
          query.setByte("accessLevel", accessLevel);
          Iterator result = broker.iterate(query);
@@ -418,7 +464,11 @@ public class OpProjectSession extends XExpressSession {
       }
       // Correct effective access levels by retrieving not-owned locks
       OpQuery query = broker
-           .newQuery("select accessibleObject.ID, count(lock.ID) from OpObject as accessibleObject inner join accessibleObject.Locks as lock where accessibleObject.ID in (:accessibleIds) and lock.Owner.ID = :userId group by accessibleObject.ID");
+           .newQuery("select accessibleObject.ID, count(lock.ID) " +
+           		"from OpObject as accessibleObject inner join accessibleObject.Locks as lock " +
+           		"where " +
+           		"accessibleObject.ID in (:accessibleIds) " +
+           		"and lock.Owner.ID = :userId group by accessibleObject.ID");
       query.setCollection("accessibleIds", accessibleObjectMap.keySet());
       query.setLong("userId", userId);
       Iterator result = broker.iterate(query);
@@ -485,8 +535,8 @@ public class OpProjectSession extends XExpressSession {
    }
 
    /**
-    * @see onepoint.service.server.XSession#cleanupSession(boolean)
     * @param clearCache
+    * @see onepoint.service.server.XSession#cleanupSession(boolean)
     */
    public void cleanupSession(boolean clearCache) {
       super.cleanupSession(clearCache);
@@ -557,32 +607,6 @@ public class OpProjectSession extends XExpressSession {
    }
 
    /**
-    * Gets the OpProjectSession held as thread local.
-    *
-    * @return the thread depending OpProjectSession.
-    */
-   public static OpProjectSession getSession() {
-      return opProjectSession.get();
-   }
-
-   /**
-    * Sets the given session as thread local.
-    *
-    * @param session the session to set
-    */
-   public static void setSession(OpProjectSession session) {
-      opProjectSession.set(session);
-   }
-
-   /**
-    * Removes the thread local session
-    */
-   public static void removeSession() {
-      opProjectSession.set(null);
-      //remove() in >= java 1.5;
-   }
-
-   /**
     * @see onepoint.service.server.XSession#invalidate()
     */
    @Override
@@ -609,54 +633,46 @@ public class OpProjectSession extends XExpressSession {
             long maxFileSize = OpInitializerFactory.getInstance().getInitializer().getMaxAttachmentSizeBytes();
             String error = "Files larger than the configured size of " + maxFileSize + " are not allowed. Aborting transaction";
             OpBroker broker = newBroker();
-            for (Map.Entry<String, File> entry : files.entrySet()) {
-               String id = entry.getKey();
-               File file = entry.getValue();
-               if (file.length() > maxFileSize) {
-                  logger.error(error);
-                  throw new IOException(error);
-               }
-               if (processed.keySet().contains(file)) {
-                  // this file was already processed, reuse the content
-                  contents.put(id, processed.get(file));
-               }
-               else {
-                  // process the file for the first time
-                  try {
-                     XSizeInputStream stream = new XSizeInputStream(new FileInputStream(file), file.length());
-                     String mimeType = OpContentManager.getFileMimeType(file.getName());
-                     OpContent content = OpContentManager.newContent(stream, mimeType, 0);
-
-                     OpTransaction t = broker.newTransaction();
-                     broker.makePersistent(content);
-                     t.commit();
-
-                     String contentId = content.locator();
-                     contents.put(id, contentId);
-                     processed.put(file, contentId);
+            try {
+               for (Map.Entry<String, File> entry : files.entrySet()) {
+                  String id = entry.getKey();
+                  File file = entry.getValue();
+                  if (file.length() > maxFileSize) {
+                     logger.error(error);
+                     throw new IOException(error);
                   }
-                  catch (FileNotFoundException e) {
-                     logger.error("The file: " + file.getAbsolutePath() + " could not be found to be persisted.");
-                     contents.put(id, null);
+                  if (processed.keySet().contains(file)) {
+                     // this file was already processed, reuse the content
+                     contents.put(id, processed.get(file));
+                  }
+                  else {
+                     // process the file for the first time
+                     try {
+                        XSizeInputStream stream = new XSizeInputStream(new FileInputStream(file), file.length());
+                        String mimeType = OpContentManager.getFileMimeType(file.getName());
+                        OpContent content = OpContentManager.newContent(stream, mimeType, 0);
+
+                        OpTransaction t = broker.newTransaction();
+                        broker.makePersistent(content);
+                        t.commit();
+
+                        String contentId = content.locator();
+                        contents.put(id, contentId);
+                        processed.put(file, contentId);
+                     }
+                     catch (FileNotFoundException e) {
+                        logger.error("The file: " + file.getAbsolutePath() + " could not be found to be persisted.");
+                        contents.put(id, null);
+                     }
                   }
                }
             }
-            broker.close();
+            finally {
+               broker.close();
+            }
             message.insertObjectsIntoArguments(contents);
          }
       }
-   }
-
-   /**
-    * Delete the contents from the database which are not refered by a container object.
-    */
-   public void deleteUnreferedContents() {
-      OpBroker broker = newBroker();
-      OpTransaction t = broker.newTransaction();
-      OpQuery query = broker.newQuery("delete OpContent content where content.RefCount = 0");
-      broker.execute(query);
-      t.commit();
-      broker.close();
    }
 
    /**
@@ -669,18 +685,27 @@ public class OpProjectSession extends XExpressSession {
 
    /**
     * The list of all the project sessions belonging to the same site and to the same server as the current session
-    *    (INCLUDING the id of the current session).
+    * (INCLUDING the id of the current session).
     *
     * @return the list of all the project sessions belonging to the same site and to the same server as the current
-    *    session (INCLUDING the id of the current session).
+    *         session (INCLUDING the id of the current session).
     */
    public List<Integer> getIdsOfSessionsWithSameSource() {
       List<Integer> idsList = new ArrayList<Integer>();
-      for(XSession session : getServer().getAllSessions()) {
-         if(session instanceof OpProjectSession && ((OpProjectSession) session).getSourceName().equals(getSourceName())) {
+      for (XSession session : getServer().getAllSessions()) {
+         if (session instanceof OpProjectSession && ((OpProjectSession) session).getSourceName().equals(getSourceName())) {
             idsList.add(session.getID());
          }
       }
       return idsList;
+   }
+
+   /**
+    * Checks if this session is the default session - meaning its source is the default source.
+    *
+    * @return a <code>true</code> if the project session is initialized with the default source.
+    */
+   public boolean isDefaultSession() {
+      return OpSource.DEFAULT_SOURCE_NAME.equals(this.sourceName);
    }
 }

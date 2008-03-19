@@ -14,15 +14,12 @@ import onepoint.project.modules.project_planning.OpProjectPlanningModuleChecker;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.test.OpResourceTestDataFactory;
-import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.test.OpUserTestDataFactory;
 import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.test.OpBaseOpenTestCase;
 import onepoint.project.test.OpTestDataFactory;
 import onepoint.service.XMessage;
 
 import java.sql.Date;
-import java.util.List;
 
 /**
  * Test class for the project planing module checker.
@@ -62,6 +59,7 @@ public class OpProjectPlanningModuleCheckerTest extends OpBaseOpenTestCase {
     *
     * @throws Exception If setup process can not be successfuly finished
     */
+   @Override
    protected void setUp()
         throws Exception {
       super.setUp();
@@ -90,31 +88,26 @@ public class OpProjectPlanningModuleCheckerTest extends OpBaseOpenTestCase {
       response = OpTestDataFactory.getProjectService().insertProject(session, request);
       assertNoError(response);
       String projectLocator = projectFactory.getProjectId(PROJECT_NAME);
-      OpBroker broker = session.newBroker();
-      try {
-         planLocator = projectFactory.getProjectById(broker, projectLocator).getPlan().locator();
+      planLocator = projectFactory.getProjectById(projectLocator).getPlan().locator();
 
-         //insert two activities for the project
-         Date activity1Start = new Date(getCalendarWithExactDaySet(2007, 10, 12).getTimeInMillis());
-         Date activity1Finish = new Date(getCalendarWithExactDaySet(2007, 10, 14).getTimeInMillis());
-         activity1Locator = insertActivity(PROJECT_NAME, ACTIVITY_NAME + 1, OpActivity.STANDARD, activity1Start, activity1Finish);
-         activity2Locator = insertActivity(PROJECT_NAME, ACTIVITY_NAME + 2, OpActivity.STANDARD, activity1Start, activity1Finish);
-      }
-      finally {
-         broker.close();
-      }
+      //insert two activities for the project
+      Date activity1Start = new Date(getCalendarWithExactDaySet(2007, 10, 12).getTimeInMillis());
+      Date activity1Finish = new Date(getCalendarWithExactDaySet(2007, 10, 14).getTimeInMillis());
+      activity1Locator = insertActivity(PROJECT_NAME, ACTIVITY_NAME + 1, OpActivity.STANDARD, activity1Start, activity1Finish);
+      activity2Locator = insertActivity(PROJECT_NAME, ACTIVITY_NAME + 2, OpActivity.STANDARD, activity1Start, activity1Finish);
    }
 
-     /**
-      * Base teardown
-      *
-      * @throws Exception If tearDown process can not be successfuly finished
-      */
-     protected void tearDown()
-          throws Exception {
-        clean();
-        super.tearDown();
-     }
+   /**
+    * Base teardown
+    *
+    * @throws Exception If tearDown process can not be successfuly finished
+    */
+   @Override
+   protected void tearDown()
+        throws Exception {
+      clean();
+      super.tearDown();
+   }
 
    /**
     * Test the project planning module checker when no project and no activities are present in the DB.
@@ -143,30 +136,23 @@ public class OpProjectPlanningModuleCheckerTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       String projectLocator = projectFactory.getProjectId(PROJECT_NAME1);
-      OpBroker broker = session.newBroker();
-      try {
-         OpProjectNode project = projectFactory.getProjectById(broker, projectLocator);
+      OpProjectNode project = projectFactory.getProjectById(projectLocator);
 
-         //by this time the project plan should have its start and finish dates set
-         assertEquals(startDate, project.getPlan().getStart());
-         assertEquals(finishDate, project.getPlan().getFinish());
+      //by this time the project plan should have its start and finish dates set
+      assertEquals(startDate, project.getPlan().getStart());
+      assertEquals(finishDate, project.getPlan().getFinish());
 
-         projectPlanningChecker.check(session);
+      projectPlanningChecker.check(session);
 
-         //the project planning checker shouldn't have changed the start and finish dates of the project plan
-//       OpBroker broker = session.newBroker();
-         project = (OpProjectNode) broker.getObject(OpProjectNode.class, project.getID());
-         assertEquals(startDate, project.getPlan().getStart());
-         assertEquals(finishDate, project.getPlan().getFinish());
-      } 
-      finally { 
-         broker.close();
-      }
+      //the project planning checker shouldn't have changed the start and finish dates of the project plan
+      project = projectFactory.getProjectById(project.getID());
+      assertEquals(startDate, project.getPlan().getStart());
+      assertEquals(finishDate, project.getPlan().getFinish());
    }
 
    /**
     * Test the project planning module checker when there is only one project with no activities. The finish date
-    *    of the project is not set.
+    * of the project is not set.
     *
     * @throws Exception if the test fails
     */
@@ -180,29 +166,22 @@ public class OpProjectPlanningModuleCheckerTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       String projectLocator = projectFactory.getProjectId(PROJECT_NAME1);
-      OpBroker broker = session.newBroker();
-      try {
-         OpProjectNode project = projectFactory.getProjectById(broker, projectLocator);
+      OpProjectNode project = projectFactory.getProjectById(projectLocator);
 
-         assertEquals(startDate, project.getPlan().getStart());
-         assertEquals(startDate, project.getPlan().getFinish());
+      assertEquals(startDate, project.getPlan().getStart());
+      assertEquals(startDate, project.getPlan().getFinish());
 
-         projectPlanningChecker.check(session);
+      projectPlanningChecker.check(session);
 
-         //the project plan should have the finish date the same as the start date
-         // OpBroker broker = session.newBroker();
-         project = (OpProjectNode) broker.getObject(OpProjectNode.class, project.getID());
-         assertEquals(startDate, project.getPlan().getStart());
-         assertEquals(startDate, project.getPlan().getFinish());
-      }
-      finally {
-         broker.close();
-      }
+      //the project plan should have the finish date the same as the start date
+      project = projectFactory.getProjectById(project.getID());
+      assertEquals(startDate, project.getPlan().getStart());
+      assertEquals(startDate, project.getPlan().getFinish());
    }
 
    /**
     * Test the project planning module checker when there is only one project with one standard activity. The finish
-    *    date of the project is not set.
+    * date of the project is not set.
     *
     * @throws Exception if the test fails
     */
@@ -215,34 +194,25 @@ public class OpProjectPlanningModuleCheckerTest extends OpBaseOpenTestCase {
       XMessage response = projectService.insertProject(session, request);
       assertNoError(response);
 
-      OpBroker broker = session.newBroker();
-      try {
-         String projectLocator = projectFactory.getProjectId(PROJECT_NAME1);
-         OpProjectNode project = projectFactory.getProjectById(broker, projectLocator);
+      String projectLocator = projectFactory.getProjectId(PROJECT_NAME1);
+      OpProjectNode project = projectFactory.getProjectById(projectLocator);
 
-         //insert the activity for the given project
-         Date activityStart = new Date(getCalendarWithExactDaySet(2007, 10, 11).getTimeInMillis());
-         Date activityFinish = new Date(getCalendarWithExactDaySet(2007, 10, 15).getTimeInMillis());
-         insertActivity(PROJECT_NAME1, ACTIVITY_NAME1, OpActivity.STANDARD, activityStart, activityFinish);
+      //insert the activity for the given project
+      Date activityStart = new Date(getCalendarWithExactDaySet(2007, 10, 11).getTimeInMillis());
+      Date activityFinish = new Date(getCalendarWithExactDaySet(2007, 10, 15).getTimeInMillis());
+      insertActivity(PROJECT_NAME1, ACTIVITY_NAME1, OpActivity.STANDARD, activityStart, activityFinish);
 
-         assertEquals(startDate, project.getPlan().getStart());
-         assertEquals(startDate, project.getPlan().getFinish());
+      assertEquals(startDate, project.getPlan().getStart());
+      assertEquals(startDate, project.getPlan().getFinish());
 
-         projectPlanningChecker.check(session);
+      projectPlanningChecker.check(session);
 
-         //the project plan should have the same finish date as the activity's finish date
-         // FIXME(dfreis Nov 5, 2007 7:41:05 AM) { using the same broker did not work }
-         broker.close();
-         broker = session.newBroker();
-         project = (OpProjectNode) broker.getObject(OpProjectNode.class, project.getID());
-         assertEquals(startDate, project.getPlan().getStart());
-         assertEquals(activityFinish, project.getPlan().getFinish());
-      }
-      finally {
-         broker.close();
-      }
+      //the project plan should have the same finish date as the activity's finish date
+      project = projectFactory.getProjectById(project.getID());
+      assertEquals(startDate, project.getPlan().getStart());
+      assertEquals(activityFinish, project.getPlan().getFinish());
    }
-   
+
    /**
     * Test the project planning module checker when there is only one project with one standard activity. The finish
     * date of the project is set.
@@ -259,35 +229,28 @@ public class OpProjectPlanningModuleCheckerTest extends OpBaseOpenTestCase {
       XMessage response = projectService.insertProject(session, request);
       assertNoError(response);
 
-      OpBroker broker = session.newBroker();
-      try {
-         String projectLocator = projectFactory.getProjectId(PROJECT_NAME1);
-         OpProjectNode project = projectFactory.getProjectById(broker, projectLocator);
+      String projectLocator = projectFactory.getProjectId(PROJECT_NAME1);
+      OpProjectNode project = projectFactory.getProjectById(projectLocator);
 
-         //insert the activity for the given project
-         Date activityStart = new Date(getCalendarWithExactDaySet(2007, 10, 11).getTimeInMillis());
-         Date activityFinish = new Date(getCalendarWithExactDaySet(2007, 10, 15).getTimeInMillis());
-         insertActivity(PROJECT_NAME1, ACTIVITY_NAME1, OpActivity.STANDARD, activityStart, activityFinish);
+      //insert the activity for the given project
+      Date activityStart = new Date(getCalendarWithExactDaySet(2007, 10, 11).getTimeInMillis());
+      Date activityFinish = new Date(getCalendarWithExactDaySet(2007, 10, 15).getTimeInMillis());
+      insertActivity(PROJECT_NAME1, ACTIVITY_NAME1, OpActivity.STANDARD, activityStart, activityFinish);
 
-         assertEquals(startDate, project.getPlan().getStart());
-         assertEquals(finishDate, project.getPlan().getFinish());
+      assertEquals(startDate, project.getPlan().getStart());
+      assertEquals(finishDate, project.getPlan().getFinish());
 
-         projectPlanningChecker.check(session);
+      projectPlanningChecker.check(session);
 
-         //the project plan should have the same finish date as the project's finish date
-         //OpBroker broker = session.newBroker();
-         project = (OpProjectNode) broker.getObject(OpProjectNode.class, project.getID());
-         assertEquals(startDate, project.getPlan().getStart());
-         assertEquals(finishDate, project.getPlan().getFinish());
-      }
-      finally {
-         broker.close();
-      }
+      //the project plan should have the same finish date as the project's finish date
+      project = projectFactory.getProjectById(project.getID());
+      assertEquals(startDate, project.getPlan().getStart());
+      assertEquals(finishDate, project.getPlan().getFinish());
    }
 
    /**
     * Test the project planning module checker when there is only one project with one milestone activity. The finish
-    *    date of the project is not set.
+    * date of the project is not set.
     *
     * @throws Exception if the test fails
     */
@@ -300,32 +263,22 @@ public class OpProjectPlanningModuleCheckerTest extends OpBaseOpenTestCase {
       XMessage response = projectService.insertProject(session, request);
       assertNoError(response);
 
-      OpBroker broker = session.newBroker();
-      try {
-         String projectLocator = projectFactory.getProjectId(PROJECT_NAME1);
-         OpProjectNode project = projectFactory.getProjectById(broker, projectLocator);
+      String projectLocator = projectFactory.getProjectId(PROJECT_NAME1);
+      OpProjectNode project = projectFactory.getProjectById(projectLocator);
 
-         //insert the activity for the given project
-         Date activityStart = new Date(getCalendarWithExactDaySet(2007, 10, 12).getTimeInMillis());
-         insertActivity(PROJECT_NAME1, ACTIVITY_NAME1, OpActivity.MILESTONE, activityStart, activityStart);
+      //insert the activity for the given project
+      Date activityStart = new Date(getCalendarWithExactDaySet(2007, 10, 12).getTimeInMillis());
+      insertActivity(PROJECT_NAME1, ACTIVITY_NAME1, OpActivity.MILESTONE, activityStart, activityStart);
 
-         assertEquals(startDate, project.getPlan().getStart());
-         assertEquals(startDate, project.getPlan().getFinish());
+      assertEquals(startDate, project.getPlan().getStart());
+      assertEquals(startDate, project.getPlan().getFinish());
 
-         projectPlanningChecker.check(session);
+      projectPlanningChecker.check(session);
 
-         //the project plan should have the same finish date as the milestone's finish date
-         // OpBroker broker = session.newBroker();
-         // FIXME(dfreis Nov 5, 2007 7:41:05 AM) { using the same broker did not work }
-         broker.close();
-         broker = session.newBroker();
-         project = (OpProjectNode) broker.getObject(OpProjectNode.class, project.getID());
-         assertEquals(startDate, project.getPlan().getStart());
-         assertEquals(activityStart, project.getPlan().getFinish());
-      }
-      finally {
-         broker.close();
-      }
+      //the project plan should have the same finish date as the milestone's finish date
+      project = projectFactory.getProjectById(project.getID());
+      assertEquals(startDate, project.getPlan().getStart());
+      assertEquals(activityStart, project.getPlan().getFinish());
    }
 
    /**
@@ -343,33 +296,26 @@ public class OpProjectPlanningModuleCheckerTest extends OpBaseOpenTestCase {
       XMessage response = projectService.insertProject(session, request);
       assertNoError(response);
 
-      OpBroker broker = session.newBroker();
-      try {
-         String projectLocator = projectFactory.getProjectId(PROJECT_NAME1);
-         OpProjectNode project = projectFactory.getProjectById(broker, projectLocator);
+      String projectLocator = projectFactory.getProjectId(PROJECT_NAME1);
+      OpProjectNode project = projectFactory.getProjectById(projectLocator);
 
-         //insert the activity for the given project
-         insertActivity(PROJECT_NAME1, ACTIVITY_NAME1, OpActivity.ADHOC_TASK, null, null);
+      //insert the activity for the given project
+      insertActivity(PROJECT_NAME1, ACTIVITY_NAME1, OpActivity.ADHOC_TASK, null, null);
 
-         assertEquals(startDate, project.getPlan().getStart());
-         assertEquals(startDate, project.getPlan().getFinish());
+      assertEquals(startDate, project.getPlan().getStart());
+      assertEquals(startDate, project.getPlan().getFinish());
 
-         projectPlanningChecker.check(session);
+      projectPlanningChecker.check(session);
 
-         //the project plan should have the same finish date as the project's start date
-         //OpBroker broker = session.newBroker();
-         project = (OpProjectNode) broker.getObject(OpProjectNode.class, project.getID());
-         assertEquals(startDate, project.getPlan().getStart());
-         assertEquals(startDate, project.getPlan().getFinish());
-      }
-      finally {
-         broker.close();
-      }
+      //the project plan should have the same finish date as the project's start date
+      project = projectFactory.getProjectById(project.getID());
+      assertEquals(startDate, project.getPlan().getStart());
+      assertEquals(startDate, project.getPlan().getFinish());
    }
 
    /**
     * Test the project planning module checker when there is only one project with two activities. The finish
-    *    date of the project is not set.
+    * date of the project is not set.
     *
     * @throws Exception if the test fails
     */
@@ -382,38 +328,28 @@ public class OpProjectPlanningModuleCheckerTest extends OpBaseOpenTestCase {
       XMessage response = projectService.insertProject(session, request);
       assertNoError(response);
 
-      OpBroker broker = session.newBroker();
-      try {
-         String projectLocator = projectFactory.getProjectId(PROJECT_NAME1);
-         OpProjectNode project = projectFactory.getProjectById(broker, projectLocator);
+      String projectLocator = projectFactory.getProjectId(PROJECT_NAME1);
+      OpProjectNode project = projectFactory.getProjectById(projectLocator);
 
-         //insert the two activities for the given project
-         Date activityStart = new Date(getCalendarWithExactDaySet(2007, 10, 12).getTimeInMillis());
-         insertActivity(PROJECT_NAME1, ACTIVITY_NAME1, OpActivity.MILESTONE, activityStart, activityStart);
-         insertActivity(PROJECT_NAME1, ACTIVITY_NAME2, OpActivity.ADHOC_TASK, null, null);
+      //insert the two activities for the given project
+      Date activityStart = new Date(getCalendarWithExactDaySet(2007, 10, 12).getTimeInMillis());
+      insertActivity(PROJECT_NAME1, ACTIVITY_NAME1, OpActivity.MILESTONE, activityStart, activityStart);
+      insertActivity(PROJECT_NAME1, ACTIVITY_NAME2, OpActivity.ADHOC_TASK, null, null);
 
-         assertEquals(startDate, project.getPlan().getStart());
-         assertEquals(startDate, project.getPlan().getFinish());
+      assertEquals(startDate, project.getPlan().getStart());
+      assertEquals(startDate, project.getPlan().getFinish());
 
-         projectPlanningChecker.check(session);
+      projectPlanningChecker.check(session);
 
-         //the project plan should have the same finish date as the milestone's start date
-         // OpBroker broker = session.newBroker();
-         // FIXME(dfreis Nov 5, 2007 7:41:05 AM) { using the same broker did not work }
-         broker.close();
-         broker = session.newBroker();
-         project = (OpProjectNode) broker.getObject(OpProjectNode.class, project.getID());
-         assertEquals(startDate, project.getPlan().getStart());
-         assertEquals(activityStart, project.getPlan().getFinish());
-      }
-      finally {
-         broker.close();
-      }
+      //the project plan should have the same finish date as the milestone's start date
+      project = projectFactory.getProjectById(project.getID());
+      assertEquals(startDate, project.getPlan().getStart());
+      assertEquals(activityStart, project.getPlan().getFinish());
    }
 
    /**
     * Test the project planning module checker when there is only one project with two activities. The finish
-    *    date of the project is set.
+    * date of the project is set.
     *
     * @throws Exception if the test fails
     */
@@ -427,35 +363,24 @@ public class OpProjectPlanningModuleCheckerTest extends OpBaseOpenTestCase {
       XMessage response = projectService.insertProject(session, request);
       assertNoError(response);
 
-      OpBroker broker = session.newBroker();
-      try {
-         String projectLocator = projectFactory.getProjectId(PROJECT_NAME1);
-         OpProjectNode project = projectFactory.getProjectById(broker, projectLocator);
+      String projectLocator = projectFactory.getProjectId(PROJECT_NAME1);
+      OpProjectNode project = projectFactory.getProjectById(projectLocator);
 
-         //insert the two activities for the given project
-         Date milestoneStart = new Date(getCalendarWithExactDaySet(2007, 10, 12).getTimeInMillis());
-         Date activityStart = new Date(getCalendarWithExactDaySet(2007, 10, 13).getTimeInMillis());
-         Date activityFinish = new Date(getCalendarWithExactDaySet(2007, 10, 27).getTimeInMillis());
-         insertActivity(PROJECT_NAME1, ACTIVITY_NAME1, OpActivity.MILESTONE, milestoneStart, milestoneStart);
-         insertActivity(PROJECT_NAME1, ACTIVITY_NAME2, OpActivity.STANDARD, activityStart, activityFinish);
+      //insert the two activities for the given project
+      Date milestoneStart = new Date(getCalendarWithExactDaySet(2007, 10, 12).getTimeInMillis());
+      Date activityStart = new Date(getCalendarWithExactDaySet(2007, 10, 13).getTimeInMillis());
+      Date activityFinish = new Date(getCalendarWithExactDaySet(2007, 10, 27).getTimeInMillis());
+      insertActivity(PROJECT_NAME1, ACTIVITY_NAME1, OpActivity.MILESTONE, milestoneStart, milestoneStart);
+      insertActivity(PROJECT_NAME1, ACTIVITY_NAME2, OpActivity.STANDARD, activityStart, activityFinish);
 
-         assertEquals(startDate, project.getPlan().getStart());
-         assertEquals(finishDate, project.getPlan().getFinish());
+      assertEquals(startDate, project.getPlan().getStart());
+      assertEquals(finishDate, project.getPlan().getFinish());
 
-         projectPlanningChecker.check(session);
+      projectPlanningChecker.check(session);
 
-         //the project plan should have the same finish date as the activity's start date
-         //OpBroker broker = session.newBroker();
-         // FIXME(dfreis Nov 5, 2007 7:41:05 AM) { using the same broker did not work }
-         broker.close();
-         broker = session.newBroker();
-         project = (OpProjectNode) broker.getObject(OpProjectNode.class, project.getID());
-         assertEquals(startDate, project.getPlan().getStart());
-         assertEquals(activityFinish, project.getPlan().getFinish());
-      }
-      finally {
-         broker.close();
-      }
+      project = projectFactory.getProjectById(project.getID());
+      assertEquals(startDate, project.getPlan().getStart());
+      assertEquals(activityFinish, project.getPlan().getFinish());
    }
 
    /**
@@ -472,7 +397,7 @@ public class OpProjectPlanningModuleCheckerTest extends OpBaseOpenTestCase {
       XMessage request = OpProjectTestDataFactory.createProjectMsg(PROJECT_NAME1, proj1Start, proj1Finish, 100d, null, null);
       XMessage response = projectService.insertProject(session, request);
       assertNoError(response);
-      
+
       Date proj2Start = new Date(getCalendarWithExactDaySet(2007, 10, 13).getTimeInMillis());
       Date proj2Finish = new Date(getCalendarWithExactDaySet(2007, 10, 18).getTimeInMillis());
 
@@ -481,46 +406,36 @@ public class OpProjectPlanningModuleCheckerTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       String projectLocator = projectFactory.getProjectId(PROJECT_NAME1);
-      OpBroker broker = session.newBroker();
-      try {
-         OpProjectNode project1 = projectFactory.getProjectById(broker, projectLocator);
-         projectLocator = projectFactory.getProjectId(PROJECT_NAME2);
-         OpProjectNode project2 = projectFactory.getProjectById(broker, projectLocator);
+      OpProjectNode project1 = projectFactory.getProjectById(projectLocator);
+      projectLocator = projectFactory.getProjectId(PROJECT_NAME2);
+      OpProjectNode project2 = projectFactory.getProjectById(projectLocator);
 
-         //insert two activities for each project
-         Date milestoneStart = new Date(getCalendarWithExactDaySet(2007, 10, 12).getTimeInMillis());
-         Date activity1Start = new Date(getCalendarWithExactDaySet(2007, 10, 13).getTimeInMillis());
-         Date activity1Finish = new Date(getCalendarWithExactDaySet(2007, 10, 27).getTimeInMillis());
-         insertActivity(PROJECT_NAME1, ACTIVITY_NAME1, OpActivity.MILESTONE, milestoneStart, milestoneStart);
-         insertActivity(PROJECT_NAME1, ACTIVITY_NAME2, OpActivity.STANDARD, activity1Start, activity1Finish);
+      //insert two activities for each project
+      Date milestoneStart = new Date(getCalendarWithExactDaySet(2007, 10, 12).getTimeInMillis());
+      Date activity1Start = new Date(getCalendarWithExactDaySet(2007, 10, 13).getTimeInMillis());
+      Date activity1Finish = new Date(getCalendarWithExactDaySet(2007, 10, 27).getTimeInMillis());
+      insertActivity(PROJECT_NAME1, ACTIVITY_NAME1, OpActivity.MILESTONE, milestoneStart, milestoneStart);
+      insertActivity(PROJECT_NAME1, ACTIVITY_NAME2, OpActivity.STANDARD, activity1Start, activity1Finish);
 
-         Date activity2Start = new Date(getCalendarWithExactDaySet(2007, 10, 13).getTimeInMillis());
-         Date activity2Finish = new Date(getCalendarWithExactDaySet(2007, 10, 15).getTimeInMillis());
-         insertActivity(PROJECT_NAME2, ACTIVITY_NAME3, OpActivity.ADHOC_TASK, null, null);
-         insertActivity(PROJECT_NAME2, ACTIVITY_NAME4, OpActivity.STANDARD, activity2Start, activity2Finish);
+      Date activity2Start = new Date(getCalendarWithExactDaySet(2007, 10, 13).getTimeInMillis());
+      Date activity2Finish = new Date(getCalendarWithExactDaySet(2007, 10, 15).getTimeInMillis());
+      insertActivity(PROJECT_NAME2, ACTIVITY_NAME3, OpActivity.ADHOC_TASK, null, null);
+      insertActivity(PROJECT_NAME2, ACTIVITY_NAME4, OpActivity.STANDARD, activity2Start, activity2Finish);
 
-         assertEquals(proj1Start, project1.getPlan().getStart());
-         assertEquals(proj1Finish, project1.getPlan().getFinish());
-         assertEquals(proj2Start, project2.getPlan().getStart());
-         assertEquals(proj2Finish, project2.getPlan().getFinish());
+      assertEquals(proj1Start, project1.getPlan().getStart());
+      assertEquals(proj1Finish, project1.getPlan().getFinish());
+      assertEquals(proj2Start, project2.getPlan().getStart());
+      assertEquals(proj2Finish, project2.getPlan().getFinish());
 
-         projectPlanningChecker.check(session);
+      projectPlanningChecker.check(session);
 
-         //the project plan should have the same finish date as the activity's start date
-         //OpBroker broker = session.newBroker();
-         // FIXME(dfreis Nov 5, 2007 7:41:05 AM) { using the same broker did not work }
-         broker.close();
-         broker = session.newBroker();
-         project1 = (OpProjectNode) broker.getObject(OpProjectNode.class, project1.getID());
-         project2 = (OpProjectNode) broker.getObject(OpProjectNode.class, project2.getID());
-         assertEquals(proj1Start, project1.getPlan().getStart());
-         assertEquals(activity1Finish, project1.getPlan().getFinish());
-         assertEquals(proj2Start, project2.getPlan().getStart());
-         assertEquals(proj2Finish, project2.getPlan().getFinish());
-      }
-      finally {
-         broker.close();
-      }
+      //the project plan should have the same finish date as the activity's start date
+      project1 = projectFactory.getProjectById(project1.getID());
+      project2 = projectFactory.getProjectById(project2.getID());
+      assertEquals(proj1Start, project1.getPlan().getStart());
+      assertEquals(activity1Finish, project1.getPlan().getFinish());
+      assertEquals(proj2Start, project2.getPlan().getStart());
+      assertEquals(proj2Finish, project2.getPlan().getFinish());
    }
 
    /**
@@ -541,29 +456,31 @@ public class OpProjectPlanningModuleCheckerTest extends OpBaseOpenTestCase {
 
       //mark the first activity as deleted and set the order of the activities in the dataset
       OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
+      try {
+         OpTransaction t = broker.newTransaction();
 
-      OpActivity activity1 = (OpActivity) broker.getObject(activity1Locator);
-      activity1.setDeleted(true);
-      OpActivity activity2 = (OpActivity) broker.getObject(activity2Locator);
-      broker.updateObject(activity1);
-      broker.updateObject(activity2);
+         OpActivity activity1 = (OpActivity) broker.getObject(activity1Locator);
+         activity1.setDeleted(true);
+         OpActivity activity2 = (OpActivity) broker.getObject(activity2Locator);
+         broker.updateObject(activity1);
+         broker.updateObject(activity2);
 
-      t.commit();
-      broker.close();
+         t.commit();
 
-      //each assignment has a work record associated to it
-      assertEquals(1, projectFactory.getAssignmentById(assignment1Locator).getWorkRecords().size());
-      assertEquals(1, projectFactory.getAssignmentById(assignment2Locator).getWorkRecords().size());
+         //each assignment has a work record associated to it
+         assertEquals(1, projectFactory.getAssignmentById(assignment1Locator).getWorkRecords().size());
+         assertEquals(1, projectFactory.getAssignmentById(assignment2Locator).getWorkRecords().size());
 
-      projectPlanningChecker.check(session);
+         projectPlanningChecker.check(session);
 
-      //since activity1 was deleted assignment1 and all work records associated to it were deleted
-      broker = session.newBroker();
-      activity1 = (OpActivity) broker.getObject(activity1Locator);
-      assertFalse(activity1.getAssignments().iterator().hasNext());
-      assertEquals(1, projectFactory.getAssignmentById(assignment2Locator).getWorkRecords().size());
-      broker.close();
+         //since activity1 was deleted assignment1 and all work records associated to it were deleted
+         activity1 = (OpActivity) broker.getObject(activity1Locator);
+         assertFalse(activity1.getAssignments().iterator().hasNext());
+         assertEquals(1, projectFactory.getAssignmentById(assignment2Locator).getWorkRecords().size());
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -584,79 +501,35 @@ public class OpProjectPlanningModuleCheckerTest extends OpBaseOpenTestCase {
 
       //mark the first activity as deleted and set the order of the activities
       OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
+      try {
+         OpTransaction t = broker.newTransaction();
 
-      OpActivity activity1 = (OpActivity) broker.getObject(activity1Locator);
-      OpActivity activity2 = (OpActivity) broker.getObject(activity2Locator);
-      activity1.setDeleted(true);
-      activity1.setSequence(0);
-      activity2.setDeleted(true);
-      activity2.setSequence(1);
-      broker.updateObject(activity1);
-      broker.updateObject(activity2);
+         OpActivity activity1 = (OpActivity) broker.getObject(activity1Locator);
+         OpActivity activity2 = (OpActivity) broker.getObject(activity2Locator);
+         activity1.setDeleted(true);
+         activity1.setSequence(0);
+         activity2.setDeleted(true);
+         activity2.setSequence(1);
+         broker.updateObject(activity1);
+         broker.updateObject(activity2);
 
-      t.commit();
-      broker.close();
+         t.commit();
 
-      //each assignment has a work record associated to it
-      assertEquals(1, projectFactory.getAssignmentById(assignment1Locator).getWorkRecords().size());
-      assertEquals(1, projectFactory.getAssignmentById(assignment2Locator).getWorkRecords().size());
+         //each assignment has a work record associated to it
+         assertEquals(1, projectFactory.getAssignmentById(assignment1Locator).getWorkRecords().size());
+         assertEquals(1, projectFactory.getAssignmentById(assignment2Locator).getWorkRecords().size());
 
-      projectPlanningChecker.check(session);
+         projectPlanningChecker.check(session);
 
-      //since the activities were deleted the assignments and the work records should have been deleted
-      broker = session.newBroker();
-      OpQuery workRecordsQuery = broker.newQuery(ALL_WORK_RECORDS_QUERY);
-      OpQuery assignmentsQuery = broker.newQuery(ALL_ACTIVITY_ASSIGNMENTS_QUERY);
-      assertFalse(broker.iterate(workRecordsQuery).hasNext());
-      assertFalse(broker.iterate(assignmentsQuery).hasNext());
-      broker.close();
-   }
-
-   /**
-    * Cleans the database
-    *
-    * @throws Exception if deleting test artifacts fails
-    */
-   private void clean()
-        throws Exception {
-
-      OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-
-      OpBroker broker = session.newBroker();
-      OpTransaction transaction = broker.newTransaction();
-
-      for (OpUser user : usrData.getAllUsers(broker)) {
-         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
-            continue;
-         }
-         broker.deleteObject(user);
+         //since the activities were deleted the assignments and the work records should have been deleted
+         OpQuery workRecordsQuery = broker.newQuery(ALL_WORK_RECORDS_QUERY);
+         OpQuery assignmentsQuery = broker.newQuery(ALL_ACTIVITY_ASSIGNMENTS_QUERY);
+         assertFalse(broker.iterate(workRecordsQuery).hasNext());
+         assertFalse(broker.iterate(assignmentsQuery).hasNext());
       }
-
-      deleteAllObjects(broker, OpWorkRecord.WORK_RECORD);
-      deleteAllObjects(broker, OpAssignment.ASSIGNMENT);
-      deleteAllObjects(broker, OpActivity.ACTIVITY);
-      deleteAllObjects(broker, OpProjectPlan.PROJECT_PLAN);
-
-      for (OpResource resource : resourceFactory.getAllResources(broker)) {
-         broker.deleteObject(resource);
+      finally {
+         broker.close();
       }
-
-      for (OpProjectNode project : projectFactory.getAllProjects(broker)) {
-         broker.deleteObject(project);
-      }
-
-      List portofolioList = projectFactory.getAllPortofolios(broker);
-      for (Object aPortofolioList : portofolioList) {
-         OpProjectNode portofolio = (OpProjectNode) aPortofolioList;
-         if (portofolio.getName().equals(OpProjectNode.ROOT_PROJECT_PORTFOLIO_NAME)) {
-            continue;
-         }
-         broker.deleteObject(portofolio);
-      }
-
-      transaction.commit();
-      broker.close();
    }
 
    /**
@@ -673,9 +546,8 @@ public class OpProjectPlanningModuleCheckerTest extends OpBaseOpenTestCase {
    private String insertActivity(String projectName, String activityName, byte type, Date start, Date finish) {
       OpBroker broker = session.newBroker();
       try {
-         OpProjectNode project = projectFactory.getProjectByName(broker, projectName);
+         OpProjectNode project = projectFactory.getProjectByName(projectName);
 
-         //OpBroker broker = session.newBroker();
          OpTransaction t = broker.newTransaction();
 
          //insert the activity

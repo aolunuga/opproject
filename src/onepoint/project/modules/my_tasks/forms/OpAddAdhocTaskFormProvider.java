@@ -72,22 +72,26 @@ public class OpAddAdhocTaskFormProvider implements XFormProvider {
       }
 
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("from OpResource");
+      try {
+         OpQuery query = broker.newQuery("from OpResource");
 
-      Iterator it = broker.iterate(query);
+         Iterator it = broker.iterate(query);
 
-      while (it.hasNext()) {
-         OpResource resource = (OpResource) it.next();
-         XComponent dataRow = new XComponent(XComponent.DATA_ROW);
-         dataRow.setStringValue(resource.locator()+"['"+resource.getName()+"']");
-         allResources.addChild(dataRow);
+         while (it.hasNext()) {
+            OpResource resource = (OpResource) it.next();
+            XComponent dataRow = new XComponent(XComponent.DATA_ROW);
+            dataRow.setStringValue(resource.locator()+"['"+resource.getName()+"']");
+            allResources.addChild(dataRow);
+         }
+
+         form.findComponent(ALL_RESOURCES).setValue(allResources);
+
+         //default values
+         form.findComponent(DUE_DATE).setValue(null);
+         form.findComponent(PRIORITY).setIntValue(OpGanttValidator.DEFAULT_PRIORITY);
       }
-
-      form.findComponent(ALL_RESOURCES).setValue(allResources);
-
-      //default values
-      form.findComponent(DUE_DATE).setValue(null);
-      form.findComponent(PRIORITY).setIntValue(OpGanttValidator.DEFAULT_PRIORITY);
-
+      finally {
+         broker.close();
+      }
    }
 }

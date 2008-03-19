@@ -1,106 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <language-kit locale="fr">
-   <resource-map id="settings.module">
-      <resource id="SettingsTool">Paramétres</resource>
-      <resource id="SystemToolGroup">SYSTÈME</resource>
-   </resource-map>
-   <resource-map id="settings.settings">
-      <resource id="Settings">Parametres</resource>
-      <resource id="UserLocale">Langue par défaut</resource>
-      <resource id="TimeControl">Parametres Temps</resource>
-      <resource id="FirstWorkday">Premier jour de travail de la semaine</resource>
-      <resource id="LastWorkday">Dernier jour de travail de la semaine</resource>
-      <resource id="DayWorkTime">Nombre d'heures de travail par jour</resource>
-      <resource id="WeekWorkTime">Nombre d'heures de travail par semaine</resource>
-      <resource id="Holidays">Calendrier (Jours feriés)</resource>
-      <resource id="EMailNotificationFromAddress">Email de l'expéditeur de notification</resource>
-      <resource id="ReportsRemoveTimePeriod">Periode de rapport d'archivage (semaines)</resource>
-      <resource id="ShowResourceHours">Montrer les affectation de ressource en heures</resource>
-      <resource id="ResourceMaxAvailability">Disponibilité maximum d'une ressource (%)</resource>
-      <resource id="AllowEmptyPassword">Authoriser les mot de passe vide</resource>
-      <resource id="Save">Enregistrer les parametres</resource>
-      <resource id="SaveTooltip">Enregistrer les parametre Systéme</resource>
-      <resource id="SelectCalendar">(Choisir le calendrier)</resource>
-      <resource id="MilestoneControllingInterval">Intervalle de contrôle de Jalon (semaines)</resource>
-      <resource id="EnableTimeTracking">Enable time tracking</resource>
-      <resource id="EnablePulsing">Enable pulsing</resource>
-      <resource id="Pulsing">Pulsing (minutes)</resource>
-      <resource id="Currency">Currency</resource>
-      <resource id="HideManagerFeatures">Hide cost and utilization information from non-manager users</resource>
-      
-      <!-- Currencies -->
-      <resource id="AUD">Australia Dollars (AUD, AUD)</resource>
-      <resource id="CAD">Canada Dollars (CAD, CAD)</resource>
-      <resource id="CHF">Switzerland Francs (CHF, CHF)</resource>
-      <resource id="CNY">China Yuan Renminbi (CNY, CNY)</resource>
-      <resource id="DKK">DKK Denmark Kroner (DKK, DKK)</resource>
-      <resource id="EUR">Euro (EUR, €)</resource>
-      <resource id="GBP">United Kingdom Pounds (GBP, ₤)</resource>
-      <resource id="HKD">Hong Kong Dollars (HKD, HKD)</resource>
-      <resource id="HUF">Hungary Forint (HUF, HUF)</resource>
-      <resource id="INR">India Rupees (INR, INR)</resource>
-      <resource id="JPY">Japan Yen (JPY, JPY)</resource>
-      <resource id="MXN">Mexico Pesos (MXN, MXN)</resource>
-      <resource id="MYR">Malaysia Ringgits (MYR, MYR)</resource>
-      <resource id="NOK">Norway Kroner (NOK, NOK)</resource>
-      <resource id="NZD">New Zealand Dollars (NZD, NZD)</resource>
-      <resource id="RUB">Russia Rubles (RUB, RUB)</resource>
-      <resource id="SEK">Sweden Kronor (SEK, SEK)</resource>
-      <resource id="SGD">Singapore Dollars (SGD, SGD)</resource>
-      <resource id="THB">Thailand Baht (THB, THB)</resource>
-      <resource id="USD">United States Dollars (USD, $)</resource>
-      <resource id="ZAR">South Africa Rand (ZAR, ZAR)</resource>
-   </resource-map>
-
-   <resource-map id="settings.weekdays">
-      <resource id="Monday">Lundi</resource>
-      <resource id="Tuesday">Mardi</resource>
-      <resource id="Wednesday">Mercredi</resource>
-      <resource id="Thursday">Jeudi</resource>
-      <resource id="Friday">Vendredi</resource>
-      <resource id="Saturday">Samedi</resource>
-      <resource id="Sunday">Dimanche</resource>
-   </resource-map>
-
-   <resource-map id="settings.error">
-      <resource id="LastWorkDayIncorrect">Le dernier jour de travail est invalide</resource>
-      <resource id="DayWorkTimeIncorrect">Le temps de travail par jour est invalide</resource>
-      <resource id="WeekWorkTimeIncorrect">Le temps de travail par semaine est invalide</resource>
-      <resource id="EmailIncorrect">Email de l'expéditeur de notification est invalide</resource>
-      <resource id="ReportsRemoveTimePeriodIncorrect">La Periode de rapport d'archivage est invalide</resource>
-      <resource id="ResourceMaxAvailabilityIncorrect">La valeur maximum de disponibilité d'une ressource est invalide</resource>
-      <resource id="MilestoneControlingIncorrect">The specified milestone controlling interval is not valid</resource>
-      <resource id="FirstWorkDayIncorrect">The specified first work day is not valid</resource>
-      <resource id="InvalidPulseValue">The specified pulse value is not valid</resource>      
-   </resource-map>
-
-   <resource-map id="settings.calendar">
-      <resource id="HourInitial">h</resource>
-      <resource id="DayInitial">j</resource>
-      <resource id="WeekInitial">s</resource>
-      <resource id="January">Janvier</resource>
-      <resource id="February">Février</resource>
-      <resource id="March">Mars</resource>
-      <resource id="April">Avril</resource>
-      <resource id="May">Mai</resource>
-      <resource id="June">Juin</resource>
-      <resource id="July">Juillet</resource>
-      <resource id="August">Août</resource>
-      <resource id="September">Septembre</resource>
-      <resource id="October">Octobre</resource>
-      <resource id="November">Novembre</resource>
-      <resource id="December">Decembre</resource>
-      <resource id="Monday">L</resource>
-      <resource id="Tuesday">M</resource>
-      <resource id="Wednesday">M</resource>
-      <resource id="Thursday">J</resource>
-      <resource id="Friday">V</resource>
-      <resource id="Saturday">S</resource>
-      <resource id="Sunday">D</resource>
-   </resource-map>
-   <resource-map id="settings.calendar_change">
-      <resource id="ConfirmChange">Change Calendar</resource>
-      <resource id="ConfirmCalendarChange">Changing the holiday calendar will result in the revalidation the project plans.</resource>
-      <resource id="OK">OK</resource>
-      <resource id="Cancel">Cancel</resource>      
-   </resource-map>
+    <resource-map id="settings.calendar">
+        <resource id="December">Decembre</resource>
+        <resource id="March">Mars</resource>
+        <resource id="April">Avril</resource>
+        <resource id="November">Novembre</resource>
+        <resource id="September">Septembre</resource>
+        <resource id="October">Octobre</resource>
+        <resource id="Sunday">D</resource>
+        <resource id="Friday">V</resource>
+        <resource id="Tuesday">M</resource>
+        <resource id="Thursday">J</resource>
+        <resource id="May">Mai</resource>
+        <resource id="DayInitial">j</resource>
+        <resource id="Saturday">S</resource>
+        <resource id="June">Juin</resource>
+        <resource id="Monday">L</resource>
+        <resource id="HourInitial">h</resource>
+        <resource id="Wednesday">M</resource>
+        <resource id="August">Août</resource>
+        <resource id="January">Janvier</resource>
+        <resource id="February">Février</resource>
+        <resource id="WeekInitial">s</resource>
+        <resource id="July">Juillet</resource>
+    </resource-map>
+    <resource-map id="settings.weekdays">
+        <resource id="Saturday">Samedi</resource>
+        <resource id="Monday">Lundi</resource>
+        <resource id="Wednesday">Mercredi</resource>
+        <resource id="Sunday">Dimanche</resource>
+        <resource id="Friday">Vendredi</resource>
+        <resource id="Tuesday">Mardi</resource>
+        <resource id="Thursday">Jeudi</resource>
+    </resource-map>
+    <resource-map id="settings.calendar_change">
+        <resource id="Cancel">Cancel</resource>
+        <resource id="OK">OK</resource>
+        <resource id="ConfirmCalendarChange">Changing the holiday calendar will result in the revalidation the project plans.</resource>
+        <resource id="ConfirmChange">Change Calendar</resource>
+    </resource-map>
+    <resource-map id="settings.settings">
+        <resource id="NOK">Norway Kroner (NOK, NOK)</resource>
+        <resource id="ResourceMaxAvailability">Disponibilité maximum d'une ressource (%)</resource>
+        <resource id="NZD">New Zealand Dollars (NZD, NZD)</resource>
+        <resource id="RUB">Russia Rubles (RUB, RUB)</resource>
+        <resource id="ReportsRemoveTimePeriod">Periode de rapport d'archivage (semaines)</resource>
+        <resource id="MYR">Malaysia Ringgits (MYR, MYR)</resource>
+        <resource id="EMailNotificationFromAddress">Email de l'expéditeur de notification</resource>
+        <resource id="UserLocale">Langue par défaut</resource>
+        <resource id="DKK">DKK Denmark Kroner (DKK, DKK)</resource>
+        <resource id="CNY">China Yuan Renminbi (CNY, CNY)</resource>
+        <resource id="WeekWorkTime">Nombre d'heures de travail par semaine</resource>
+        <resource id="INR">India Rupees (INR, INR)</resource>
+        <resource id="Currency">Currency</resource>
+        <resource id="CHF">Switzerland Francs (CHF, CHF)</resource>
+        <resource id="SGD">Singapore Dollars (SGD, SGD)</resource>
+        <resource id="MXN">Mexico Pesos (MXN, MXN)</resource>
+        <resource id="GBP">United Kingdom Pounds (GBP, ₤)</resource>
+        <resource id="SelectCalendar">(Choisir le calendrier)</resource>
+        <resource id="Save">Enregistrer les parametres</resource>
+        <resource id="TimeControl">Parametres Temps</resource>
+        <resource id="AUD">Australia Dollars (AUD, AUD)</resource>
+        <resource id="Settings">Parametres</resource>
+        <resource id="SaveTooltip">Enregistrer les parametre Systéme</resource>
+        <resource id="CAD">Canada Dollars (CAD, CAD)</resource>
+        <resource id="Pulsing">Pulsing (minutes)</resource>
+        <resource id="ZAR">South Africa Rand (ZAR, ZAR)</resource>
+        <resource id="EUR">Euro (EUR, €)</resource>
+        <resource id="HideManagerFeatures">Hide cost and utilization information from non-manager users</resource>
+        <resource id="DayWorkTime">Nombre d'heures de travail par jour</resource>
+        <resource id="LastWorkday">Dernier jour de travail de la semaine</resource>
+        <resource id="USD">United States Dollars (USD, $)</resource>
+        <resource id="HUF">Hungary Forint (HUF, HUF)</resource>
+        <resource id="AllowEmptyPassword">Authoriser les mot de passe vide</resource>
+        <resource id="JPY">Japan Yen (JPY, JPY)</resource>
+        <resource id="EnableTimeTracking">Enable time tracking</resource>
+        <resource id="MilestoneControllingInterval">Intervalle de contrôle de Jalon (semaines)</resource>
+        <resource id="THB">Thailand Baht (THB, THB)</resource>
+        <resource id="Holidays">Calendrier (Jours feriés)</resource>
+        <resource id="ShowResourceHours">Montrer les affectation de ressource en heures</resource>
+        <resource id="SEK">Sweden Kronor (SEK, SEK)</resource>
+        <resource id="HKD">Hong Kong Dollars (HKD, HKD)</resource>
+        <resource id="FirstWorkday">Premier jour de travail de la semaine</resource>
+        <resource id="EnablePulsing">Enable pulsing</resource>
+    </resource-map>
+    <resource-map id="settings.module">
+        <resource id="SettingsTool">Paramétres</resource>
+        <resource id="SystemToolGroup">SYSTÈME</resource>
+    </resource-map>
+    <resource-map id="settings.error">
+        <resource id="EmailIncorrect">Email de l'expéditeur de notification est invalide</resource>
+        <resource id="WeekWorkTimeIncorrect">Le temps de travail par semaine est invalide</resource>
+        <resource id="FirstWorkDayIncorrect">The specified first work day is not valid</resource>
+        <resource id="InvalidPulseValue">The specified pulse value is not valid</resource>
+        <resource id="MilestoneControlingIncorrect">The specified milestone controlling interval is not valid</resource>
+        <resource id="ReportsRemoveTimePeriodIncorrect">La Periode de rapport d'archivage est invalide</resource>
+        <resource id="DayWorkTimeIncorrect">Le temps de travail par jour est invalide</resource>
+        <resource id="LastWorkDayIncorrect">Le dernier jour de travail est invalide</resource>
+        <resource id="ResourceMaxAvailabilityIncorrect">La valeur maximum de disponibilité d'une ressource est invalide</resource>
+    </resource-map>
 </language-kit>

@@ -32,7 +32,7 @@ public final class OpMSSqlStatement extends OpSqlStatement {
       DB_TYPES.put(new Integer(Types.INTEGER), "INT");
       DB_TYPES.put(new Integer(Types.DOUBLE), "FLOAT");
       DB_TYPES.put(new Integer(Types.BIT), "BIT");
-      DB_TYPES.put(new Integer(Types.BOOLEAN), "BIT");
+      DB_TYPES.put(new Integer(Types.BOOLEAN), "TINYINT");
       DB_TYPES.put(new Integer(Types.TINYINT), "TINYINT");
       DB_TYPES.put(new Integer(Types.SMALLINT), "TINYINT");
       DB_TYPES.put(new Integer(Types.BLOB), "IMAGE");
@@ -112,5 +112,21 @@ public final class OpMSSqlStatement extends OpSqlStatement {
       List<String> resultList = new ArrayList<String>();
       resultList.add(result.toString());
       return resultList;
+   }
+
+   /**
+    * @see onepoint.persistence.sql.OpSqlStatement#getColumnType(int)
+    */
+   @Override
+   public int getColumnType(int hibernateType) {
+      switch (hibernateType) {
+         case Types.BIT:
+            return Types.TINYINT;
+         case Types.BIGINT:
+            return Types.NUMERIC;
+         case Types.DATE:
+            return Types.TIMESTAMP;
+      }
+      return hibernateType;
    }
 }

@@ -46,7 +46,8 @@ public class OpEditActivityFormProvider implements XFormProvider {
    private final static String COMMENTS_LABEL = "CommentsLabel";
    private final static String COMMENTS_PANEL = "CommentsPanel";
    private final static String ADD_COMMENT_BUTTON = "AddCommentButton";
-   private final static String ACTIVITY_ID_FIELD = "ActivityIDField";
+   public final static String ACTIVITY_ID_FIELD = "ActivityIDField";
+   private static final String SUBJECT_ID_FIELD = "SubjectIDField";
    private final static String HAS_COMMENTS_FIELD = "HasCommentsField";
    private final static String EXCLUDED_RESOURCES = "ExcludedResources";
 
@@ -62,6 +63,7 @@ public class OpEditActivityFormProvider implements XFormProvider {
    private static final String COMPLETE = "Complete";
    private static final String NO_CATEGORY_RESOURCE = "NoCategory";
    private static final String COSTS_TAB = "CostsTab";
+   private static final String RESOURCES_TAB = "ResourcesTab";
 
    protected int activityType = -1;
 
@@ -72,96 +74,106 @@ public class OpEditActivityFormProvider implements XFormProvider {
       OpProjectSession session = (OpProjectSession) s;
 
       OpBroker broker = session.newBroker();
-      OpUser currentUser = session.user(broker);
+      try {
+         OpUser currentUser = session.user(broker);
 
-      activityType = (Byte) parameters.get(OpProjectPlanningService.ACTIVITY_TYPE);
-      
-      // Check for activity ID (get activity if activity is a version)
-      String activityLocator = (String) parameters.get(OpProjectPlanningService.ACTIVITY_ID);
-      OpActivity activity = null;
-      if (activityLocator != null) {
-         OpObject object = broker.getObject(activityLocator);
-         if (object instanceof OpActivity) {
-            activity = (OpActivity) object;
+         activityType = (Byte) parameters.get(OpProjectPlanningService.ACTIVITY_TYPE);
+
+         // Check for activity ID (get activity if activity is a version)
+         String activityLocator = (String) parameters.get(OpProjectPlanningService.ACTIVITY_ID);
+         form.findComponent(SUBJECT_ID_FIELD).setStringValue(activityLocator);
+         
+         OpActivity activity = null;
+         if (activityLocator != null) {
+            OpObject object = broker.getObject(activityLocator);
+            if (object instanceof OpActivity) {
+               activity = (OpActivity) object;
+            }
+            else if (object instanceof OpActivityVersion) {
+               OpActivityVersion activityVersion = (OpActivityVersion) object;
+               activity = activityVersion.getActivity();
+            }
+            // Store resolved activity locator in data-field
+            if (activity != null) {
+               form.findComponent(ACTIVITY_ID_FIELD).setStringValue(activity.locator());
+            }
          }
-         else if (object instanceof OpActivityVersion) {
-            OpActivityVersion activityVersion = (OpActivityVersion) object;
-            activity = activityVersion.getActivity();
+
+         //enable the %complete field if tracking is off
+         String currentProjectId = (String) session.getVariable(OpProjectConstants.PROJECT_ID);
+         if (currentProjectId != null) {
+            OpProjectNode project = (OpProjectNode) broker.getObject(currentProjectId);
+
+            XComponent projectResources = new XComponent(XComponent.DATA_SET);
+            XComponent excludedResources = new XComponent(XComponent.DATA_SET);
+            List<Long> projectResourcesList = new ArrayList<Long>();
+
+            OpActivityDataSetFactory.retrieveResourceDataSet(broker, project, projectResources);
+
+            for (int i = 0; i < projectResources.getChildCount(); i++) {
+               XComponent d = (XComponent) projectResources.getChild(i);
+               projectResourcesList.add(OpLocator.parseLocator(XValidator.choiceID(d.getStringValue())).getID());
+            }
+
+            OpQuery query = null;
+            if (projectResourcesList.size() != 0) {
+               query = broker.newQuery("from OpResource resource where resource.ID not in (:resourceIds)");
+               query.setCollection("resourceIds", projectResourcesList);
+            }
+            else {
+               query = broker.newQuery("from OpResource");
+            }
+
+            Iterator it = broker.iterate(query);
+
+            while (it.hasNext()) {
+               OpResource resource = (OpResource) it.next();
+               XComponent dataRow = new XComponent(XComponent.DATA_ROW);
+               dataRow.setStringValue(resource.locator()+"['"+resource.getName()+"']");
+               excludedResources.addChild(dataRow);
+            }
+
+            form.findComponent(EXCLUDED_RESOURCES).setValue(excludedResources);
+
+            if (!project.getPlan().getProgressTracked()) {
+               form.findComponent(COMPLETE).setEnabled(true);
+            }
+            else {
+               form.findComponent(COMPLETE).setEnabled(false);
+            }
+
+            if(project.getType() == OpProjectNode.TEMPLATE) {
+               form.findComponent(RESOURCES_TAB).setHidden(true);
+            }
          }
-         // Store resolved activity locator in data-field
-         if (activity != null) {
-            form.findComponent(ACTIVITY_ID_FIELD).setStringValue(activity.locator());
+
+         XLanguageResourceMap resourceMap = session.getLocale().getResourceMap(PROJECT_EDIT_ACTIVITY);
+
+         // Activity categories
+         XComponent categoryDataSet = form.findComponent(ACTIVITY_CATEGORY_DATA_SET);
+         XComponent categoryChooser = form.findComponent(ACTIVITY_CATEGORY_CHOOSER);
+         addCategories(broker, categoryChooser, categoryDataSet, resourceMap);
+
+         //Resource set
+         XComponent responsibleSet = form.findComponent(RESPONSIBLE_RESOURCE_SET);
+         XComponent dataRow = new XComponent(XComponent.DATA_ROW);
+         String noResource = resourceMap.getResource(NO_RESOURCE_TEXT).getText();
+         dataRow.setStringValue(XValidator.choice(OpGanttValidator.NO_RESOURCE_ID, noResource));
+         responsibleSet.addChild(dataRow);
+
+         showComments(form, activity, session, broker, resourceMap, true);
+
+         //if the app. is multiuser and hide manager features is set to true and the user is not manager
+         if (OpSubjectDataSetFactory.shouldHideFromUser(session, currentUser)) {
+            //hide costs tab 
+            form.findComponent(COSTS_TAB).setHidden(true);
          }
+
+         logger.info("/OpEditActivityFormProvider.prepareForm()");
       }
-
-      //enable the %complete field if tracking is off
-      String currentProjectId = (String) session.getVariable(OpProjectConstants.PROJECT_ID);
-      if (currentProjectId != null) {
-         OpProjectNode project = (OpProjectNode) broker.getObject(currentProjectId);
-
-         XComponent projectResources = new XComponent(XComponent.DATA_SET);
-         XComponent excludedResources = new XComponent(XComponent.DATA_SET);
-         List<Long> projectResourcesList = new ArrayList<Long>();
-
-         OpActivityDataSetFactory.retrieveResourceDataSet(broker, project, projectResources);
-
-         for (int i = 0; i < projectResources.getChildCount(); i++) {
-            XComponent d = (XComponent) projectResources.getChild(i);
-            projectResourcesList.add(OpLocator.parseLocator(XValidator.choiceID(d.getStringValue())).getID());
-         }
-
-         OpQuery query = null;
-         if (projectResourcesList.size() != 0) {
-            query = broker.newQuery("from OpResource resource where resource.ID not in (:resourceIds)");
-            query.setCollection("resourceIds", projectResourcesList);
-         }
-         else {
-            query = broker.newQuery("from OpResource");
-         }
-
-         Iterator it = broker.iterate(query);
-
-         while (it.hasNext()) {
-            OpResource resource = (OpResource) it.next();
-            XComponent dataRow = new XComponent(XComponent.DATA_ROW);
-            dataRow.setStringValue(resource.locator()+"['"+resource.getName()+"']");
-            excludedResources.addChild(dataRow);
-         }
-
-         form.findComponent(EXCLUDED_RESOURCES).setValue(excludedResources);
-
-         if (!project.getPlan().getProgressTracked()) {
-            form.findComponent(COMPLETE).setEnabled(true);
-         }
-         else {
-            form.findComponent(COMPLETE).setEnabled(false);
-         }
+      finally {
+         broker.close();
       }
-
-      XLanguageResourceMap resourceMap = session.getLocale().getResourceMap(PROJECT_EDIT_ACTIVITY);
-
-      // Activity categories
-      XComponent categoryDataSet = form.findComponent(ACTIVITY_CATEGORY_DATA_SET);
-      XComponent categoryChooser = form.findComponent(ACTIVITY_CATEGORY_CHOOSER);
-      addCategories(broker, categoryChooser, categoryDataSet, resourceMap);
-
-      //Resource set
-      XComponent responsibleSet = form.findComponent(RESPONSIBLE_RESOURCE_SET);
-      XComponent dataRow = new XComponent(XComponent.DATA_ROW);
-      String noResource = resourceMap.getResource(NO_RESOURCE_TEXT).getText();
-      dataRow.setStringValue(XValidator.choice(OpGanttValidator.NO_RESOURCE_ID, noResource));
-      responsibleSet.addChild(dataRow);
-
-      showComments(form, activity, session, broker, resourceMap, true);
-
-      //if the app. is multiuser and hide manager features is set to true and the user is not manager
-      if (OpSubjectDataSetFactory.shouldHideFromUser(currentUser)) {
-         //hide costs tab 
-         form.findComponent(COSTS_TAB).setHidden(true);
-      }
-
-      logger.info("/OpEditActivityFormProvider.prepareForm()");
-      broker.close();
    }
 
    /**

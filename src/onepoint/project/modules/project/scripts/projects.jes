@@ -370,10 +370,6 @@ function addProjectResourceOk(selectedResources) {
       }
       i++;
    }
-   i = 0;
-   while(i < dataSet.getChildCount()){
-      i++;
-   }
    resourceTable = dialog.findComponent("ResourcesTable");
    resourceTable.update();
 }
@@ -385,7 +381,16 @@ function retrieveChildren(event) {
    request.setAction("ProjectService.expandProjectNode");
    request.setArgument("project_row", dataRow);
 
-   expandNode(dataRow, 24, request);
+   children = expandNode(dataRow, 24, request);
+
+   if (children != null) {
+      //used for advanced functionality
+      manageDetailsSet(children, dataRow);
+   }
+}
+
+//do nothing
+function manageDetailsSet(children, dataRow) {
 }
 
 function tabChanged(event) {
@@ -429,7 +434,60 @@ function getActiveTableComponent(){
 }
 
 function saveTableCSV(event){
-   getActiveTableComponent().saveAsCSV("Save My Projects");
+   projectsTable = getActiveTableComponent();
+   dataSet = getActiveTableComponent().getDataSetComponent();
+
+   //determine all the rows which have as children dummy rows
+   unexpandedNodes = new HashMap;
+   dummyExists = false;
+   i = 0;
+   while(i < dataSet.getChildCount()) {
+      dataRow = dataSet.getChild(i);
+      if(dataRow.getStringValue().equals("DummyChildId")) {
+         //based on the fact that the root row cannot be a dummy row i-1 should always be >=0
+         j = i - 1;
+         parentRow = dataSet.getChild(j);
+         unexpandedNodes.put(parentRow.getStringValue(), parentRow.getOutlineLevel());
+         dummyExists = true;
+      }
+      i++;
+   }
+
+   if (dummyExists) {
+      request = new XMessage;
+      request.setArgument("unexpandedNodes", unexpandedNodes);
+      request.setAction("ProjectService.loadAllRows");
+      response = XDisplay.getClient().invokeMethod(request);
+      responseMap = response.getArgument("unexpandedNodes");
+
+      //add the new data rows into the data set at the correct indexes and remove the dummy rows
+      i = 0;
+      while (i < dataSet.getChildCount()) {
+         dataRow = dataSet.getChild(i);
+         if (responseMap.get(dataRow.getStringValue()) != null) {
+
+            //remove the dummy child of this row
+            dummyRow = dataSet.getChild(dataRow.getIndex() + 1);
+            dataSet.removeChild(dummyRow);
+
+            rowsList = responseMap.get(dataRow.getStringValue());
+            j = 0;
+            while (j < rowsList.size()) {
+               listRow = rowsList.get(j);
+               dataSet.addChild(listRow, dataRow.getIndex() + j + 1);
+               j++;
+            }
+
+            //mark this node as expanded
+            expandedDataCell = XComponent.newDataCell();
+            expandedDataCell.setBooleanValue(true);
+            dataRow.addChild(expandedDataCell);
+         }
+         i++;
+      }
+      projectsTable.update();
+   }
+   projectsTable.saveAsCSV("Save My Projects");
 }
 
 function saveTableImage(event) {

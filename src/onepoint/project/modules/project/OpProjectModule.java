@@ -14,9 +14,9 @@ import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpUser;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
 
 public class OpProjectModule extends OpModule {
 
@@ -52,10 +52,14 @@ public class OpProjectModule extends OpModule {
 
       // Check if hard-wired portfolio object "Root Project Portfolio" exists (if not create it)
       OpBroker broker = session.newBroker();
-      if (OpProjectAdministrationService.findRootPortfolio(broker) == null && !updateRootPortfolioName(broker)) {
-         OpProjectAdministrationService.createRootPortfolio(session, broker);
+      try {
+         if (OpProjectAdministrationService.findRootPortfolio(broker) == null && !updateRootPortfolioName(broker)) {
+            OpProjectAdministrationService.createRootPortfolio(session, broker);
+         }
       }
-      broker.close();
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -65,8 +69,12 @@ public class OpProjectModule extends OpModule {
     */
    public void upgradeToVersion5(OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      updateRootPortfolioName(broker);
-      broker.closeAndEvict();
+      try {
+         updateRootPortfolioName(broker);
+      }
+      finally {
+         broker.closeAndEvict();
+      }
    }
 
    /**
@@ -76,19 +84,23 @@ public class OpProjectModule extends OpModule {
     */
    public void upgradeToVersion11(OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      OpQuery allProjectsQuery = broker.newQuery("from OpProjectNode projectNode where projectNode.Type = :type");
-      allProjectsQuery.setParameter("type", OpProjectNode.PROJECT);
-      OpTransaction tx = broker.newTransaction();
-      Iterator<OpProjectNode> projectsIt = broker.iterate(allProjectsQuery);
-      while (projectsIt.hasNext()) {
-         OpProjectNode project = projectsIt.next();
-         project.setArchived(OpProjectNode.DEFAULT_ARCHIVED);
-         project.setPriority(OpProjectNode.DEFAULT_PRIORITY);
-         project.setProbability(OpProjectNode.DEFAULT_PROBABILITY);
-         broker.updateObject(project);
+      try {
+         OpQuery allProjectsQuery = broker.newQuery("from OpProjectNode projectNode where projectNode.Type = :type");
+         allProjectsQuery.setParameter("type", OpProjectNode.PROJECT);
+         OpTransaction tx = broker.newTransaction();
+         Iterator<OpProjectNode> projectsIt = broker.iterate(allProjectsQuery);
+         while (projectsIt.hasNext()) {
+            OpProjectNode project = projectsIt.next();
+            project.setArchived(OpProjectNode.DEFAULT_ARCHIVED);
+            project.setPriority(OpProjectNode.DEFAULT_PRIORITY);
+            project.setProbability(OpProjectNode.DEFAULT_PROBABILITY);
+            broker.updateObject(project);
+         }
+         tx.commit();
       }
-      tx.commit();
-      broker.closeAndEvict();
+      finally {
+         broker.closeAndEvict();
+      }
    }
 
    /**
@@ -98,18 +110,22 @@ public class OpProjectModule extends OpModule {
     */
    public void upgradeToVersion21(OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("from OpProjectPlanVersion planVersion");
-      Iterator it = broker.iterate(query);
-      OpTransaction transaction = broker.newTransaction();
-      while (it.hasNext()) {
-         OpProjectPlanVersion planVersion = (OpProjectPlanVersion) it.next();
-         if (planVersion.isBaseline() == null) {
-            planVersion.setBaseline(Boolean.FALSE);
-            broker.updateObject(planVersion);
+      try {
+         OpQuery query = broker.newQuery("from OpProjectPlanVersion planVersion");
+         Iterator it = broker.iterate(query);
+         OpTransaction transaction = broker.newTransaction();
+         while (it.hasNext()) {
+            OpProjectPlanVersion planVersion = (OpProjectPlanVersion) it.next();
+            if (planVersion.isBaseline() == null) {
+               planVersion.setBaseline(Boolean.FALSE);
+               broker.updateObject(planVersion);
+            }
          }
+         transaction.commit();
       }
-      transaction.commit();
-      broker.closeAndEvict();
+      finally {
+         broker.closeAndEvict();
+      }
    }
 
 
@@ -120,26 +136,30 @@ public class OpProjectModule extends OpModule {
     */
    public void upgradeToVersion25(OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      OpUser administrator = session.administrator(broker);
-      OpQuery allPlanVersions = broker.newQuery("from OpProjectPlanVersion projectVersion");
-      OpTransaction tx = broker.newTransaction();
-      Iterator<OpProjectPlanVersion> projectsIt = broker.iterate(allPlanVersions);
-      while (projectsIt.hasNext()) {
-         OpProjectPlanVersion planVersion = projectsIt.next();
-         OpUser user;
-         try {
-            user = (OpUser) broker.getObject(OpUser.class, new Long(planVersion.getCreator()));
-         }
-         catch (NumberFormatException e) {
-            user = null;
-         }
+      try {
+         OpUser administrator = session.administrator(broker);
+         OpQuery allPlanVersions = broker.newQuery("from OpProjectPlanVersion projectVersion");
+         OpTransaction tx = broker.newTransaction();
+         Iterator<OpProjectPlanVersion> projectsIt = broker.iterate(allPlanVersions);
+         while (projectsIt.hasNext()) {
+            OpProjectPlanVersion planVersion = projectsIt.next();
+            OpUser user;
+            try {
+               user = broker.getObject(OpUser.class, new Long(planVersion.getCreator()));
+            }
+            catch (NumberFormatException e) {
+               user = null;
+            }
 
-         String displayName = (user != null) ? user.getDisplayName() : administrator.getDisplayName();
-         planVersion.setCreator(displayName);
-         broker.updateObject(planVersion);
+            String displayName = (user != null) ? user.getDisplayName() : administrator.getDisplayName();
+            planVersion.setCreator(displayName);
+            broker.updateObject(planVersion);
+         }
+         tx.commit();
       }
-      tx.commit();
-      broker.closeAndEvict();
+      finally {
+         broker.closeAndEvict();
+      }
    }
 
 
@@ -150,29 +170,32 @@ public class OpProjectModule extends OpModule {
     */
    public void upgradeToVersion32(OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      OpUser administrator = session.administrator(broker);
-      OpQuery allProjectPlans = broker.newQuery("from OpProjectPlan project");
-      OpTransaction tx = broker.newTransaction();
-      Iterator<OpProjectPlan> projectsIt = broker.iterate(allProjectPlans);
-      while (projectsIt.hasNext()) {
-         OpProjectPlan plan = projectsIt.next();
-         //it the plan has any versions, take the creator of the last version
-         OpProjectPlanVersion version = plan.getLatestVersion();
-         String displayName = (version != null) ? version.getCreator() : administrator.getDisplayName();
-         plan.setCreator(displayName);
+      try {
+         OpUser administrator = session.administrator(broker);
+         OpQuery allProjectPlans = broker.newQuery("from OpProjectPlan project");
+         OpTransaction tx = broker.newTransaction();
+         Iterator<OpProjectPlan> projectsIt = broker.iterate(allProjectPlans);
+         while (projectsIt.hasNext()) {
+            OpProjectPlan plan = projectsIt.next();
+            //it the plan has any versions, take the creator of the last version
+            OpProjectPlanVersion version = plan.getLatestVersion();
+            String displayName = (version != null) ? version.getCreator() : administrator.getDisplayName();
+            plan.setCreator(displayName);
 
-         //set the version number on the project plan
-         int versions = OpProjectDataSetFactory.getPlanVersionsCount(broker, plan);
-         if (plan.hasWorkingVersion()) {
-            versions--;
+            //set the version number on the project plan
+            int versions = OpProjectDataSetFactory.getPlanVersionsCount(broker, plan);
+            if (plan.hasWorkingVersion()) {
+               versions--;
+            }
+            plan.setVersionNumber(versions);
+            broker.updateObject(plan);
          }
-         plan.setVersionNumber(versions);
-         broker.updateObject(plan);
+         tx.commit();
       }
-      tx.commit();
-      broker.closeAndEvict();
+      finally {
+         broker.closeAndEvict();
+      }
    }
-
 
    /**
     * Changes the name of the root project portfolio from the old resource naming - starting with {$
@@ -197,6 +220,7 @@ public class OpProjectModule extends OpModule {
    /**
     * @see onepoint.project.module.OpModule#getCheckerList()
     */
+   @Override
    public List<OpModuleChecker> getCheckerList() {
       List<OpModuleChecker> checkers = new ArrayList<OpModuleChecker>();
       checkers.add(new OpProjectModuleChecker());

@@ -24,6 +24,8 @@
    <data-field id="ActualCostException" text="${ActualCostException}"/>
    <data-field id="RemainingCostException" text="${RemainingCostException}"/>
 
+   <data-field id="ViewedNewContents"/>
+
    <data-set id="TimeActivitySet"/>
    <data-set id="TimeResourceSet"/>
    <data-set id="TimeProjectSet"/>

@@ -10,7 +10,6 @@ import onepoint.project.OpProjectSession;
 
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -52,7 +51,7 @@ public final class OpJasperReportBuilder {
       JasperPrint jasperPrint = null;
       try {
          currentThread.setContextClassLoader(jcl);
-         parameters.put(JRParameter.REPORT_LOCALE, new Locale(session.getLocale().getID()));
+         parameters.put(JRParameter.REPORT_LOCALE, session.getLocale().getLocale() );
          jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, ds);
       }
       catch (JRException e) {

@@ -33,10 +33,14 @@ public class OpResourceModule extends OpModule {
 
       // Check if hard-wired pool object "Root Resource Pool" exists (if not create it)
       OpBroker broker = session.newBroker();
-      if (OpResourceService.findRootPool(broker) == null && !updateRootPoolName(broker)) {
-         OpResourceService.createRootPool(session, broker);
+      try {
+         if (OpResourceService.findRootPool(broker) == null && !updateRootPoolName(broker)) {
+            OpResourceService.createRootPool(session, broker);
+         }
       }
-      broker.close();
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -79,10 +83,14 @@ public class OpResourceModule extends OpModule {
     */
    public void upgradeToVersion5(OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      updateRootPoolName(broker);
-      updateResourceHourlyRates(broker);
-      updatePoolHourlyRates(broker);
-      broker.closeAndEvict();
+      try {
+         updateRootPoolName(broker);
+         updateResourceHourlyRates(broker);
+         updatePoolHourlyRates(broker);
+      }
+      finally {
+         broker.closeAndEvict();         
+      }
    }
 
    /**

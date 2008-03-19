@@ -35,50 +35,52 @@ public class OpEditGroupFormProvider implements XFormProvider {
       String id_string = (String) (parameters.get("group_id"));
       Boolean edit_mode = (Boolean) (parameters.get("edit_mode"));
       OpBroker broker = ((OpProjectSession) session).newBroker();
+      try {
+         OpGroup group = (OpGroup) (broker.getObject(id_string));
+         // Fill edit-group form with group data
+         // *** TODO: Use class-constants for text-field IDs
+         form.findComponent("GroupID").setStringValue(id_string);
+         form.findComponent("EditMode").setBooleanValue(edit_mode.booleanValue());
+         // Attention: We are using display name here in order to localize name of group "Everyone"
+         XLocalizer localizer = new XLocalizer();
+         localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
+         XComponent name = form.findComponent("Name");
+         name.setStringValue(localizer.localize(group.getDisplayName()));
+         XComponent desc = form.findComponent("Description");
+         desc.setStringValue(localizer.localize(group.getDescription()));
 
-      OpGroup group = (OpGroup) (broker.getObject(id_string));
-      // Fill edit-group form with group data
-      // *** TODO: Use class-constants for text-field IDs
-      form.findComponent("GroupID").setStringValue(id_string);
-      form.findComponent("EditMode").setBooleanValue(edit_mode.booleanValue());
-      // Attention: We are using display name here in order to localize name of group "Everyone"
-      XLocalizer localizer = new XLocalizer();
-      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
-      XComponent name = form.findComponent("Name");
-      name.setStringValue(localizer.localize(group.getDisplayName()));
-      XComponent desc = form.findComponent("Description");
-      desc.setStringValue(localizer.localize(group.getDescription()));
+         if (!edit_mode.booleanValue()) {
+            name.setEnabled(false);
+            desc.setEnabled(false);
+            form.findComponent("GroupToolPanel").setVisible(false);
+            form.findComponent("Cancel").setVisible(false);
+            String title = ((OpProjectSession) session).getLocale().getResourceMap("user.Info").getResource("InfoGroup")
+            .getText();
+            form.setText(title);
+         }
+         else if (group.getID() == session.getEveryoneID()) {
+            // Name and description of group everyone cannot be changed
+            name.setEnabled(false);
+            desc.setEnabled(false);
+         }
 
-      if (!edit_mode.booleanValue()) {
-         name.setEnabled(false);
-         desc.setEnabled(false);
-         form.findComponent("GroupToolPanel").setVisible(false);
-         form.findComponent("Cancel").setVisible(false);
-         String title = ((OpProjectSession) session).getLocale().getResourceMap("user.Info").getResource("InfoGroup")
-               .getText();
-         form.setText(title);
+         XComponent assigned_group_data_set = form.findComponent(ASSIGNED_GROUP_DATA_SET);
+
+         Iterator assignments = group.getSuperGroupAssignments().iterator();
+         OpGroupAssignment assignment = null;
+         OpGroup superGroup = null;
+         XComponent dataRow = null;
+         while (assignments.hasNext()) {
+            assignment = (OpGroupAssignment) assignments.next();
+            superGroup = assignment.getSuperGroup();
+            dataRow = new XComponent(XComponent.DATA_ROW);
+            dataRow.setStringValue(XValidator.choice(superGroup.locator(), superGroup.getName()));
+            assigned_group_data_set.addChild(dataRow);
+         }
+         assigned_group_data_set.sort();
       }
-      else if (group.getID() == session.getEveryoneID()) {
-         // Name and description of group everyone cannot be changed
-         name.setEnabled(false);
-         desc.setEnabled(false);
+      finally {
+         broker.close();
       }
-
-      XComponent assigned_group_data_set = form.findComponent(ASSIGNED_GROUP_DATA_SET);
-
-      Iterator assignments = group.getSuperGroupAssignments().iterator();
-      OpGroupAssignment assignment = null;
-      OpGroup superGroup = null;
-      XComponent dataRow = null;
-      while (assignments.hasNext()) {
-         assignment = (OpGroupAssignment) assignments.next();
-         superGroup = assignment.getSuperGroup();
-         dataRow = new XComponent(XComponent.DATA_ROW);
-         dataRow.setStringValue(XValidator.choice(superGroup.locator(), superGroup.getName()));
-         assigned_group_data_set.addChild(dataRow);
-      }
-      assigned_group_data_set.sort();
-      broker.close();
    }
-
 }

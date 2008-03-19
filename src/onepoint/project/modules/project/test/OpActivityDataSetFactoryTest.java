@@ -13,12 +13,7 @@ import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpGanttValidator;
-import onepoint.project.modules.resource.OpResource;
-import onepoint.project.modules.resource.OpResourcePool;
-import onepoint.project.modules.resource.test.OpResourceTestDataFactory;
 import onepoint.project.modules.user.OpPermissionDataSetFactory;
-import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.test.OpUserTestDataFactory;
 import onepoint.project.test.OpBaseOpenTestCase;
 import onepoint.project.test.OpTestDataFactory;
 import onepoint.project.util.OpProjectConstants;
@@ -42,11 +37,7 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
    private static final String PRJ_NAME = "prj_test";
    private static final int STREAM_SIZE = 2 * 1024 * 1024; // 2 MB
 
-   private OpProjectAdministrationService service;
    private OpProjectTestDataFactory dataFactory;
-   private OpResourceTestDataFactory resourceDataFactory;
-
-//   private OpProjectNode project;
 
    /**
     * The name of the xml file that contains the test data.
@@ -62,9 +53,8 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
         throws Exception {
       super.setUp();
 
-      service = OpTestDataFactory.getProjectService();
+      OpProjectAdministrationService service = OpTestDataFactory.getProjectService();
       dataFactory = new OpProjectTestDataFactory(session);
-      resourceDataFactory = new OpResourceTestDataFactory(session);
 
       java.sql.Date date = java.sql.Date.valueOf("2007-06-06");
       XMessage request = OpProjectTestDataFactory.createProjectMsg(PRJ_NAME, date, 1000d, null, null);
@@ -109,7 +99,7 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
 
       //init the default calendar
       XDisplay display = new XDisplay(null);
-      display.getCalendar().configure(null, new XLocale("de", ""), null, null);
+      display.getCalendar().configure(null, new XLocale(Locale.GERMAN.getLanguage(), null, ""), null, null);
       XComponent dataSet = getTestDataSet(TEST_DATA_FILENAME);
       assertEquals(9, dataSet.getChildCount());
 
@@ -118,8 +108,9 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
       //the map of predecessors rows for each activity in the data set
       Map<String, List<XComponent>> mapPredecessors = createPredecessorsMap(dataSet);
 
-      /* create the Map<Integer, String> which has indexes of rows as keys and the names of the activities from the
-         rows as values
+      /**
+       * Create the Map<Integer, String> which has indexes of rows as keys and the names of the activities from the
+       * rows as values
        */
       Map<Integer, String> indexNameMap = new HashMap<Integer, String>();
       for (int i = 0; i < dataSet.getChildCount(); i++) {
@@ -165,9 +156,9 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
 
    /**
     * Creates a <code>Map</code> with all the successors for all activities in the data set.
-      The structure of the map : Key - activity name
-                                  Value - of data rows representing the successors of the activity
-
+    * The structure of the map : Key - activity name
+    * Value - of data rows representing the successors of the activity
+    *
     * @param dataSet - the <code>XComponent</code> data set from which the successors are taken.
     * @return a lists with all the successors for all activities in the data set.
     */
@@ -189,8 +180,8 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
 
    /**
     * Creates a <code>Map</code> with all the predecessors for all activities in the data set.
-      The structure of the map : Key - activity name
-                                 Value - of data rows representing the predecessors of the activity
+    * The structure of the map : Key - activity name
+    * Value - of data rows representing the predecessors of the activity
     *
     * @param dataSet - the <code>XComponent</code> data set from which the predecessors are taken.
     * @return a lists with all the predecessors for all activities in the data set.
@@ -214,19 +205,17 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
 
    /**
     * Checks the name values on the data rows in the maps passed al parameters and returns <code>true</code>
-    *    if all the corresponding rows in both maps have the same name value set on them and <code>false</code>
-    *    if at leat one rows has a different name value than it's corresponding row in the other map.
+    * if all the corresponding rows in both maps have the same name value set on them and <code>false</code>
+    * if at leat one rows has a different name value than it's corresponding row in the other map.
     *
     * @param oldMap
     * @param newMap
     * @return <code>true</code>
-    *    if all the corresponding rows in both maps have the same name value set on them and <code>false</code>
-    *    if at leat one rows has a different name value than it's corresponding row in the other map.
+    *         if all the corresponding rows in both maps have the same name value set on them and <code>false</code>
+    *         if at leat one rows has a different name value than it's corresponding row in the other map.
     */
    private boolean doRowsValuesMatch(Map<String, List<XComponent>> oldMap, Map<String, List<XComponent>> newMap) {
-      Iterator it = oldMap.keySet().iterator();
-      while (it.hasNext()) {
-         String activityName = (String) it.next();
+      for (String activityName : oldMap.keySet()) {
          List<XComponent> oldSuccessors = oldMap.get(activityName);
          List<XComponent> newSuccessors = newMap.get(activityName);
          for (int i = 0; i < oldSuccessors.size(); i++) {
@@ -249,7 +238,7 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
         throws Exception {
       OpBroker broker = session.newBroker();
       try {
-         OpProjectNode project = dataFactory.getProjectByName(broker, PRJ_NAME);
+         OpProjectNode project = dataFactory.getProjectByName(PRJ_NAME);
 
          OpProjectPlan plan = project.getPlan();
 
@@ -260,12 +249,9 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
          // use an invalid Content ID - null
          List attachmentElement = generateAttachElements(null);
 
-         OpAttachment attachment = OpActivityDataSetFactory.createAttachment(broker, activity, attachmentElement, null);
+         OpActivityDataSetFactory.createAttachment(broker, activity, attachmentElement, null);
          t.commit();
-         broker.close();
-
-         // load content
-         broker = session.newBroker();
+         broker.clear();
 
          OpQuery query = broker.newQuery("from " + OpAttachment.ATTACHMENT);
          List list = broker.list(query);
@@ -286,12 +272,12 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
    public void testCreateAttachments()
         throws Exception {
       // create the content
-       byte[] bytes = "The content of the file".getBytes();
+      byte[] bytes = "The content of the file".getBytes();
       String contentId = createContent(bytes);
 
       OpBroker broker = session.newBroker();
       try {
-         OpProjectNode project = dataFactory.getProjectByName(broker, PRJ_NAME);
+         OpProjectNode project = dataFactory.getProjectByName(PRJ_NAME);
 
          OpProjectPlan plan = project.getPlan();
 
@@ -301,10 +287,7 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
          OpAttachment attachment = OpActivityDataSetFactory.createAttachment(broker, activity, attachmentElement, null);
          OpPermissionDataSetFactory.updatePermissions(broker, activity.getProjectPlan().getProjectNode(), attachment);
          t.commit();
-         broker.close();
-
-         // load content
-         broker = session.newBroker();
+         broker.clear();
 
          OpQuery query = broker.newQuery("from " + OpAttachment.ATTACHMENT);
          List list = broker.list(query);
@@ -338,7 +321,7 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
 
       OpBroker broker = session.newBroker();
       try {
-         OpProjectNode project = dataFactory.getProjectByName(broker, PRJ_NAME);
+         OpProjectNode project = dataFactory.getProjectByName(PRJ_NAME);
          OpProjectPlan plan = project.getPlan();
 
          OpTransaction t = broker.newTransaction();
@@ -350,10 +333,9 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
          OpAttachment attachment = OpActivityDataSetFactory.createAttachment(broker, activity, attachmentElement, null);
          OpPermissionDataSetFactory.updatePermissions(broker, activity.getProjectPlan().getProjectNode(), attachment);
          t.commit();
-         broker.close();
+         broker.clear();
 
          // load content
-         broker = session.newBroker();
          t = broker.newTransaction();
 
          OpQuery query = broker.newQuery("from " + OpAttachment.ATTACHMENT);
@@ -370,11 +352,9 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
          attachment = OpActivityDataSetFactory.createAttachment(broker, activity, attachmentElement, reuselist);
          OpPermissionDataSetFactory.updatePermissions(broker, activity.getProjectPlan().getProjectNode(), attachment);
          t.commit();
-         broker.close();
+         broker.clear();
 
          // load content
-         broker = session.newBroker();
-
          OpContent actual = (OpContent) broker.getObject(contentId);
          assertEquals(2, actual.getRefCount());
       }
@@ -386,7 +366,7 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
    // ******** Helper Methods *********
 
    private List generateAttachElements(String contentId) {
-      List attachmentElement = new ArrayList();
+      List<String> attachmentElement = new ArrayList<String>();
       attachmentElement.add(OpProjectConstants.DOCUMENT_ATTACHMENT_DESCRIPTOR);  // 0 - document type
       attachmentElement.add(null); // 1 - unused
       attachmentElement.add("attachment1"); // 2 - name
@@ -407,65 +387,6 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
    }
 
    /**
-    * Cleans the database
-    *
-    * @throws Exception if deleting test artifacts fails
-    */
-   private void clean()
-        throws Exception {
-
-      OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
-
-      OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-      List<OpUser> users = usrData.getAllUsers(broker);
-      for (OpUser user : users) {
-         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
-            continue;
-         }
-         broker.deleteObject(user);
-      }
-
-      deleteAllObjects(broker, OpAttachment.ATTACHMENT);
-      deleteAllObjects(broker, OpAssignmentVersion.ASSIGNMENT_VERSION);
-      deleteAllObjects(broker, OpContent.CONTENT);
-      deleteAllObjects(broker, OpAssignment.ASSIGNMENT);
-      deleteAllObjects(broker, OpActivityVersion.ACTIVITY_VERSION);
-      deleteAllObjects(broker, OpActivity.ACTIVITY);
-      deleteAllObjects(broker, OpProjectPlanVersion.PROJECT_PLAN_VERSION);
-      deleteAllObjects(broker, OpProjectPlan.PROJECT_PLAN);
-
-      List<OpProjectNode> projectList = dataFactory.getAllProjects(broker);
-      for (OpProjectNode project : projectList) {
-        broker.deleteObject(project);
-      }
-
-      List<OpProjectNode> portofolioList = dataFactory.getAllPortofolios(broker);
-      for (OpProjectNode portofolio : portofolioList) {
-         if (portofolio.getName().equals(OpProjectNode.ROOT_PROJECT_PORTFOLIO_NAME)) {
-            continue;
-         }
-         broker.deleteObject(portofolio);
-      }
-
-      List<OpResource> resoucesList = resourceDataFactory.getAllResources(broker);
-      for (OpResource resource : resoucesList) {
-         broker.deleteObject(resource);
-      }
-
-      List<OpResourcePool> poolList = resourceDataFactory.getAllResourcePools(broker);
-      for (OpResourcePool pool : poolList) {
-         if (pool.getName().equals(OpResourcePool.ROOT_RESOURCE_POOL_NAME)) {
-            continue;
-         }
-         broker.deleteObject(pool);
-      }
-
-      t.commit();
-      broker.close();
-   }
-
-   /**
     * Create a new OpContent with the given data and returns the locator
     *
     * @param data the data to be inserted in the content
@@ -473,13 +394,16 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
     */
    private String createContent(byte[] data) {
       OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
-      OpContent content = OpContentManager.newContent(new XSizeInputStream(new ByteArrayInputStream(data), data.length), null, 0);
-      broker.makePersistent(content);
-      String contentId = content.locator();
-      t.commit();
-      broker.close();
-      return contentId;
+      try {
+         OpTransaction t = broker.newTransaction();
+         OpContent content = OpContentManager.newContent(new XSizeInputStream(new ByteArrayInputStream(data), data.length), null, 0);
+         broker.makePersistent(content);
+         String contentId = content.locator();
+         t.commit();
+         return contentId;
+      }
+      finally {
+         broker.close();
+      }
    }
-
 }

@@ -4,12 +4,17 @@
 
 // Controller script for resource_utilization.oxf.xml
 
-require "onepoint/project/scripts/lazyLoad.jes";
+require
+"onepoint/project/scripts/lazyLoad.jes";
 
-import onepoint.service.XMessage;
-import onepoint.express.XDisplay;
-import onepoint.express.XComponent;
-import onepoint.express.XValidator;
+import
+onepoint.service.XMessage;
+import
+onepoint.express.XDisplay;
+import
+onepoint.express.XComponent;
+import
+onepoint.express.XValidator;
 
 function timeUnitChanged(event) {
    // *** Get current choice from choice-field
@@ -34,11 +39,20 @@ function timeUnitChanged(event) {
 
 }
 
+function probabilityChanged(event) {
+   form = XDisplay.getActiveForm();
+   probability_choice_field = form.findComponent("ProbabilityChooser");
+   probability_choice_id = XValidator.choiceID(probability_choice_field.getStringValue());
+   parameters.probability_choice_id = probability_choice_id;
+   project_choice_field = form.findComponent("ProjectChooser");
+   parameters.project_choice_id = XValidator.choiceID(project_choice_field.getStringValue());
+   XDisplay.findFrame("MainFrame").refreshForm(parameters);
+}
+
 function UtilizationTable_onLayoutChanged(event) {
    utilization_box = XDisplay.getActiveForm().findComponent("UtilizationBox");
    if (utilization_box != null) {
-      utilization_box.doLayout();
-      utilization_box.repaint();
+      utilization_box.update();
    }
 }
 
@@ -46,7 +60,7 @@ function saveUtilizationImage(event) {
    XDisplay.getActiveForm().findComponent("UtilizationBox").saveAsImage("Save Utilization");
 }
 
-function print(event){
+function print(event) {
    printTitle = XDisplay.getActiveForm().findComponent("PrintTitle").getStringValue();
    component = XDisplay.getActiveForm().findComponent("UtilizationBox");
    component.print(printTitle);
@@ -69,12 +83,33 @@ function expandDataSet(event) {
    gantt_box = form.findComponent("UtilizationBox");
    gantt_box.resetCalendar();
 
+   probability_field = form.findComponent("projectProbability");
+   probability_choice_id = probability_field.getStringValue();
+
+   project_field = form.findComponent("project");
+   project_choice_id = project_field.getStringValue();
+   
+   filterIds = form.findComponent("FilteredOutIds").getValue();
+
    request = new XMessage;
    request.setAction("ResourceUtilizationService.expandResourcePool");
    request.setArgument("source_pool_locator", locator);
    request.setArgument("outlineLevel", outlineLevel);
    request.setArgument("resourceColumnsSelector", resourceSelector);
    request.setArgument("poolColumnsSelector", poolSelector);
+   request.setArgument("probability_choice_id", probability_choice_id);
+   request.setArgument("project_choice_id", project_choice_id);
+   request.setArgument("FilteredOutIds", filterIds);
 
    expandNode(sourcePool, 7, request);
+}
+
+function filterChanged(event) {
+   form = XDisplay.getActiveForm();
+   probability_choice_field = form.findComponent("ProbabilityChooser");
+   probability_choice_id = XValidator.choiceID(probability_choice_field.getStringValue());
+   parameters.probability_choice_id = probability_choice_id;
+   project_choice_field = form.findComponent("ProjectChooser");
+   parameters.project_choice_id = XValidator.choiceID(project_choice_field.getStringValue());
+   XDisplay.findFrame("MainFrame").refreshForm(parameters);
 }

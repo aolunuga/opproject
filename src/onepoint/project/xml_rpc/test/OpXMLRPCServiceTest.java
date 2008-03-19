@@ -3,14 +3,13 @@
  */
 package onepoint.project.xml_rpc.test;
 
-import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.my_tasks.OpMyTasksService;
 import onepoint.project.modules.my_tasks.test.OpMyTasksTestDataFactory;
-import onepoint.project.modules.project.*;
+import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.test.OpProjectTestDataFactory;
 import onepoint.project.modules.project_planning.OpProjectPlanningService;
 import onepoint.project.modules.project_planning.test.OpProjectPlanningTestDataFactory;
@@ -18,28 +17,22 @@ import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.test.OpResourceTestDataFactory;
 import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.OpUserError;
 import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.user.test.OpUserTestDataFactory;
-import onepoint.project.modules.work.OpWorkRecord;
-import onepoint.project.modules.work.OpWorkService;
-import onepoint.project.modules.work.OpWorkSlip;
 import onepoint.project.test.OpBaseOpenTestCase;
 import onepoint.project.test.OpTestDataFactory;
-import onepoint.project.util.OpHashProvider;
 import onepoint.project.xml_rpc.OpOpenXMLRPCServlet;
 import onepoint.project.xml_rpc.OpXMLRPCUtil;
 import onepoint.service.XMessage;
-
-import java.io.IOException;
-import java.net.Socket;
-import java.net.URL;
-import java.sql.Date;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import org.apache.xmlrpc.client.XmlRpcClient;
+import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
+import org.apache.xmlrpc.server.XmlRpcStreamServer;
+import org.apache.xmlrpc.util.ThreadPool.InterruptableTask;
+import org.apache.xmlrpc.util.ThreadPool.Task;
+import org.apache.xmlrpc.webserver.HttpServletRequestImpl;
+import org.apache.xmlrpc.webserver.HttpServletResponseImpl;
+import org.apache.xmlrpc.webserver.ServletWebServer;
+import org.apache.xmlrpc.webserver.WebServer;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServlet;
@@ -47,17 +40,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionContext;
-
-import org.apache.xmlrpc.client.XmlRpcClient;
-import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
-import org.apache.xmlrpc.server.XmlRpcStreamServer;
-import org.apache.xmlrpc.util.ThreadPool.InterruptableTask;
-import org.apache.xmlrpc.util.ThreadPool.Task;
-import org.apache.xmlrpc.webserver.HttpServletResponseImpl;
-import org.apache.xmlrpc.webserver.ServletConnection;
-import org.apache.xmlrpc.webserver.ServletWebServer;
-import org.apache.xmlrpc.webserver.WebServer;
-import org.apache.xmlrpc.webserver.HttpServletRequestImpl;
+import java.io.IOException;
+import java.net.Socket;
+import java.net.URL;
+import java.sql.Date;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Map;
 /**
  * This class test project service methods.
  *
@@ -66,8 +55,8 @@ import org.apache.xmlrpc.webserver.HttpServletRequestImpl;
 
 /**
  * currently supported services:
- * 'UserService.signOn', 
- * 'UserService.signOff', 
+ * 'UserService.signOn',
+ * 'UserService.signOff',
  * 'UserService.getSignedOnUserData',
  * 'MyTasksService.getRootTasks',
  * 'MyTasksService.getParentTask',
@@ -99,7 +88,7 @@ public class OpXMLRPCServiceTest extends OpBaseOpenTestCase {
 
    private OpMyTasksService myTaskService;
 
-// private OpUserService userService;
+   // private OpUserService userService;
    private ServletWebServer server = null;
    private XmlRpcClient client;
    //   private OpWorkService service;
@@ -119,7 +108,7 @@ public class OpXMLRPCServiceTest extends OpBaseOpenTestCase {
     */
 
    /**
-    * 
+    *
     */
    public OpXMLRPCServiceTest() {
       // start up mini http xml-rpc server
@@ -130,12 +119,13 @@ public class OpXMLRPCServiceTest extends OpBaseOpenTestCase {
              * @see org.apache.xmlrpc.webserver.ServletWebServer#newTask(org.apache.xmlrpc.webserver.WebServer, org.apache.xmlrpc.server.XmlRpcStreamServer, java.net.Socket)
              */
             @Override
-            protected Task newTask(WebServer pWebServer, XmlRpcStreamServer pXmlRpcServer, Socket pSocket) throws IOException {
+            protected Task newTask(WebServer pWebServer, XmlRpcStreamServer pXmlRpcServer, Socket pSocket)
+                 throws IOException {
                return new OpServletConnection(servlet, pSocket);
             }
          };
          server.start();
-      } 
+      }
       catch (Exception exc) {
          exc.printStackTrace();
       }
@@ -145,15 +135,17 @@ public class OpXMLRPCServiceTest extends OpBaseOpenTestCase {
     * @see java.lang.Object#finalize()
     */
    @Override
-   protected void finalize() throws Throwable {
+   protected void finalize()
+        throws Throwable {
       super.finalize();
       if (server != null) {
          server.shutdown();
          server = null;
       }
    }
+
    protected void setUp()
-   throws Exception {
+        throws Exception {
       super.setUp();
 
       //      service = OpTestDataFactory.getWorkService();
@@ -169,7 +161,7 @@ public class OpXMLRPCServiceTest extends OpBaseOpenTestCase {
       clean();
 
       Map userData = OpUserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, null, OpUser.CONTRIBUTOR_USER_LEVEL,
-            "John", "Doe", "en", "user@email.com", null, null, null, null);
+           "John", "Doe", "en", "user@email.com", null, null, null, null);
       XMessage request = new XMessage();
       request.setArgument(OpUserService.USER_DATA, userData);
       XMessage response = OpTestDataFactory.getUserService().insertUser(session, request);
@@ -179,20 +171,18 @@ public class OpXMLRPCServiceTest extends OpBaseOpenTestCase {
       request = resourceDataFactory.createResourceMsg("resource", "description", 50d, 2d, 1d, false, poolid);
       response = OpTestDataFactory.getResourceService().insertResource(session, request);
       assertNoError(response);
-      resId = resourceDataFactory.getResourceByName("resource").locator();
-
       OpBroker broker = session.newBroker();
       try {
+         resId = resourceDataFactory.getResourceByName("resource").locator();
          OpTransaction t = broker.newTransaction();
          OpResource res = (OpResource) broker.getObject(resId);
-         OpUser user = userDataFactory.getUserByName(broker, DEFAULT_USER);
+         OpUser user = userDataFactory.getUserByName(DEFAULT_USER);
          res.setUser(user);
          broker.updateObject(res);
          t.commit();
 
 //       OpBroker broker2 = session.newBroker();
 //       assertEquals(userDataFactory.getUserByName(DEFAULT_USER).getResources().size(), 1);
-
 
 //       String poolid = OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, 0); // fake id
 //       XMessage request = resourceDataFactory.createResourceMsg(RESOURCE_NAME, "description", 50d, 2d, 1d, false, poolid);
@@ -213,7 +203,7 @@ public class OpXMLRPCServiceTest extends OpBaseOpenTestCase {
 //       assertNoError(response);
 ////     proj2Id = projectDataFactory.getProjectId(PROJECT_NAME + 2);
 
-         planId = projectDataFactory.getProjectById(broker, projId).getPlan().locator();
+         planId = projectDataFactory.getProjectById(projId).getPlan().locator();
 ////     plan2Id = projectDataFactory.getProjectById(proj2Id).getPlan().locator();
 
          // setup xml client
@@ -224,7 +214,7 @@ public class OpXMLRPCServiceTest extends OpBaseOpenTestCase {
          client.setConfig(config);
 
          Object[] params = new Object[]{DEFAULT_USER, DEFAULT_PASSWORD};
-         Boolean result = (Boolean)client.execute("UserService.signOn", params);
+         Boolean result = (Boolean) client.execute("UserService.signOn", params);
          assertTrue(result);
       }
       finally {
@@ -243,28 +233,28 @@ public class OpXMLRPCServiceTest extends OpBaseOpenTestCase {
     * @throws Exception If tearDown process can not be successfuly finished
     */
    protected void tearDown()
-   throws Exception {
+        throws Exception {
       clean();
 
       Object[] params = new Object[]{};
-      Boolean result = (Boolean)client.execute("UserService.signOff", params);
+      Boolean result = (Boolean) client.execute("UserService.signOff", params);
       assertTrue(result);
 
       super.tearDown();
    }
 
-   public void testGetMyTasks() throws Exception {
+   public void testGetMyTasks()
+        throws Exception {
       insertMyTask();
 
       Object[] params = new Object[]{};
       //List<Map<String, Object>> result = (List<Map<String, Object>>) 
 //    Object obj = client.execute("MyTasksService.getMyTasks", params);
 //    Object xxx = client.execute("UserService.getSignedOnUserData", new Object[] {});
-      Object[] result = (Object[])client.execute("MyTasksService.getMyTasks", params);
+      Object[] result = (Object[]) client.execute("MyTasksService.getMyTasks", params);
 
       assertEquals(result.length, 1); // only one task
-//    System.err.println("XXXXXXXXXx:" +obj.getClass().getName());
-      Map args = (Map)result[0];
+      Map args = (Map) result[0];
       assertEquals(args.get("Name"), ACTIVITY_NAME);
       assertEquals(args.get("Description"), "descr");
       assertEquals(args.get("Priority"), new Integer(5));
@@ -272,8 +262,8 @@ public class OpXMLRPCServiceTest extends OpBaseOpenTestCase {
 
       assertEquals(new Integer(OpActivity.ADHOC_TASK), args.get("Type"));
 
-      assertEquals(1, ((Object[])args.get((String)args.get("Assignments"))).length);
-      assertEquals(planId, ((Map)args.get((String)args.get("ProjectPlan"))).get(OpXMLRPCUtil.LOCATOR_KEY));
+      assertEquals(1, ((Object[]) args.get((String) args.get("Assignments"))).length);
+      assertEquals(planId, ((Map) args.get((String) args.get("ProjectPlan"))).get(OpXMLRPCUtil.LOCATOR_KEY));
 
    }
 
@@ -286,73 +276,24 @@ public class OpXMLRPCServiceTest extends OpBaseOpenTestCase {
       XMessage response = myTaskService.addAdhocTask(session, request);
       assertNoError(response);
    }
-
-   // ******** Helper Methods *********
-
-   /**
-    * Cleans the database
-    *
-    * @throws Exception if deleting test artifacts fails
-    */
-   private void clean()
-   throws Exception {
-      OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-
-      OpBroker broker = session.newBroker();
-      OpTransaction transaction = broker.newTransaction();
-
-      deleteAllObjects(broker, OpWorkRecord.WORK_RECORD);
-      deleteAllObjects(broker, OpWorkSlip.WORK_SLIP);
-      deleteAllObjects(broker, OpAssignment.ASSIGNMENT);
-      deleteAllObjects(broker, OpActivityComment.ACTIVITY_COMMENT);
-      deleteAllObjects(broker, OpActivity.ACTIVITY);
-      deleteAllObjects(broker, OpProjectPlan.PROJECT_PLAN);
-      deleteAllObjects(broker, OpAssignmentVersion.ASSIGNMENT_VERSION);
-      deleteAllObjects(broker, OpProjectPlanVersion.PROJECT_PLAN_VERSION);
-      deleteAllObjects(broker, OpActivityVersion.ACTIVITY_VERSION);
-
-
-      List resoucesList = resourceDataFactory.getAllResources(broker);
-      for (Iterator iterator = resoucesList.iterator(); iterator.hasNext();) {
-         OpResource resource = (OpResource) iterator.next();
-         broker.deleteObject(resource);
-      }
-
-      List poolList = resourceDataFactory.getAllResourcePools(broker);
-      for (Iterator iterator = poolList.iterator(); iterator.hasNext();) {
-         OpResourcePool pool = (OpResourcePool) iterator.next();
-         if (pool.getName().equals(OpResourcePool.ROOT_RESOURCE_POOL_NAME)) {
-            continue;
-         }
-         broker.deleteObject(pool);
-      }
-
-      for (Object user1 : usrData.getAllUsers(broker)) {
-         OpUser user = (OpUser) user1;
-         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
-            continue;
-         }
-         broker.deleteObject(user);
-      }
-
-      transaction.commit();
-      broker.close();
-   }
 }
 
-class OpServletConnection  implements InterruptableTask {
+class OpServletConnection implements InterruptableTask {
    private final HttpServlet servlet;
    private final Socket socket;
    private final HttpServletRequest request;
    private final HttpServletResponse response;
    private boolean shuttingDown;
 
-   /** Creates a new instance.
+   /**
+    * Creates a new instance.
+    *
     * @param pServlet The servlet, which ought to handle the request.
-    * @param pSocket The socket, to which the client is connected.
+    * @param pSocket  The socket, to which the client is connected.
     * @throws IOException
     */
-   public OpServletConnection(HttpServlet pServlet, Socket pSocket) throws IOException {
+   public OpServletConnection(HttpServlet pServlet, Socket pSocket)
+        throws IOException {
       servlet = pServlet;
       socket = pSocket;
       request = new HttpServletRequestImpl(socket) {
@@ -363,9 +304,10 @@ class OpServletConnection  implements InterruptableTask {
          public HttpSession getSession() {
             return MySession.getSession(true);
          }
+
          /* (non-Javadoc)
-          * @see org.apache.xmlrpc.webserver.HttpServletRequestImpl#getSession(boolean)
-          */
+         * @see org.apache.xmlrpc.webserver.HttpServletRequestImpl#getSession(boolean)
+         */
          @Override
          public HttpSession getSession(boolean pCreate) {
             return MySession.getSession(pCreate);
@@ -374,29 +316,30 @@ class OpServletConnection  implements InterruptableTask {
       response = new HttpServletResponseImpl(socket);
    }
 
-   public void run() throws Throwable {
+   public void run()
+        throws Throwable {
       try {
          servlet.service(request, response);
-      } catch (Throwable t) {
+      }
+      catch (Throwable t) {
          if (!shuttingDown) {
             throw t;
          }
       }
    }
 
-   public void shutdown() throws Throwable {
+   public void shutdown()
+        throws Throwable {
       shuttingDown = true;
       socket.close();
    }
 }
 
-class MySession implements HttpSession
-{
+class MySession implements HttpSession {
    static MySession session;
-   static MySession getSession(boolean create)
-   {
-      if ((session == null) && (create))
-      {
+
+   static MySession getSession(boolean create) {
+      if ((session == null) && (create)) {
          session = new MySession();
       }
       return session;
@@ -404,84 +347,82 @@ class MySession implements HttpSession
 
    Hashtable attributeValues = new Hashtable();
 
-   public MySession()
-   {
+   public MySession() {
    }
 
-   public long getCreationTime()
-   {
+   public long getCreationTime() {
       throw new java.lang.UnsupportedOperationException("Method getCreationTime() not yet implemented.");
    }
-   public String getId()
-   {
+
+   public String getId() {
       throw new java.lang.UnsupportedOperationException("Method getId() not yet implemented.");
    }
-   public long getLastAccessedTime()
-   {
+
+   public long getLastAccessedTime() {
       throw new java.lang.UnsupportedOperationException("Method getLastAccessedTime() not yet implemented.");
    }
-   public ServletContext getServletContext()
-   {
+
+   public ServletContext getServletContext() {
       /**@todo: Implement this javax.servlet.http.HttpSession method*/
       throw new java.lang.UnsupportedOperationException("Method getServletContext() not yet implemented.");
    }
-   public void setMaxInactiveInterval(int parm1)
-   {
+
+   public void setMaxInactiveInterval(int parm1) {
       /**@todo: Implement this javax.servlet.http.HttpSession method*/
       throw new java.lang.UnsupportedOperationException("Method setMaxInactiveInterval() not yet implemented.");
    }
-   public int getMaxInactiveInterval()
-   {
+
+   public int getMaxInactiveInterval() {
       /**@todo: Implement this javax.servlet.http.HttpSession method*/
       throw new java.lang.UnsupportedOperationException("Method getMaxInactiveInterval() not yet implemented.");
    }
-   public HttpSessionContext getSessionContext()
-   {
+
+   public HttpSessionContext getSessionContext() {
       /**@todo: Implement this javax.servlet.http.HttpSession method*/
       throw new java.lang.UnsupportedOperationException("Method getSessionContext() not yet implemented.");
    }
-   public Object getAttribute(String parm1)
-   {
-      return attributeValues.get( parm1 );
+
+   public Object getAttribute(String parm1) {
+      return attributeValues.get(parm1);
    }
-   public Object getValue(String parm1)
-   {
+
+   public Object getValue(String parm1) {
       throw new java.lang.UnsupportedOperationException("Method not yet implemented.");
    }
-   public Enumeration getAttributeNames()
-   {
+
+   public Enumeration getAttributeNames() {
       return attributeValues.keys();
    }
-   public String[] getValueNames()
-   {
+
+   public String[] getValueNames() {
       /**@todo: Implement this javax.servlet.http.HttpSession method*/
       throw new java.lang.UnsupportedOperationException("Method getValueNames() not yet implemented.");
    }
-   public void setAttribute(String parm1, Object parm2)
-   {
-      attributeValues.put( parm1, parm2 );
+
+   public void setAttribute(String parm1, Object parm2) {
+      attributeValues.put(parm1, parm2);
    }
-   public void putValue(String parm1, Object parm2)
-   {
+
+   public void putValue(String parm1, Object parm2) {
       /**@todo: Implement this javax.servlet.http.HttpSession method*/
       throw new java.lang.UnsupportedOperationException("Method putValue() not yet implemented.");
    }
-   public void removeAttribute(String parm1)
-   {
-      attributeValues.remove( parm1 );
+
+   public void removeAttribute(String parm1) {
+      attributeValues.remove(parm1);
    }
-   public void removeValue(String parm1)
-   {
+
+   public void removeValue(String parm1) {
       /**@todo: Implement this javax.servlet.http.HttpSession method*/
       throw new java.lang.UnsupportedOperationException("Method removeValue() not yet implemented.");
    }
-   public void invalidate()
-   {
+
+   public void invalidate() {
       /**@todo: Implement this javax.servlet.http.HttpSession method*/
       throw new java.lang.UnsupportedOperationException("Method invalidate() not yet implemented.");
    }
-   public boolean isNew()
-   {
+
+   public boolean isNew() {
       /**@todo: Implement this javax.servlet.http.HttpSession method*/
       throw new java.lang.UnsupportedOperationException("Method isNew() not yet implemented.");
    }

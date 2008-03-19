@@ -26,6 +26,7 @@ import onepoint.project.xml_rpc.OpXMLRPCUtil;
 import onepoint.service.server.XService;
 import onepoint.service.server.XServiceException;
 import onepoint.service.server.XServiceManager;
+import onepoint.service.server.XSession;
 import org.apache.xmlrpc.XmlRpcException;
 
 import java.sql.Date;
@@ -44,24 +45,24 @@ import java.util.Set;
  * @author dfreis
  */
 public class OpMyTasksServiceXMLRPC {
-   private final static String[] IGNORES = new String[] {
-      "SubActivities", 
-      "SuccessorDependencies", 
-      "PredecessorDependencies", 
-      "SuperActivity", 
-      "ResponsibleResource",
-      "ProjectPlan.ProjectNode",
-      "ProjectPlan.Activities",
-      "ProjectPlan.ActivityAttachments",
-      "ProjectPlan.ActivityAssignments",
-      "ProjectPlan.WorkPeriods",
-      "ProjectPlan.Dependencies",
-      "ProjectPlan.Versions",
-      "Assignments.ProjectPlan",
-      "Assignments.Resource",
-      "Assignments.Activity",
-      "Assignments.WorkRecords",
-      "Assignments.WorkMonths" };
+   private final static String[] IGNORES = new String[]{
+        "SubActivities",
+        "SuccessorDependencies",
+        "PredecessorDependencies",
+        "SuperActivity",
+        "ResponsibleResource",
+        "ProjectPlan.ProjectNode",
+        "ProjectPlan.Activities",
+        "ProjectPlan.ActivityAttachments",
+        "ProjectPlan.ActivityAssignments",
+        "ProjectPlan.WorkPeriods",
+        "ProjectPlan.Dependencies",
+        "ProjectPlan.Versions",
+        "Assignments.ProjectPlan",
+        "Assignments.Resource",
+        "Assignments.Activity",
+        "Assignments.WorkRecords",
+        "Assignments.WorkMonths"};
    /**
     * the underlaying OpMyTaskService
     */
@@ -103,7 +104,7 @@ public class OpMyTasksServiceXMLRPC {
     */
    public List<Map<String, Object>> getRootTasks()
         throws XmlRpcException {
-      OpProjectSession session = OpProjectSession.getSession();
+      OpProjectSession session = (OpProjectSession) XSession.getSession();
       OpBroker broker = session.newBroker();
       try {
          List<Map<String, Object>> ret = new LinkedList<Map<String, Object>>();
@@ -127,7 +128,7 @@ public class OpMyTasksServiceXMLRPC {
 
    public List<Map<String, Object>> getMyTasks()
         throws XmlRpcException {
-      OpProjectSession session = OpProjectSession.getSession();
+      OpProjectSession session = (OpProjectSession) XSession.getSession();
       OpBroker broker = session.newBroker();
       try {
          List<Map<String, Object>> ret = new LinkedList<Map<String, Object>>();
@@ -151,7 +152,7 @@ public class OpMyTasksServiceXMLRPC {
 
    public List<Map<String, Object>> getMyTasks(BitSet types)
         throws XmlRpcException {
-      OpProjectSession session = OpProjectSession.getSession();
+      OpProjectSession session = (OpProjectSession) XSession.getSession();
       OpBroker broker = session.newBroker();
       try {
          List<Map<String, Object>> ret = new LinkedList<Map<String, Object>>();
@@ -174,7 +175,7 @@ public class OpMyTasksServiceXMLRPC {
 
    public Map<String, Object> getParentTask(String childId)
         throws XmlRpcException {
-      OpProjectSession session = OpProjectSession.getSession();
+      OpProjectSession session = (OpProjectSession) XSession.getSession();
       OpBroker broker = session.newBroker();
       try {
          OpActivity activity = impl.getTaskById(session, broker, Long.parseLong(childId));
@@ -182,7 +183,7 @@ public class OpMyTasksServiceXMLRPC {
          if (parent == null) {
             return (new HashMap<String, Object>());
          }
-         return(getActivityData(parent));
+         return (getActivityData(parent));
          //OpXMLRPCUtil.deleteMapNullValues(map);
          //return map;
       }
@@ -196,7 +197,7 @@ public class OpMyTasksServiceXMLRPC {
 
    public List<Map<String, Object>> getChildTasks(String parentId)
         throws XmlRpcException {
-      OpProjectSession session = OpProjectSession.getSession();
+      OpProjectSession session = (OpProjectSession) XSession.getSession();
       OpBroker broker = session.newBroker();
       try {
          List<Map<String, Object>> ret = new LinkedList<Map<String, Object>>();
@@ -220,7 +221,7 @@ public class OpMyTasksServiceXMLRPC {
 
    public List<Map<String, Object>> getChildTasks(String parentId, BitSet types)
         throws XmlRpcException {
-      OpProjectSession session = OpProjectSession.getSession();
+      OpProjectSession session = (OpProjectSession) XSession.getSession();
       OpBroker broker = session.newBroker();
       try {
          List<Map<String, Object>> ret = new LinkedList<Map<String, Object>>();
@@ -244,7 +245,7 @@ public class OpMyTasksServiceXMLRPC {
 
    public Map<String, Object> getTaskByIs(String id)
         throws XmlRpcException {
-      OpProjectSession session = OpProjectSession.getSession();
+      OpProjectSession session = (OpProjectSession) XSession.getSession();
       OpBroker broker = session.newBroker();
       try {
          OpActivity activity = impl.getTaskById(session, broker, Long.parseLong(id));
@@ -262,7 +263,7 @@ public class OpMyTasksServiceXMLRPC {
 
    public Map<String, Object> insertAdhocTask(Map<String, Object> activityData)
         throws XmlRpcException {
-      OpProjectSession session = OpProjectSession.getSession();
+      OpProjectSession session = (OpProjectSession) XSession.getSession();
       OpBroker broker = session.newBroker();
       try {
          OpActivity activity = getActivity(session, broker, activityData);
@@ -280,7 +281,7 @@ public class OpMyTasksServiceXMLRPC {
 
    public boolean deleteAdhocTask(Map<String, Object> activityData)
         throws XmlRpcException {
-      OpProjectSession session = OpProjectSession.getSession();
+      OpProjectSession session = (OpProjectSession) XSession.getSession();
       OpBroker broker = session.newBroker();
       try {
          OpActivity activity = getActivity(session, broker, activityData);
@@ -297,7 +298,7 @@ public class OpMyTasksServiceXMLRPC {
 
    public Map<String, Object> updateAdhocTask(Map<String, Object> activityData)
         throws XmlRpcException {
-      OpProjectSession session = OpProjectSession.getSession();
+      OpProjectSession session = (OpProjectSession) XSession.getSession();
       OpBroker broker = session.newBroker();
       try {
          OpActivity activity = getActivity(session, broker, activityData);
@@ -328,11 +329,11 @@ public class OpMyTasksServiceXMLRPC {
     */
    private OpActivity getActivity(OpProjectSession session, OpBroker broker,
         Map<String, Object> activity) {
-      
+
       // FIXME(dfreis Sep 12, 2007 10:51:27 AM)
       // to be done
-      
-      
+
+
       OpActivity ret;
       String id = (String) activity.get(OpActivity.ID);
       if (id != null) {

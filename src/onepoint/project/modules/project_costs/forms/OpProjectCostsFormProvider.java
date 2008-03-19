@@ -45,34 +45,36 @@ public class OpProjectCostsFormProvider implements XFormProvider {
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
       OpBroker broker = session.newBroker();
+      try {
+         // Decide on project-ID and retrieve project
+         String project_locator = (String) (parameters.get(PROJECT_ID));
+         if (project_locator != null) {
+            // Get open project-ID from parameters and set project-ID session variable
+            session.setVariable(PROJECT_ID, project_locator);
+         }
+         else {
+            project_locator = (String) (session.getVariable(PROJECT_ID));
+         }
 
-      // Decide on project-ID and retrieve project
-      String project_locator = (String) (parameters.get(PROJECT_ID));
-      if (project_locator != null) {
-         // Get open project-ID from parameters and set project-ID session variable
-         session.setVariable(PROJECT_ID, project_locator);
+         if (project_locator != null) {
+            OpProjectNode project = (OpProjectNode) (broker.getObject(project_locator));
+
+            // Locate data set in form
+            XComponent data_set = form.findComponent(COST_SET);
+
+            //print title
+            form.findComponent(PRINT_TITLE).setStringValue(project.getName());
+            form.findComponent(PRINT_BUTTON).setEnabled(true);
+            // Create dynamic resource summaries for collection-activities
+            // (Note: Value of collection-activities have been set on check-in/work-calculator)
+
+            int max_outline_level = getMaxOutlineLevel(form, session);
+            createViewDataSet(session, broker, project, max_outline_level, data_set);
+         }
       }
-      else {
-         project_locator = (String) (session.getVariable(PROJECT_ID));
+      finally {
+         broker.close();
       }
-
-      if (project_locator != null) {
-
-         OpProjectNode project = (OpProjectNode) (broker.getObject(project_locator));
-
-         // Locate data set in form
-         XComponent data_set = form.findComponent(COST_SET);
-
-         //print title
-         form.findComponent(PRINT_TITLE).setStringValue(project.getName());
-         form.findComponent(PRINT_BUTTON).setEnabled(true);
-         // Create dynamic resource summaries for collection-activities
-         // (Note: Value of collection-activities have been set on check-in/work-calculator)
-
-         int max_outline_level = getMaxOutlineLevel(form, session);
-         createViewDataSet(session, broker, project, max_outline_level, data_set);
-      }
-      broker.close();
 
       updateFooterData(form);
    }

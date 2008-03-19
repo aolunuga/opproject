@@ -62,23 +62,26 @@ public class OpPreferencesService extends OpProjectService {
       }
 
       OpBroker broker = session.newBroker();
-      OpUser currentUser = session.user(broker);
+      try {
+         OpUser currentUser = session.user(broker);
 
-      OpTransaction tx = broker.newTransaction();
+         OpTransaction tx = broker.newTransaction();
 
-      if (!checkPasswords(password, OpPreferencesFormProvider.PASSWORD_TOKEN)) {
-         //update the password
-         String hashedPasswrd = (password == null) ? null : new OpHashProvider().calculateHash(password);
-         currentUser.setPassword(hashedPasswrd);
-         broker.updateObject(currentUser);
+         if (!checkPasswords(password, OpPreferencesFormProvider.PASSWORD_TOKEN)) {
+            //update the password
+            String hashedPasswrd = (password == null) ? null : new OpHashProvider().calculateHash(password);
+            currentUser.setPassword(hashedPasswrd);
+            broker.updateObject(currentUser);
+         }
+
+         XMessage reply = updateUserPreferences(session, broker, currentUser, arguments);
+
+         tx.commit();
+         return reply;
       }
-
-      XMessage reply = updateUserPreferences(session, broker, currentUser, arguments);
-
-      tx.commit();
-      broker.close();
-
-      return reply;
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -94,11 +97,11 @@ public class OpPreferencesService extends OpProjectService {
 
       XMessage reply = new XMessage();
       //update the language preference
-      String language = (String) arguments.get(LANGUAGE_KEY);
-      boolean languageChanged = OpUserLanguageManager.updateUserLanguagePreference(broker, currentUser, language);
+      String xLocaleId = (String) arguments.get(LANGUAGE_KEY);
+      boolean languageChanged = OpUserLanguageManager.updateUserLanguagePreference(broker, currentUser, xLocaleId);
       if (languageChanged) {
-         if (!session.getLocale().getID().equals(language)) {
-            XLocale newLocale = XLocaleManager.findLocale(language);
+         if (!session.getLocale().getID().equals(xLocaleId)) {
+            XLocale newLocale = XLocaleManager.findLocale(xLocaleId);
             session.setLocale(newLocale);
             OpSettingsService.getService().configureServerCalendar(session);
             reply.setArgument(OpProjectConstants.CALENDAR, session.getCalendar());
@@ -141,7 +144,7 @@ public class OpPreferencesService extends OpProjectService {
          }
       }
       else {
-         boolean allowsEmptyPasswords = Boolean.valueOf(OpSettingsService.getService().get(OpSettings.ALLOW_EMPTY_PASSWORD));
+         boolean allowsEmptyPasswords = Boolean.valueOf(OpSettingsService.getService().get(session, OpSettings.ALLOW_EMPTY_PASSWORD));
          if ((password == null || password.length() == 0) && !allowsEmptyPasswords) {
             response.setError(session.newError(ERROR_MAP, OpPreferencesError.EMPTY_PASSWORD));
             return response;

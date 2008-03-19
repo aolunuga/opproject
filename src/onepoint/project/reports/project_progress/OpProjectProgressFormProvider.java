@@ -46,67 +46,70 @@ public class OpProjectProgressFormProvider implements XFormProvider {
       localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
 
       OpBroker broker = ((OpProjectSession) session).newBroker();
+      try {
+         // Execute query and fill result set if RunQuery is true
+         if (parameters != null) {
+            Boolean runQuery = (Boolean) parameters.get(RUN_QUERY);
+            if ((runQuery != null) && (runQuery.booleanValue())) {
 
-      // Execute query and fill result set if RunQuery is true
-      if (parameters != null) {
-         Boolean runQuery = (Boolean) parameters.get(RUN_QUERY);
-         if ((runQuery != null) && (runQuery.booleanValue())) {
+               String projectLocator = (String) parameters.get(PROJECT_LOCATOR);
+               if (projectLocator == null) {
+                  broker.close();
+                  return; // TODO: Throw exception
+               }
 
-            String projectLocator = (String) parameters.get(PROJECT_LOCATOR);
-            if (projectLocator == null) {
-               broker.close();
-               return; // TODO: Throw exception
+               OpProjectNode project = (OpProjectNode) broker.getObject(projectLocator);
+               if (project == null) {
+                  broker.close();
+                  return; // TODO: Throw exception
+               }
+
+               form.findComponent(PROJECT_LOCATOR_FIELD).setStringValue(projectLocator);
+               form.findComponent(PROJECT_NAME_FIELD).setStringValue(project.getName());
+
+               //Get the correct query (according to baseline)
+               OpQuery query = null;
+               if (projectsWithBaseline.get(projectLocator) != null) {
+                  query = this.getQueryWithBaseline(broker, project.getID(), projectsWithBaseline.get(projectLocator));
+               }
+               else {
+                  query = this.getQueryWithoutBaseline(broker, project.getID());
+               }
+               Iterator i = broker.iterate(query);
+               Object[] record = null;
+               XComponent resultSet = form.findComponent("ResultSet");
+               XComponent resultRow = null;
+               XComponent resultCell = null;
+               while (i.hasNext()) {
+                  record = (Object[]) i.next();
+                  resultRow = new XComponent(XComponent.DATA_ROW);
+                  resultCell = new XComponent(XComponent.DATA_CELL);
+                  resultCell.setStringValue((String) record[0]);
+                  resultRow.addChild(resultCell);
+                  resultCell = new XComponent(XComponent.DATA_CELL);
+                  resultCell.setDoubleValue(((Double) record[1]).doubleValue());
+                  resultRow.addChild(resultCell);
+                  resultCell = new XComponent(XComponent.DATA_CELL);
+                  resultCell.setDoubleValue(((Double) record[2]).doubleValue());
+                  resultRow.addChild(resultCell);
+                  resultCell = new XComponent(XComponent.DATA_CELL);
+                  resultCell.setDoubleValue(((Double) record[3]).doubleValue());
+                  resultRow.addChild(resultCell);
+                  resultCell = new XComponent(XComponent.DATA_CELL);
+                  resultCell.setDoubleValue(((Double) record[4]).doubleValue());
+                  resultRow.addChild(resultCell);
+                  resultCell = new XComponent(XComponent.DATA_CELL);
+                  resultCell.setDoubleValue(((Double) record[5]).doubleValue());
+                  resultRow.addChild(resultCell);
+                  resultSet.addChild(resultRow);
+               }
+
             }
-
-            OpProjectNode project = (OpProjectNode) broker.getObject(projectLocator);
-            if (project == null) {
-               broker.close();
-               return; // TODO: Throw exception
-            }
-
-            form.findComponent(PROJECT_LOCATOR_FIELD).setStringValue(projectLocator);
-            form.findComponent(PROJECT_NAME_FIELD).setStringValue(project.getName());
-
-            //Get the correct query (according to baseline)
-            OpQuery query = null;
-            if (projectsWithBaseline.get(projectLocator) != null) {
-               query = this.getQueryWithBaseline(broker, project.getID(), projectsWithBaseline.get(projectLocator));
-            }
-            else {
-               query = this.getQueryWithoutBaseline(broker, project.getID());
-            }
-            Iterator i = broker.iterate(query);
-            Object[] record = null;
-            XComponent resultSet = form.findComponent("ResultSet");
-            XComponent resultRow = null;
-            XComponent resultCell = null;
-            while (i.hasNext()) {
-               record = (Object[]) i.next();
-               resultRow = new XComponent(XComponent.DATA_ROW);
-               resultCell = new XComponent(XComponent.DATA_CELL);
-               resultCell.setStringValue((String) record[0]);
-               resultRow.addChild(resultCell);
-               resultCell = new XComponent(XComponent.DATA_CELL);
-               resultCell.setDoubleValue(((Double) record[1]).doubleValue());
-               resultRow.addChild(resultCell);
-               resultCell = new XComponent(XComponent.DATA_CELL);
-               resultCell.setDoubleValue(((Double) record[2]).doubleValue());
-               resultRow.addChild(resultCell);
-               resultCell = new XComponent(XComponent.DATA_CELL);
-               resultCell.setDoubleValue(((Double) record[3]).doubleValue());
-               resultRow.addChild(resultCell);
-               resultCell = new XComponent(XComponent.DATA_CELL);
-               resultCell.setDoubleValue(((Double) record[4]).doubleValue());
-               resultRow.addChild(resultCell);
-               resultCell = new XComponent(XComponent.DATA_CELL);
-               resultCell.setDoubleValue(((Double) record[5]).doubleValue());
-               resultRow.addChild(resultCell);
-               resultSet.addChild(resultRow);
-            }
-
          }
       }
-      broker.close();
+      finally {
+         broker.close();
+      }
    }
 
    /**

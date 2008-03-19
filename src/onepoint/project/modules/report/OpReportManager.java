@@ -242,20 +242,7 @@ public class OpReportManager implements XResourceInterceptor {
     */
    public byte[] getResource(String path, XExpressSession s) {
       //any resources going through this interceptor need an additional class loader
-      Boolean hasClassLoaderChanged = (Boolean) classLoaderMonitor.get();
-      boolean isClassLoaderTypeOk = (Thread.currentThread().getContextClassLoader() instanceof OpReportCustomClassLoader);
-      if (!hasClassLoaderChanged.booleanValue() || !isClassLoaderTypeOk) {
-         ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
-         URL[] reportDirsUrls = getReportsWorkingDirsUrls();
-         URLClassLoader newClassLoader = new OpReportCustomClassLoader(reportDirsUrls, currentClassLoader);
-         try {
-            Thread.currentThread().setContextClassLoader(newClassLoader);
-         }
-         catch (SecurityException e) {
-            logger.error("Cannot set class loader !", e);
-         }
-         classLoaderMonitor.set(Boolean.TRUE);
-      }
+      changeClassLoader();
 
       if (expressFilePathCache.get(path) != null) {
          try {
@@ -294,6 +281,52 @@ public class OpReportManager implements XResourceInterceptor {
                logger.error("Cannot load report resource ", e);
             }
          }
+      }
+      return null;
+   }
+
+   /**
+    * Changes the current class loader for this report.
+    */
+   private void changeClassLoader() {
+      Boolean hasClassLoaderChanged = (Boolean) classLoaderMonitor.get();
+      boolean isClassLoaderTypeOk = (Thread.currentThread().getContextClassLoader() instanceof OpReportCustomClassLoader);
+      if (!hasClassLoaderChanged.booleanValue() || !isClassLoaderTypeOk) {
+         ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
+         URL[] reportDirsUrls = getReportsWorkingDirsUrls();
+         URLClassLoader newClassLoader = new OpReportCustomClassLoader(reportDirsUrls, currentClassLoader);
+         try {
+            Thread.currentThread().setContextClassLoader(newClassLoader);
+         }
+         catch (SecurityException e) {
+            logger.error("Cannot set class loader !", e);
+         }
+         classLoaderMonitor.set(Boolean.TRUE);
+      }
+   }
+
+   /**
+    * Loads the given custom data source for the curent report.
+    *
+    * @param name
+    * @return
+    */
+   public OpReportDataSource getDataSourceClass(String name) {
+      changeClassLoader();
+      ClassLoader loader = Thread.currentThread().getContextClassLoader();
+      
+      try {
+         Class dsClass = loader.loadClass(name);
+         return (OpReportDataSource) dsClass.newInstance();
+      }
+      catch (ClassNotFoundException e) {
+         logger.error("Cannot load the data source class", e);
+      }
+      catch (IllegalAccessException e) {
+         logger.error("Cannot load the data source class", e);
+      }
+      catch (InstantiationException e) {
+         logger.error("Cannot load the data source class", e);
       }
       return null;
    }

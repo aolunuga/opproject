@@ -15,7 +15,7 @@
       <resource id="InfoTooltip">Metainformation für ausgewählten Arbeitszettel anzeigen</resource>
       <resource id="DeleteTooltip">Ausgewählte Arbeitszettel löschen</resource>
 
-      <resource id="Time">Zeitspanne</resource>
+      <resource id="Time">Zeit</resource>
       <resource id="CurrentMonth">Dieser Monat</resource>
       <resource id="PreviousMonth">Letzter Monat</resource>
       <resource id="CurrentYear">Dieses Jahr</resource>
@@ -187,6 +187,7 @@
 
       <resource id="WorkSlipNotEditable">Arbeitszettel kann nicht bearbeitet werden</resource>
       <resource id="WorkSlipIsControlled">Teile des Arbeitszettels sind bereits abgenommen - Bearbeiten ist nicht möglich</resource>
+      <resource id="WorkSlipPermissionDenied">Sie haben nicht für alle Resourcen der ausgewählten Arbeitszettel Manager Rechte</resource>
    </resource-map>
    <resource-map id="work.delete">
       <resource id="ConfirmDelete">Arbeitszettel löschen</resource>

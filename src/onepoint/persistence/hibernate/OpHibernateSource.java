@@ -4,19 +4,62 @@
 
 package onepoint.persistence.hibernate;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.StringReader;
+import java.lang.reflect.Field;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.*;
-import org.hibernate.*;
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpConnection;
+import onepoint.persistence.OpConnectionManager;
+import onepoint.persistence.OpEntityEventListener;
+import onepoint.persistence.OpEvent;
+import onepoint.persistence.OpObject;
+import onepoint.persistence.OpPersistenceException;
+import onepoint.persistence.OpPrototype;
+import onepoint.persistence.OpSource;
+import onepoint.persistence.OpTypeManager;
+import onepoint.project.util.Triple;
+
+import org.hibernate.HibernateException;
+import org.hibernate.Interceptor;
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.action.EntityAction;
+import org.hibernate.action.EntityDeleteAction;
+import org.hibernate.action.EntityInsertAction;
+import org.hibernate.action.EntityUpdateAction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.SQLServerDialect;
-import org.hibernate.event.*;
+import org.hibernate.engine.ActionQueue;
+import org.hibernate.event.EventListeners;
+import org.hibernate.event.FlushEntityEvent;
+import org.hibernate.event.PostDeleteEvent;
+import org.hibernate.event.PostDeleteEventListener;
+import org.hibernate.event.PostInsertEvent;
+import org.hibernate.event.PostInsertEventListener;
+import org.hibernate.event.PostUpdateEvent;
+import org.hibernate.event.PostUpdateEventListener;
 import org.hibernate.event.def.DefaultFlushEntityEventListener;
-
-import java.io.*;
-import java.sql.*;
-import java.util.*;
 
 /**
  * This is an implementation of a data source based on Hibernate.
@@ -27,6 +70,8 @@ public class OpHibernateSource extends OpSource
     * The logger used in this class.
     */
    private static final XLog logger = XLogFactory.getServerLogger(OpHibernateSource.class);
+
+   static ThreadLocal<Object> deadlockDetect = new ThreadLocal<Object>();
 
    /**
     * Constant that defines
@@ -55,7 +100,7 @@ public class OpHibernateSource extends OpSource
    /**
     * The latest schema version
     */
-   public static final int SCHEMA_VERSION = 52;
+   public static final int SCHEMA_VERSION = 57;
 
    /**
     * Db schema related constants
@@ -66,6 +111,8 @@ public class OpHibernateSource extends OpSource
    private static final String INSERT_CURENT_VERSION_INTO_SCHEMA_TABLE_STATEMENT = "insert into " + SCHEMA_TABLE + " values(" + VERSION_PLACEHOLDER + ")";
    private static final String UPDATE_SCHEMA_TABLE_STATEMENT = "update " + SCHEMA_TABLE + " set " + VERSION_COLUMN + "=" + VERSION_PLACEHOLDER;
    private static final String GET_SCHEMA_VERSION_STATEMENT = "select * from " + SCHEMA_TABLE;
+
+   private static final Object DEADLOCK_OBJ = new Object();
 
    // A set of default properties to be used by hibernate.
    private static Properties defaultHibernateConfigProperties = null;
@@ -78,6 +125,8 @@ public class OpHibernateSource extends OpSource
    // A control-connection could retrieve the correct order of columns etc.
    private Configuration configuration = null;
    private SessionFactory sessionFactory = null;
+   // specify if the current source is the one which created attached session factory. 
+   private boolean sessionFactoryCreator = false;
 
    /**
     * Configuration settings
@@ -92,6 +141,7 @@ public class OpHibernateSource extends OpSource
    protected String connectionPoolMaxSize;
    protected String cacheCapacity;
 
+   private static HashMap<ActionQueue, HashMap<Object, Triple<Integer, Integer, Object[]>>> transactionMap = new HashMap<ActionQueue, HashMap<Object,Triple<Integer,Integer,Object[]>>>();
 
    /**
     * Creates a new instance with the provided information. In case that choosen database is HSQLDB, embeded mode will
@@ -370,6 +420,7 @@ public class OpHibernateSource extends OpSource
             sessionFactory = configuration.buildSessionFactory();
             // add this session factory to cache
             cache.addSessionFactory(configurationName, sessionFactory);
+            sessionFactoryCreator = true;
          }
       }
       catch (HibernateException e) {
@@ -457,21 +508,23 @@ public class OpHibernateSource extends OpSource
     * <FIXME author="Horia Chiorean" description="According to JLS, this code does assure that we won't get NoClassDefFound if hsqld.jar isn't present in classpath">
     */
    public void close() {
-      sessionFactory.close();
-      configuration.getProperties().clear();
-      if (this.databaseType == HSQLDB) {
-         //somewhat dirty, but at least is shuts down properly...
-         org.hsqldb.persist.HsqlProperties prop = OpHibernateConnection.cleanupHSQLDBDefaultTableType(this);
-         try {
-            org.hsqldb.Session localSess = org.hsqldb.DatabaseManager.newSession(OpHibernateSource.HSQLDB_TYPE, OpHibernateConnection.getCleanDBURL(this), getLogin(), getPassword(), prop);
-            localSess.sqlExecuteDirectNoPreChecks("SHUTDOWN");
-            localSess.commit();
-            localSess.close();
-            OpHibernateConnection.cleanupHSQLDBDefaultTableType(this); //somehow the shutdown overwrites with the loaded values...
-         }
-         catch (Exception e) {
-            logger.error("Had problems shutting down HSQLDB connection because (will showdown all now): " + e.getMessage(), e);
-            org.hsqldb.DatabaseManager.closeDatabases(1);
+      if (sessionFactoryCreator) {
+         sessionFactory.close();
+         configuration.getProperties().clear();
+         if (this.databaseType == HSQLDB) {
+            //somewhat dirty, but at least is shuts down properly...
+            org.hsqldb.persist.HsqlProperties prop = OpHibernateConnection.cleanupHSQLDBDefaultTableType(this);
+            try {
+               org.hsqldb.Session localSess = org.hsqldb.DatabaseManager.newSession(OpHibernateSource.HSQLDB_TYPE, OpHibernateConnection.getCleanDBURL(this), getLogin(), getPassword(), prop);
+               localSess.sqlExecuteDirectNoPreChecks("SHUTDOWN");
+               localSess.commit();
+               localSess.close();
+               OpHibernateConnection.cleanupHSQLDBDefaultTableType(this); //somehow the shutdown overwrites with the loaded values...
+            }
+            catch (Exception e) {
+               logger.error("Had problems shutting down HSQLDB connection because (will showdown all now): " + e.getMessage(), e);
+               org.hsqldb.DatabaseManager.closeDatabases(1);
+            }
          }
       }
    }
@@ -511,6 +564,7 @@ public class OpHibernateSource extends OpSource
       try {
          statement = jdbcConnection.createStatement();
          statement.executeUpdate(UPDATE_SCHEMA_TABLE_STATEMENT.replaceAll(VERSION_PLACEHOLDER, String.valueOf(versionNumber)));
+//         statement.close();
          jdbcConnection.commit();
       }
       catch (SQLException e) {
@@ -576,6 +630,7 @@ public class OpHibernateSource extends OpSource
          statement = jdbcConnection.createStatement();
          statement.execute(getCreateSchemaTableStatement());
          statement.executeUpdate(INSERT_CURENT_VERSION_INTO_SCHEMA_TABLE_STATEMENT.replaceAll(VERSION_PLACEHOLDER, String.valueOf(versionNumber)));
+//         statement.close();
          jdbcConnection.commit();
          logger.info("Created table op_schema for versioning");
       }
@@ -654,53 +709,205 @@ public class OpHibernateSource extends OpSource
    * @see org.hibernate.event.PostUpdateEventListener#onPostUpdate(org.hibernate.event.PostUpdateEvent)
    */
    public void onPostUpdate(PostUpdateEvent event) {
+      ActionQueue aq = event.getSession().getActionQueue();
+      Triple<Integer, Integer, Object[]> triple;
+      if (aq != null) {
+         HashMap<Object, Triple<Integer, Integer, Object[]>> map = getTransactionMap(aq);
+         triple = map.get(event.getEntity());
+         if (triple.getThird() == null) {
+            triple.setThird(event.getOldState());
+         }
+         triple.setSecond(triple.getSecond()+1);
+         if (triple.getFirst() == triple.getSecond()) {
+            map.remove(event.getEntity());
+            if (map.isEmpty()) {
+               transactionMap.remove(aq);
+            }
+         }
+      }
+      else {
+         triple = new Triple<Integer, Integer, Object[]>(0,0, null);
+      }
+      //check();
       if (listeners == null) {
          return;
       }
       OpObject obj = (OpObject) event.getEntity();
       OpBroker broker = OpHibernateConnection.getBroker(event.getSession());
       String[] propertyNames = event.getPersister().getPropertyNames();
-      fireEvent(broker, obj, OpEvent.UPDATE, propertyNames, event.getOldState(), event.getState());
+      fireEvent(broker, obj, OpEvent.UPDATE, propertyNames, event.getOldState(), event.getState(), 
+            triple.getThird(), triple.getFirst() == triple.getSecond());
+      //System.err.println("update max: "+triple.getFirst()+", current: "+triple.getSecond()+", obj: "+obj);
    }
 
+   /**
+    * @param aq
+    * @return
+    * @pre
+    * @post
+    */
+   private HashMap<Object, Triple<Integer, Integer, Object[]>> getTransactionMap(
+         ActionQueue aq) {
+      HashMap<Object, Triple<Integer, Integer, Object[]>> map = transactionMap.get(aq);
+      if (map == null) {
+         fillUpTransactionMap(aq);
+         map = transactionMap.get(aq);
+      }
+      return map;
+   }
+
+   /**
+    * @param aq
+    * @pre
+    * @post
+    */
+   private void fillUpTransactionMap(ActionQueue aq) {
+      try {
+         // very hacky way: need to find out which objects are within the ActionQueue 
+         // (queue holding all changed objects within a transaction)
+         // needs access to private fields and stores the values within a map holding the actionQueue 
+         // (identifies the transaction) together with a max ref count (the amount of how often one and the same 
+         // object is within the action queue (=dirty elements) (may be more than once eg: if OpActivity.setFinish is called more that 
+         // once within one transaction)) and a count that is increased during commit.
+         HashMap<Object, Triple<Integer, Integer, Object[]>> map = null;
+         Field field = ActionQueue.class.getDeclaredField("executions");
+         field.setAccessible(true);
+         List list = (List) field.get(aq);
+         
+         for (Object obj : list) {
+            if (map == null){
+               map = new HashMap<Object, Triple<Integer,Integer,Object[]>>();
+            }
+            if (obj instanceof EntityAction) {
+               EntityAction action = (EntityAction)obj;
+               if (!((action instanceof EntityUpdateAction) || (action instanceof EntityInsertAction) ||
+                     (action instanceof EntityDeleteAction))) {
+                  continue;
+               }
+//               Object object = action.getInstance();
+               field = EntityAction.class.getDeclaredField("instance");
+               field.setAccessible(true);
+               Object object = field.get(action);
+               Triple<Integer, Integer, Object[]> triple = map.get(object);
+               if (triple != null) {
+                  triple.setFirst(triple.getFirst()+1);
+               }
+               else {
+                  triple = new Triple<Integer, Integer, Object[]>(1,0,null);
+                  map.put(object, triple);
+               }
+            }
+         }
+         if (map != null) {
+            transactionMap.put(aq, map);
+         }
+      }
+      catch (SecurityException exc) {
+         logger.error(exc.getMessage(), exc);
+      }
+      catch (NoSuchFieldException exc) {
+         logger.error(exc.getMessage(), exc);
+      }
+      catch (IllegalArgumentException exc) {
+         logger.error(exc.getMessage(), exc);
+      }
+      catch (IllegalAccessException exc) {
+         logger.error(exc.getMessage(), exc);
+      }
+      
+      
+   }
+
+//   /**
+//    * 
+//    * @pre
+//    * @post
+//    */
+//   private void check() {
+//      System.err.println("XXX: "+transactionMap.size());
+//   }
 
    /* (non-Javadoc)
     * @see org.hibernate.event.PostDeleteEventListener#onPostDelete(org.hibernate.event.PostDeleteEvent)
     */
    public void onPostDelete(PostDeleteEvent event) {
+      ActionQueue aq = event.getSession().getActionQueue();
+      Triple<Integer, Integer, Object[]> triple;
+      if (aq != null) {
+         HashMap<Object, Triple<Integer, Integer, Object[]>> map = getTransactionMap(aq);
+         triple = map.get(event.getEntity());
+         if (triple.getThird() == null) {
+            triple.setThird(event.getDeletedState());
+         }
+         triple.setSecond(triple.getSecond()+1);
+         if (triple.getFirst() == triple.getSecond()) {
+            map.remove(event.getEntity());
+            if (map.isEmpty()) {
+               transactionMap.remove(aq);
+            }
+         }
+      }
+      else {
+         triple = new Triple<Integer, Integer, Object[]>(0,0, null);
+      }
+      //check();
       if (listeners == null) {
          return;
       }
       OpObject obj = (OpObject) event.getEntity();
       OpBroker broker = OpHibernateConnection.getBroker(event.getSession());
       String[] propertyNames = event.getPersister().getPropertyNames();
-      fireEvent(broker, obj, OpEvent.DELETE, propertyNames, event.getDeletedState(), null);
+      fireEvent(broker, obj, OpEvent.DELETE, propertyNames, event.getDeletedState(), null, 
+            triple.getThird(), triple.getFirst() == triple.getSecond());
+      //System.err.println("delete max: "+triple.getFirst()+", current: "+triple.getSecond()+", obj: "+obj);
    }
 
    /* (non-Javadoc)
     * @see org.hibernate.event.PostInsertEventListener#onPostInsert(org.hibernate.event.PostInsertEvent)
     */
    public void onPostInsert(PostInsertEvent event) {
+      ActionQueue aq = event.getSession().getActionQueue();
+      Triple<Integer, Integer, Object[]> triple;
+      if (aq != null) {
+         HashMap<Object, Triple<Integer, Integer, Object[]>> map = getTransactionMap(aq);
+         triple = map.get(event.getEntity());
+         triple.setSecond(triple.getSecond()+1);
+         if (triple.getFirst() == triple.getSecond()) {
+            map.remove(event.getEntity());
+            if (map.isEmpty()) {
+               transactionMap.remove(aq);
+            }
+         }
+      }
+      else {
+         triple = new Triple<Integer, Integer, Object[]>(0,0, null);
+      }
+      //check();
       if (listeners == null) {
          return;
       }
       OpObject obj = (OpObject) event.getEntity();
       OpBroker broker = OpHibernateConnection.getBroker(event.getSession());
       String[] propertyNames = event.getPersister().getPropertyNames();
-      fireEvent(broker, obj, OpEvent.INSERT, propertyNames, null, event.getState());
+      fireEvent(broker, obj, OpEvent.INSERT, propertyNames, null, event.getState(),
+            triple.getThird(), triple.getFirst() == triple.getSecond());
+      //System.err.println("insert max: "+triple.getFirst()+", current: "+triple.getSecond()+", obj: "+obj);
    }
+
 
    /**
     * @param broker
     * @param obj
     * @param oldState
     * @param state
+    * @param current 
+    * @param max 
     * @pre
     * @post
     */
    private OpEvent createEvent(OpBroker broker, OpObject obj, int action,
-        String[] propetyNames, Object[] oldState, Object[] state) {
-      return new OpEvent(broker, obj, action, propetyNames, oldState, state);
+        String[] propetyNames, Object[] oldState, Object[] state, Object[] firstState, boolean last) {
+      return new OpEvent(broker, obj, action, propetyNames, oldState, state, firstState, last);
    }
 
    /**
@@ -708,39 +915,52 @@ public class OpHibernateSource extends OpSource
     * @param obj
     * @param oldState
     * @param state
+    * @param current 
+    * @param max 
     * @param
     * @pre
     * @post
     */
-   private void fireEvent(OpBroker broker, OpObject obj, int action, String[] propertyNames, Object[] oldState, Object[] state) {
+   private void fireEvent(OpBroker broker, OpObject obj, int action, String[] propertyNames, Object[] oldState, Object[] state, Object[] initialState, boolean last) {
       if (listeners == null) {
          return;
       }
-      Object listener;
-      OpEvent event = null;
-      Class sourceClass = obj.getClass();
-      while (sourceClass != null) {
-         listener = listeners.get(sourceClass);
-         if (listener != null) {
-            if (listener instanceof HashSet) {
-               for (Object o : (HashSet) listener) {
-                  if (event == null) {
-                     event = createEvent(broker, obj, action, propertyNames, oldState, state);
+      // deadlock detection - hibernate sometimes causes recursive call here if a listener calls eg. broker.getObject(..)
+      if (deadlockDetect.get() != null) {
+         logger.info("deadlock detected, will not notify lesteners again!");
+         return;
+      }
+      deadlockDetect.set(DEADLOCK_OBJ);
+      try {
+         Object listener;
+         OpEvent event = null;
+         Class sourceClass = obj.getClass();
+         while (sourceClass != null) {
+            listener = listeners.get(sourceClass);
+            if (listener != null) {
+               if (listener instanceof HashSet) {
+                  for (Object o : (HashSet) listener) {
+                     if (event == null) {
+                        event = createEvent(broker, obj, action, propertyNames, oldState, state, initialState, last);
+                     }
+                     ((OpEntityEventListener) o).entityChangedEvent(event);
                   }
-                  ((OpEntityEventListener) o).entityChangedEvent(event);
+               }
+               else {
+                  if (event == null) {
+                     event = createEvent(broker, obj, action, propertyNames, oldState, state, initialState, last);
+                  }
+                  ((OpEntityEventListener) listener).entityChangedEvent(event);
                }
             }
-            else {
-               if (event == null) {
-                  event = createEvent(broker, obj, action, propertyNames, oldState, state);
-               }
-               ((OpEntityEventListener) listener).entityChangedEvent(event);
+            if (sourceClass == OpObject.class) {
+               break; // stop at OpObject
             }
+            sourceClass = sourceClass.getSuperclass();
          }
-         if (sourceClass == OpObject.class) {
-            break; // stop at OpObject
-         }
-         sourceClass = sourceClass.getSuperclass();
+      }
+      finally {
+         deadlockDetect.set(null);
       }
    }
 
@@ -751,14 +971,16 @@ public class OpHibernateSource extends OpSource
             OpObject obj = (OpObject) event.getEntity();
             OpBroker broker = OpHibernateConnection.getBroker(event.getSession());
             String[] propertyNames = event.getEntityEntry().getPersister().getPropertyNames();
-            fireEvent(broker, obj, OpEvent.PRE_FLUSH, propertyNames, event.getDatabaseSnapshot(), event.getPropertyValues());
+            Object[] oldState = event.getDatabaseSnapshot();
+            fireEvent(broker, obj, OpEvent.PRE_FLUSH, propertyNames, oldState, event.getPropertyValues(), oldState, true);
          }
          super.onFlushEntity(event);
          if (listeners != null) {
             OpObject obj = (OpObject) event.getEntity();
             OpBroker broker = OpHibernateConnection.getBroker(event.getSession());
             String[] propertyNames = event.getEntityEntry().getPersister().getPropertyNames();
-            fireEvent(broker, obj, OpEvent.POST_FLUSH, propertyNames, event.getDatabaseSnapshot(), event.getPropertyValues());
+            Object[] oldState = event.getDatabaseSnapshot();
+            fireEvent(broker, obj, OpEvent.POST_FLUSH, propertyNames, oldState, event.getPropertyValues(), oldState, true);
          }
       }
    }

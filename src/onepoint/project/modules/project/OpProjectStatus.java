@@ -26,7 +26,7 @@ public class OpProjectStatus extends OpObject {
    private String name;
    private String description;
    private int color;
-   private Set projects;
+   private Set<OpProjectNode> projects;
    /**
     * Flag indicating whether a project status is active or not (i.e deleted but referenced)
     */
@@ -64,11 +64,11 @@ public class OpProjectStatus extends OpObject {
       return color;
    }
 
-   public void setProjects(Set projects) {
+   public void setProjects(Set<OpProjectNode> projects) {
       this.projects = projects;
    }
 
-   public Set getProjects() {
+   public Set<OpProjectNode> getProjects() {
       return projects;
    }
 

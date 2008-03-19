@@ -1,10 +1,14 @@
 <prototype name="OpControllingSheet" instance-class="onepoint.project.modules.project_controlling.OpControllingSheet" super-type="OpObject">
    <!-- do we need a running number for the controlling-sheets -->
    <field name="Date" type="Date" indexed="true"/>
+   <field name="Locked" type="Date"/>
+   <field name="Approved" type="Date"/>
    <field name="TotalEffortControlled" type="Double"/>
    <field name="State" type="Integer"/>
    <field name="Comment" type="Text"/>
    <field name="Rating" type="Integer" default="0"/>
+   <field name="NotableIssues" type="Text"/>
+   <field name="CustomerSatisfaction" type="Integer" default="0"/>
    
    <relationship name="PlanVersion" type="OpProjectPlanVersion" back-relationship="ControllingSheets"/>
    <relationship name="Creator" type="OpUser" back-relationship="ControllingSheets"/>

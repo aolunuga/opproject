@@ -44,11 +44,14 @@ public class OpPreferencesFormProvider implements XFormProvider {
       OpProjectSession session = (OpProjectSession) s;
 
       OpBroker broker = session.newBroker();
-      OpUser currentUser = session.user(broker);
+      try {
+         OpUser currentUser = session.user(broker);
 
-      fillPreferences(form, currentUser);
-
-      broker.close();
+         fillPreferences(session, form, currentUser);
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -57,19 +60,19 @@ public class OpPreferencesFormProvider implements XFormProvider {
     * @param form        Preferences form
     * @param currentUser Current user
     */
-   protected void fillPreferences(XComponent form, OpUser currentUser) {
+   protected void fillPreferences(OpProjectSession session, XComponent form, OpUser currentUser) {
       //get the avaiable languages
       XComponent languageDataSet = form.findComponent(USER_LANGUAGE_DATASET_ID);
       XComponent languageChoiceField = form.findComponent(LANGUAGE_CHOICE_ID);
 
-      OpUserLanguageManager.fillLanguageDataSet(languageDataSet, languageChoiceField, currentUser);
+      OpUserLanguageManager.fillLanguageDataSet(session, languageDataSet, languageChoiceField, currentUser);
 
       //set up the dummy user password
       XComponent passwordField = form.findComponent(USER_PASSWORD_ID);
       passwordField.setStringValue(PASSWORD_TOKEN);
 
       //set up the hours view preference
-      Boolean showHours = Boolean.valueOf((OpSettingsService.getService().get(OpSettings.SHOW_RESOURCES_IN_HOURS)));
+      Boolean showHours = Boolean.valueOf((OpSettingsService.getService().get(session, OpSettings.SHOW_RESOURCES_IN_HOURS)));
       String showAssignInHoursPref = currentUser.getPreferenceValue(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
       if (showAssignInHoursPref != null) {
          showHours = Boolean.valueOf(showAssignInHoursPref);

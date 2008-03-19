@@ -60,24 +60,14 @@ public class OpMyTasksTestDataFactory extends OpTestDataFactory {
     */
    public OpActivity getActivityById(String locator) {
       OpBroker broker = session.newBroker();
-
-      OpActivity activity = (OpActivity) broker.getObject(locator);
-      // just to inialize the collection
-      activity.getProjectPlan().locator();
-      activity.getAssignments().size();
-      activity.getDynamicResources().size();
-      activity.getAttachments().size();
-      activity.getLocks().size();
-      activity.getPermissions().size();
-      activity.getComments().size();
-      activity.getPredecessorDependencies().size();
-      activity.getSubActivities().size();
-      activity.getSuccessorDependencies().size();
-      activity.getVersions().size();
-      activity.getWorkPeriods().size();
-      broker.close();
-
-      return activity;
+      try {
+         OpActivity activity = (OpActivity) broker.getObject(locator);
+         OpTestDataFactory.initializeLazyRelationships(activity);
+         return activity;
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -88,18 +78,22 @@ public class OpMyTasksTestDataFactory extends OpTestDataFactory {
     */
    public String getActivityId(String activityName) {
       OpBroker broker = session.newBroker();
-      Long projId = null;
+      try {
+         Long projId = null;
 
-      OpQuery query = broker.newQuery(SELECT_MYTASKS_ID_BY_NAME_QUERY);
-      query.setString(0, activityName);
-      Iterator activityIt = broker.iterate(query);
-      if (activityIt.hasNext()) {
-         projId = (Long) activityIt.next();
+         OpQuery query = broker.newQuery(SELECT_MYTASKS_ID_BY_NAME_QUERY);
+         query.setString(0, activityName);
+         Iterator activityIt = broker.iterate(query);
+         if (activityIt.hasNext()) {
+            projId = (Long) activityIt.next();
+         }
+
+         if (projId != null) {
+            return OpLocator.locatorString(OpActivity.ACTIVITY, projId.longValue());
+         }
       }
-
-      broker.close();
-      if (projId != null) {
-         return OpLocator.locatorString(OpActivity.ACTIVITY, projId.longValue());
+      finally {
+         broker.close();
       }
       return null;
    }
@@ -111,12 +105,13 @@ public class OpMyTasksTestDataFactory extends OpTestDataFactory {
     */
    public List getAllActivities() {
       OpBroker broker = session.newBroker();
-
-      OpQuery query = broker.newQuery("from OpActivity");
-      List result = broker.list(query);
-      broker.close();
-
-      return result;
+      try {
+         OpQuery query = broker.newQuery("from OpActivity");
+         return  broker.list(query);
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -126,12 +121,13 @@ public class OpMyTasksTestDataFactory extends OpTestDataFactory {
     */
    public List getAllAttachments() {
       OpBroker broker = session.newBroker();
-
-      OpQuery query = broker.newQuery("from OpAttachment as attachment order by attachment.Name");
-      List result = broker.list(query);
-      broker.close();
-
-      return result;
+      try {
+         OpQuery query = broker.newQuery("from OpAttachment as attachment order by attachment.Name");
+         return broker.list(query);
+      }
+      finally {
+         broker.close();
+      }
    }
 
    public static XMessage addAdhocMsg(String name, String description, int priority, Date duedate, String projectChoice, String resourceChioce) {

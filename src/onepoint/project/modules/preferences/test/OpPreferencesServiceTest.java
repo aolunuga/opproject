@@ -4,7 +4,6 @@
 package onepoint.project.modules.preferences.test;
 
 import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.preferences.OpPreferencesError;
 import onepoint.project.modules.preferences.forms.OpPreferencesFormProvider;
 import onepoint.project.modules.user.OpPreference;
@@ -36,7 +35,7 @@ public class OpPreferencesServiceTest extends OpBaseOpenTestCase {
    private static final String PASSWORD_ARG = "password";
    private static final String PASSWORD_RETYPED_ARG = "passwordRetyped";
    private static final String SHOW_HOURS_ARG = "showHours";
-   private static final String ENGLISH_LANGUAGE = "en";
+   private static final String ENGLISH_LOCALE_ID = "en_US";
 
    /**
     * Base set-up.  By default authenticate Administrator user.
@@ -48,7 +47,7 @@ public class OpPreferencesServiceTest extends OpBaseOpenTestCase {
       super.setUp();
 
       Map userData = OpUserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, OpUser.CONTRIBUTOR_USER_LEVEL);
-      userData.put(OpUserService.LANGUAGE, ENGLISH_LANGUAGE);
+      userData.put(OpUserService.LANGUAGE, ENGLISH_LOCALE_ID);
       XMessage request = new XMessage();
       request.setArgument(OpUserService.USER_DATA, userData);
       XMessage response = OpTestDataFactory.getUserService().insertUser(session, request);
@@ -79,8 +78,8 @@ public class OpPreferencesServiceTest extends OpBaseOpenTestCase {
     */
    public void testSavePreferences()
         throws Exception {
-      HashMap prefs = new HashMap();
-      prefs.put(LANGUAGE_ARG, ENGLISH_LANGUAGE);
+      HashMap<String, Object> prefs = new HashMap<String, Object>();
+      prefs.put(LANGUAGE_ARG, ENGLISH_LOCALE_ID);
       prefs.put(PASSWORD_ARG, NEW_PASSWORD);
       prefs.put(PASSWORD_RETYPED_ARG, NEW_PASSWORD);
       prefs.put(SHOW_HOURS_ARG, Boolean.TRUE);
@@ -102,10 +101,10 @@ public class OpPreferencesServiceTest extends OpBaseOpenTestCase {
     */
    public void testSavePreferencesWrongPassword()
         throws Exception {
-      HashMap prefs = new HashMap();
+      HashMap<String, Object> prefs = new HashMap<String, Object>();
       prefs.put(PASSWORD_ARG, NEW_PASSWORD);
       prefs.put(PASSWORD_RETYPED_ARG, "wrong_pass");
-      prefs.put(LANGUAGE_ARG, ENGLISH_LANGUAGE);
+      prefs.put(LANGUAGE_ARG, ENGLISH_LOCALE_ID);
 
       XMessage request = new XMessage();
       request.setArgument(PREFERENCES, prefs);
@@ -116,7 +115,7 @@ public class OpPreferencesServiceTest extends OpBaseOpenTestCase {
       prefs.clear();
       prefs.put(PASSWORD_ARG, null);
       prefs.put(PASSWORD_RETYPED_ARG, null);
-      prefs.put(LANGUAGE_ARG, ENGLISH_LANGUAGE);
+      prefs.put(LANGUAGE_ARG, ENGLISH_LOCALE_ID);
       prefs.put(SHOW_HOURS_ARG, Boolean.FALSE);
 
       request = new XMessage();
@@ -128,8 +127,8 @@ public class OpPreferencesServiceTest extends OpBaseOpenTestCase {
       prefs.clear();
       prefs.put(PASSWORD_ARG, OpPreferencesFormProvider.PASSWORD_TOKEN);
       prefs.put(PASSWORD_RETYPED_ARG, NEW_PASSWORD);
-      prefs.put(LANGUAGE_ARG, ENGLISH_LANGUAGE);
-       prefs.put(SHOW_HOURS_ARG, Boolean.FALSE);
+      prefs.put(LANGUAGE_ARG, ENGLISH_LOCALE_ID);
+      prefs.put(SHOW_HOURS_ARG, Boolean.FALSE);
 
       request = new XMessage();
       request.setArgument(PREFERENCES, prefs);
@@ -145,7 +144,7 @@ public class OpPreferencesServiceTest extends OpBaseOpenTestCase {
     */
    public void testSavePreferencesChangeLanguage()
         throws Exception {
-      HashMap prefs = new HashMap();
+      HashMap<String, Object> prefs = new HashMap<String, Object>();
       prefs.put(LANGUAGE_ARG, "de");
       prefs.put(PASSWORD_ARG, OpPreferencesFormProvider.PASSWORD_TOKEN);
       prefs.put(PASSWORD_RETYPED_ARG, null);
@@ -168,30 +167,33 @@ public class OpPreferencesServiceTest extends OpBaseOpenTestCase {
    public void testSavePreferencesCreateShowHour()
         throws Exception {
       OpBroker broker = session.newBroker();
-      OpUser currentUser = session.user(broker);
-      OpPreference showHoursPref = currentUser.getPreference(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
-      if (showHoursPref != null) {
-         broker.deleteObject(showHoursPref);
+      try {
+         OpUser currentUser = session.user(broker);
+         OpPreference showHoursPref = currentUser.getPreference(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
+         if (showHoursPref != null) {
+            broker.deleteObject(showHoursPref);
+         }
+
+         HashMap<String, Object> prefs = new HashMap<String, Object>();
+         prefs.put(LANGUAGE_ARG, ENGLISH_LOCALE_ID);
+         prefs.put(PASSWORD_ARG, OpPreferencesFormProvider.PASSWORD_TOKEN);
+         prefs.put(PASSWORD_RETYPED_ARG, null);
+         prefs.put(SHOW_HOURS_ARG, Boolean.TRUE);
+
+         XMessage request = new XMessage();
+         request.setArgument(PREFERENCES, prefs);
+         XMessage response = OpTestDataFactory.getPreferencesService().savePreferences(session, request);
+
+         assertNoError(response);
+         broker.clear();
+         currentUser = session.user(broker);
+         showHoursPref = currentUser.getPreference(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
+         assertNotNull(showHoursPref);
+         assertEquals(showHoursPref.getValue(), "true");
       }
-      broker.close();
-
-      HashMap prefs = new HashMap();
-      prefs.put(LANGUAGE_ARG, ENGLISH_LANGUAGE);
-      prefs.put(PASSWORD_ARG, OpPreferencesFormProvider.PASSWORD_TOKEN);
-      prefs.put(PASSWORD_RETYPED_ARG, null);
-      prefs.put(SHOW_HOURS_ARG, Boolean.TRUE);
-
-      XMessage request = new XMessage();
-      request.setArgument(PREFERENCES, prefs);
-      XMessage response = OpTestDataFactory.getPreferencesService().savePreferences(session, request);
-
-      assertNoError(response);
-      broker = session.newBroker();
-      currentUser = session.user(broker);
-      showHoursPref = currentUser.getPreference(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
-      assertNotNull(showHoursPref);
-      assertEquals(showHoursPref.getValue(), "true");
-      broker.close();
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -202,48 +204,32 @@ public class OpPreferencesServiceTest extends OpBaseOpenTestCase {
    public void testSavePreferencesChangeShowHour()
         throws Exception {
       OpBroker broker = session.newBroker();
-      OpUser currentUser = session.user(broker);
-      OpPreference showHoursPref = currentUser.getPreference(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
-      if (showHoursPref != null) {
-         assertEquals(showHoursPref.getValue(), "false");
-      }
-      broker.close();
-
-      HashMap prefs = new HashMap();
-      prefs.put(LANGUAGE_ARG, ENGLISH_LANGUAGE);
-      prefs.put(PASSWORD_ARG, OpPreferencesFormProvider.PASSWORD_TOKEN);
-      prefs.put(PASSWORD_RETYPED_ARG, null);
-      prefs.put(SHOW_HOURS_ARG, Boolean.TRUE);
-
-      XMessage request = new XMessage();
-      request.setArgument(PREFERENCES, prefs);
-      XMessage response = OpTestDataFactory.getPreferencesService().savePreferences(session, request);
-
-      assertNoError(response);
-      broker = session.newBroker();
-      currentUser = session.user(broker);
-      showHoursPref = currentUser.getPreference(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
-      assertNotNull(showHoursPref);
-      assertEquals(showHoursPref.getValue(), "true");
-      broker.close();
-   }
-
-   private void clean() {
-
-      OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-
-      OpBroker broker = session.newBroker();
-      OpTransaction transaction = broker.newTransaction();
-
-      for (OpUser user : usrData.getAllUsers(broker)) {
-         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
-            continue;
+      try {
+         OpUser currentUser = session.user(broker);
+         OpPreference showHoursPref = currentUser.getPreference(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
+         if (showHoursPref != null) {
+            assertEquals(showHoursPref.getValue(), "false");
          }
-         broker.deleteObject(user);
-      }
 
-      transaction.commit();
-      broker.close();
-      
+         HashMap<String, Object> prefs = new HashMap<String, Object>();
+         prefs.put(LANGUAGE_ARG, ENGLISH_LOCALE_ID);
+         prefs.put(PASSWORD_ARG, OpPreferencesFormProvider.PASSWORD_TOKEN);
+         prefs.put(PASSWORD_RETYPED_ARG, null);
+         prefs.put(SHOW_HOURS_ARG, Boolean.TRUE);
+
+         XMessage request = new XMessage();
+         request.setArgument(PREFERENCES, prefs);
+         XMessage response = OpTestDataFactory.getPreferencesService().savePreferences(session, request);
+
+         assertNoError(response);
+         broker.clear();
+         currentUser = session.user(broker);
+         showHoursPref = currentUser.getPreference(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
+         assertNotNull(showHoursPref);
+         assertEquals(showHoursPref.getValue(), "true");
+      }
+      finally {
+         broker.close();
+      }
    }
 }

@@ -7,6 +7,7 @@ package onepoint.project.modules.project.components;
 import onepoint.express.*;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
+import onepoint.service.XMessage;
 import onepoint.util.XCalendar;
 
 import java.math.BigDecimal;
@@ -66,6 +67,7 @@ public class OpGanttValidator extends XValidator {
    public final static int PAYMENT_COLUMN_INDEX = 29;
    public final static int BASE_PROCEEDS_COLUMN_INDEX = 30;
    public final static int BASE_BILLABLE_COLUMN_INDEX = 31;
+   public final static int CUSTOM_ATTRIBUTES_COLUMN_INDEX = 32;
 
    // Assignment set column indexes
    private final static int AVAILABLE_COLUMN_INDEX = 0;
@@ -103,6 +105,9 @@ public class OpGanttValidator extends XValidator {
    public final static int HAS_ATTACHMENTS = 4;
    public final static int HAS_COMMENTS = 8;
 
+   public final static double ACTIVITY_MAX_DURATION = 20800d; // hours?!?
+   public final static double ACTIVITY_MAX_EFFORT = 2080000d; // hours?!?
+   
    //The id of the no category
    public static final String NO_CATEGORY_ID = "-1";
 
@@ -139,8 +144,11 @@ public class OpGanttValidator extends XValidator {
    public final static String WORKRECORDS_EXIST_EXCEPTION = "WorkRecordsExistException";
    public final static String TASK_EXTRA_RESOURCE_EXCEPTION = "TaskExtraResourceException";
    public final static String INVALID_PRIORITY_EXCEPTION = "InvalidPriorityException";
+   public final static String BASE_EFFORT_BELOW_ACTUAL_EXCEPTION = "BaseEffortBelowActualException";
+   public final static String CANNOT_MOVE_ROOT_ACTIVITY_EXCEPTION = "CannotMoveRootActivityException";
+   public final static String OUTLINE_LEVEL_INVALID_EXCEPTION = "OutlineLevelInvalidException";
    public final static String INVALID_PAYMENT_EXCEPTION = "InvalidPaymentException";
-
+   
    public final static double INVALID_ASSIGNMENT = -1;
 
    public final static String NO_RESOURCE_ID = "-1";
@@ -768,6 +776,53 @@ public class OpGanttValidator extends XValidator {
       return ((XComponent) (data_row.getChild(AVAILABLE_COLUMN_INDEX))).getDoubleValue();
    }
 
+   /**
+    * @param dataRow
+    * @return
+    */
+   public static Map getCustomAttributes(XComponent data_row) {
+      Map value = (Map) ((XComponent) data_row.getChild(CUSTOM_ATTRIBUTES_COLUMN_INDEX)).getValue();
+      if (value == null) {
+         updateCustomAttributes(data_row);
+      }
+      value = (Map) ((XComponent) data_row.getChild(CUSTOM_ATTRIBUTES_COLUMN_INDEX)).getValue();
+      return value;
+   }
+   
+   public static void updateCustomAttributes(XComponent dataRow) {
+      XComponent parent = (XComponent) dataRow.getChild(CUSTOM_ATTRIBUTES_COLUMN_INDEX);
+      if (parent.getValue() != null) {
+         return;
+      }
+       String objectId = dataRow.getStringValue();
+      if (objectId == null) {
+         return;
+      }
+
+      XMessage request = new XMessage();
+      request.setAction("CustomAttributeService.getCustomValues");
+      HashMap parameters = new HashMap();
+      parameters.put("Prototype", "onepoint.project.modules.project.OpActivity");
+      parameters.put("Subtype", null);
+      parameters.put("Name", null);
+      parameters.put("ObjectLocator", objectId);
+      request.setArgument("parameters", parameters);
+
+      XMessage response = XDisplay.getClient().invokeMethod(request);
+
+      Map attributeList = (Map) response.getArgument("custom_values");
+      parent.setValue(attributeList);
+   }    
+
+   /**
+    * @param customAttributes 
+    * @param dataRow
+    * @return
+    */
+   public static void setCustomAttributes(XComponent data_row, Map customAttributes) {
+      ((XComponent) (data_row.getChild(CUSTOM_ATTRIBUTES_COLUMN_INDEX))).setValue(customAttributes);
+   }
+
    public Date dateFieldValue(String fieldId) {
       // Validator must also work stand-alone (outside a form)
       XComponent form = data_set.getForm();
@@ -1363,10 +1418,8 @@ public class OpGanttValidator extends XValidator {
             else {
                setComplete(activity, 0);
             }
-            if (getPriority(activity) == null || !activity.getChild(PRIORITY_COLUMN_INDEX).getEnabled()) {
-               activity.getChild(PRIORITY_COLUMN_INDEX).setEnabled(true);
-               setPriority(activity, new Byte(DEFAULT_PRIORITY));
-            }
+            activity.getChild(PRIORITY_COLUMN_INDEX).setEnabled(false);
+            setPriority(activity, null);
             List efforts = getResourceBaseEfforts(activity);
             for (int i = 0; i < efforts.size(); i++) {
                efforts.set(i, new Double(0));
@@ -1482,6 +1535,7 @@ public class OpGanttValidator extends XValidator {
             setResourceBaseEfforts(activity, resourcesEfforts);
             //break all the links
             breakAllLinks(activity);
+
             resetComplete(activity);
 
             if (getPriority(activity) == null || !activity.getChild(PRIORITY_COLUMN_INDEX).getEnabled()) {
@@ -1498,14 +1552,14 @@ public class OpGanttValidator extends XValidator {
       }
    }
 
-      private void resetComplete(XComponent activity) {
+   private void resetComplete(XComponent activity) {
       Boolean trackingSetting = getProgressTracked();
       if (trackingSetting == null || trackingSetting.booleanValue()) {
-            if (getResources(activity).isEmpty() && getComplete(activity) != 0) {
-               setComplete(activity, 0);
-            }
+         if (getResources(activity).isEmpty() && getComplete(activity) != 0) {
+            setComplete(activity, 0);
          }
       }
+   }
 
    /**
     * Breaks all the links from and to this activity (successors and predecessors)
@@ -1575,6 +1629,10 @@ public class OpGanttValidator extends XValidator {
             double actualEffort = getActualEffort(activity);
             double completeValue = getComplete(activity);
             double remainingEffort = calculateRemainingEffort(baseEffort, actualEffort, completeValue);
+            // FIXME: Hack! -> better solution: add remainingEffort Column to DataSet
+            if (!getProgressTracked().booleanValue() && actualEffort == 0) {
+               actualEffort = baseEffort - remainingEffort;
+            }
 
             actualSum += actualEffort;
             remainingSum += remainingEffort;
@@ -1606,6 +1664,7 @@ public class OpGanttValidator extends XValidator {
 
       //base effort
       setBaseEffort(collection, baseSum);
+      setActualEffort(collection, actualSum);
 
       // set the costs
       setBasePersonnelCosts(collection, perCost);
@@ -1638,7 +1697,7 @@ public class OpGanttValidator extends XValidator {
       }
    }
 
-   protected boolean isCollectionType(XComponent activity) {
+   public static boolean isCollectionType(XComponent activity) {
       return getType(activity) == COLLECTION || getType(activity) == COLLECTION_TASK || getType(activity) == SCHEDULED_TASK;
    }
 
@@ -2104,6 +2163,12 @@ public class OpGanttValidator extends XValidator {
       // TODO: Duration of new activities should be configurable
       double duration = 5 * calendar.getWorkHoursPerDay();
       updateDuration(data_row, duration);
+      
+      // Custom Attributes (32)
+      data_cell = new XComponent(XComponent.DATA_CELL);
+      //data_cell.setEnabled(true);
+      data_cell.setValue(null);
+      data_row.addChild(data_cell);
 
       return data_row;
    }
@@ -2379,7 +2444,7 @@ public class OpGanttValidator extends XValidator {
          case DURATION_COLUMN_INDEX:
             // Update end date
             double duration = ((Double) value).doubleValue();
-            preCheckSetDurationValue(data_row, duration);
+            duration = preCheckSetDurationValue(data_row, duration);
 
             addToUndo();
 
@@ -2391,11 +2456,10 @@ public class OpGanttValidator extends XValidator {
 
          case BASE_EFFORT_COLUMN_INDEX:
             double base_effort = ((Double) value).doubleValue();
-
+            
             //if the project is effort based, setting the effort will also affect the duration
-            if (getCalculationMode() != null && getCalculationMode().byteValue() == EFFORT_BASED) {
-               preCheckSetEffortValue(data_row, base_effort);
-            }
+            boolean effortBased = getCalculationMode() != null && getCalculationMode().byteValue() == EFFORT_BASED;
+            base_effort = preCheckSetEffortValue(data_row, base_effort, effortBased);
 
             addToUndo();
 
@@ -2580,6 +2644,10 @@ public class OpGanttValidator extends XValidator {
                }
                setPayment(data_row, ((Double) value).doubleValue());
             }
+            break;
+         }
+         default: {
+            logger.warn("unknown column: "+column_index);
          }
       }
    }
@@ -2651,24 +2719,27 @@ public class OpGanttValidator extends XValidator {
       }
    }
 
-   protected void preCheckSetEffortValue(XComponent data_row, double base_effort) {
-      if (isProjectMandatory(data_row)) {
-         if ((OpGanttValidator.getType(data_row) == MILESTONE && base_effort > 0) ||
-              (OpGanttValidator.getType(data_row) != MILESTONE && base_effort <= 0)) {
-            throw new XValidationException(MANDATORY_EXCEPTION);
+   protected double preCheckSetEffortValue(XComponent data_row, double base_effort, boolean effortBased) {
+      if (effortBased) {
+         if (isProjectMandatory(data_row)) {
+            if ((OpGanttValidator.getType(data_row) == MILESTONE && base_effort > 0) ||
+                 (OpGanttValidator.getType(data_row) != MILESTONE && base_effort <= 0)) {
+               throw new XValidationException(MANDATORY_EXCEPTION);
+            }
+         }
+   
+         if ((OpGanttValidator.getType(data_row) != MILESTONE && base_effort <= 0)) {
+            //activity that will become milestone
+            if (subTasks(data_row).size() != 0) {
+               throw new XValidationException(MILESTONE_COLLECTION_EXCEPTION);
+            }
+            checkDeletedAssignmentsForWorkslips(data_row, new ArrayList());
          }
       }
-
-      if ((OpGanttValidator.getType(data_row) != MILESTONE && base_effort <= 0)) {
-         //activity that will become milestone
-         if (subTasks(data_row).size() != 0) {
-            throw new XValidationException(MILESTONE_COLLECTION_EXCEPTION);
-         }
-         checkDeletedAssignmentsForWorkslips(data_row, new ArrayList());
-      }
+      return base_effort > ACTIVITY_MAX_EFFORT ? ACTIVITY_MAX_EFFORT: base_effort;
    }
 
-   protected void preCheckSetDurationValue(XComponent data_row, double duration) {
+   protected double preCheckSetDurationValue(XComponent data_row, double duration) {
       if (isProjectMandatory(data_row) &&
            ((OpGanttValidator.getType(data_row) == MILESTONE && duration > 0) ||
                 (OpGanttValidator.getType(data_row) != MILESTONE && duration <= 0))) {
@@ -2681,6 +2752,7 @@ public class OpGanttValidator extends XValidator {
          }
          checkDeletedAssignmentsForWorkslips(data_row, new ArrayList());
       }
+      return duration > ACTIVITY_MAX_DURATION ? ACTIVITY_MAX_DURATION : duration;
    }
 
    protected void preCheckSetEndValue(XComponent data_row, Object value) {
@@ -3785,63 +3857,31 @@ public class OpGanttValidator extends XValidator {
 
       XComponent row;
       int outline_level;
-      boolean loops = false;
-      boolean scheduledMixed = false;
-      boolean rollback = false;
 
       List initialOutlineLevels = new ArrayList();
       addToUndo();
-      XValidationException exception = null;
-
-      for (int i = 0; i < data_rows.size(); i++) {
-         row = (XComponent) (data_rows.get(i));
-         initialOutlineLevels.add(new Integer(row.getOutlineLevel()));
-
-         // IF the outline change is possible...
-         boolean canChange;
-         try {
-            canChange = canChangeOutline(data_rows, i, offset);
+      try {
+         for (int i = 0; i < data_rows.size(); i++) {
+            row = (XComponent) (data_rows.get(i));
+            initialOutlineLevels.add(new Integer(row.getOutlineLevel()));
+   
+            // IF the outline change is possible...
+            canChangeOutline(data_rows, i, offset);
+   
+            // update the outline level value for the current row
+            outline_level = row.getOutlineLevel() + offset;
+   
+            // set up the row outline Level
+            row.setOutlineLevel(outline_level);
+   
          }
-         catch (XValidationException e) {
-            canChange = false;
-            exception = e;
-         }
-         if (!canChange) {
-            rollback = true;
-            break;
-         }
-
-         // update the outline level value for the current row
-         outline_level = row.getOutlineLevel() + offset;
-
-         // set up the row outline Level
-         row.setOutlineLevel(outline_level);
-
-         //temporary set the outline level for the rest of the columns as well
-         for (int j = i + 1; j < data_rows.size(); j++) {
-            XComponent dataRow = (XComponent) data_rows.get(j);
-            dataRow.setOutlineLevel(dataRow.getOutlineLevel() + offset);
-         }
-
+   
          // loop detection
          if (detectLoops()) {
-            rollback = true;
-            loops = true;
+            throw new OpActivityLoopException(LOOP_EXCEPTION);
          }
-
-         //revert changes made only for loop detection
-         for (int j = i + 1; j < data_rows.size(); j++) {
-            XComponent dataRow = (XComponent) data_rows.get(j);
-            dataRow.setOutlineLevel(dataRow.getOutlineLevel() - offset);
-         }
-
-         if (loops) {
-            break;
-         }
-      }
-
-      //<FIXME> author="Mihai Costin" description="Performance for this check could be improoved"
-      if (!rollback) {
+   
+         //<FIXME> author="Mihai Costin" description="Performance for this check could be improoved"
          for (int i = 0; i < data_rows.size(); i++) {
             row = (XComponent) (data_rows.get(i));
             //scheduled tasks can have only sub tasks
@@ -3850,68 +3890,37 @@ public class OpGanttValidator extends XValidator {
                List parentTasks = subTasks(parent);
                List parentActivities = subActivities(parent);
                if (parentTasks.size() != 0 && parentActivities.size() != 0) {
-                  rollback = true;
-                  scheduledMixed = true;
-                  break;
+                  throw new OpActivityLoopException(SCHEDULED_MIXED_EXCEPTION);
                }
                if (parentTasks.size() != 0 || parentActivities.size() != 0) {
                   //if the previous activity has assignments
-                  try {
-                     checkDeletedAssignmentsForWorkslips(parent, new ArrayList());
-                  }
-                  catch (XValidationException e) {
-                     exception = e;
-                     rollback = true;
-                     break;
-                  }
+                  checkDeletedAssignmentsForWorkslips(parent, new ArrayList());
                }
             }
 
             List subRows = subTasks(row);
             List subActivities = subActivities(row);
             if (subRows.size() != 0 && subActivities.size() != 0) {
-               rollback = true;
-               scheduledMixed = true;
-               break;
+               throw new OpActivityLoopException(SCHEDULED_MIXED_EXCEPTION);
             }
             //collections with resources on them
             if (subRows.size() != 0 || subActivities.size() != 0) {
                //if the previous activity has assignments
-               try {
-                  checkDeletedAssignmentsForWorkslips(row, new ArrayList());
-               }
-               catch (XValidationException e) {
-                  exception = e;
-                  rollback = true;
-                  break;
-               }
+               checkDeletedAssignmentsForWorkslips(row, new ArrayList());
             }
 
          }
+         //<FIXME>
       }
-      //<FIXME>
-
-      // rollback
-      if (rollback) {
+      catch (XValidationException e) {
          for (int i = 0; i < initialOutlineLevels.size(); i++) {
             row = (XComponent) (data_rows.get(i));
             int initial = ((Integer) initialOutlineLevels.get(i)).intValue();
             row.setOutlineLevel(initial);
          }
-         if (exception != null) {
-            throw exception;
-         }
-         if (loops) {
-            throw new OpActivityLoopException(LOOP_EXCEPTION);
-         }
-         if (scheduledMixed) {
-            throw new OpActivityLoopException(SCHEDULED_MIXED_EXCEPTION);
-         }
+         throw e;
       }
-      else {
-         // general update process for direct links...
-         validateDataSet();
-      }
+      validateDataSet();
    }
 
    /**
@@ -3933,12 +3942,12 @@ public class OpGanttValidator extends XValidator {
 
       // outline level can't be < 0
       if (newOutline < 0) {
-         return false;
+         throw new XValidationException(OUTLINE_LEVEL_INVALID_EXCEPTION);
       }
 
       // the first row can't have its outline level changed
       if (indexInDataSet == 0) {
-         return false;
+         throw new XValidationException(CANNOT_MOVE_ROOT_ACTIVITY_EXCEPTION);
       }
 
       // get previous row
@@ -3952,7 +3961,7 @@ public class OpGanttValidator extends XValidator {
 
       // if offset is + and diff from prev is > 1
       if ((offset > 0) && (newOutline - previousLevel > 1)) {
-         return false;
+         throw new XValidationException(OUTLINE_LEVEL_INVALID_EXCEPTION);
       }
 
       // if changed row is a milestone, offset -, current outline level of milestone == outline level of next row
@@ -4164,6 +4173,7 @@ public class OpGanttValidator extends XValidator {
 
    private List copyRows(List dataRows, boolean resetRowValue) {
       XComponent row;
+      XComponent origRow;
       /* make a copy of the dataRows and use the elements for clipboard placing */
       List clonedDataRows = new ArrayList();
       for (int index = 0; index < dataRows.size(); index++) {
@@ -4182,8 +4192,12 @@ public class OpGanttValidator extends XValidator {
       List resources;
       /* array of resources base efforts*/
       List resourceEfforts;
+      
+      Map customAttributes;
+      
       for (int i = 0; i < clonedDataRows.size(); i++) {
          row = ((XComponent) clonedDataRows.get(i));
+         origRow = ((XComponent) dataRows.get(i));
          /* set up the succesors of the row */
          succesors = new ArrayList();
          succesors.addAll(OpGanttValidator.getSuccessors(row));
@@ -4203,6 +4217,16 @@ public class OpGanttValidator extends XValidator {
          resourceEfforts = new ArrayList();
          resourceEfforts.addAll(OpGanttValidator.getResourceBaseEfforts(row));
          OpGanttValidator.setResourceBaseEfforts(row, resourceEfforts);
+
+         /* set up custom attributes */
+         updateCustomAttributes(row);
+         customAttributes = new HashMap();
+         Map ca = OpGanttValidator.getCustomAttributes(origRow);
+         if (ca != null) {
+            customAttributes.putAll(ca);
+         }
+         OpGanttValidator.setCustomAttributes(row, customAttributes);
+
       }
       return clonedDataRows;
    }
@@ -5106,12 +5130,11 @@ public class OpGanttValidator extends XValidator {
       List workPhaseFinishes = new ArrayList();
       List workPhaseEfforts = new ArrayList();
       int i = 0;
-      boolean effortBased = isEffortBasedProject();
       //the calculations have to be done using BigDecimals to avoid rounding errors.
       BigDecimal effortDecimal = new BigDecimal(effort);
 
       // *** Loop until effort is distributed
-      if (effortBased) {
+      if (isEffortBasedProject()) {
          while (effortDecimal.doubleValue() > ERROR_MARGIN) {
             if (calendar.isWorkDay(currentDate)) {
                if ((nextHoliday != null) && (time == nextHoliday.getTime())) {
@@ -5628,10 +5651,25 @@ public class OpGanttValidator extends XValidator {
          return baseEffort - (baseEffort * complete) / 100;
       }
       else {
-         return actualEffort * 100 / complete - actualEffort;
+         return complete == 100 ? 0d : actualEffort * 100 / complete - actualEffort;
       }
    }
-
+   
+   public static double calculateActualEffort(double baseEffort, double remainingEffort, double complete) {
+      double actual = 0;
+      if (complete == 0) {
+         actual = 0;
+      }
+      if (remainingEffort == 0) {
+         actual = baseEffort * complete / 100;
+      }
+      else {
+         // to avoid division by zero here ;-)
+         actual = complete == 100 ? baseEffort : remainingEffort * 100 / (100 - complete) - remainingEffort; 
+      }
+      return actual;
+   }
+   
    /**
     * Computes the %complete value of an activity (standard or collection) based on the given parameters.
     *
@@ -5639,21 +5677,18 @@ public class OpGanttValidator extends XValidator {
     * @param baseSum      a <code>double</code> representing a sum of base efforts.
     * @param remainingSum a <code>double</code> representing a sum of remaining efforts.
     */
-   public static double calculateCompleteValue(double actualSum, double baseSum, double remainingSum) {
+   public static double calculateCompleteValue(double actualSum,
+         double baseSum, double remainingSum) {
       double result = 0;
       double predictedSum = actualSum + remainingSum;
-      if (actualSum > 0) {
-         result = (predictedSum != 0) ? actualSum * 100 / predictedSum : 0;
+      if (predictedSum == 0.0) {
+         // TODO: check
+         result = 0;
       }
       else {
-         if (remainingSum >= baseSum) {
-            // if there is more work that anticipated the complete sould be 0% not negative.
-            result = 0;
-         }
-         else {
-            result = (baseSum != 0) ? 100 * (baseSum - remainingSum) / baseSum : 0;
-         }
+         result = remainingSum == 0d ? 100 : actualSum / predictedSum * 100;
       }
+      
       return result;
    }
 
@@ -5800,12 +5835,17 @@ public class OpGanttValidator extends XValidator {
     */
    public void undo() {
       if (undo != null && undo.size() > 0) {
-
-         if (redo == null) {
-            redo = new ArrayList();
+         
+         // redo only, if undo tracking is enabled...
+         // FIXME: this is for the OPP-456, OPP-459 workaround
+         if (!continuousAction) {
+            if (redo == null) {
+               redo = new ArrayList();
+            }
+            addToStack(data_set, redo);
+            enableRedo(true);
          }
-         addToStack(data_set, redo);
-         enableRedo(true);
+         // /FIXME
 
          data_set.removeAllChildren();
          List dataList = (List) undo.remove(undo.size() - 1);

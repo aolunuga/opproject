@@ -29,6 +29,7 @@
       <resource id="Permissions">Berechtigungen</resource>
       <resource id="NewPool">Neuer Pool</resource>
       <resource id="Name">Name</resource>
+      <resource id="SubType">Typ</resource> 
       <resource id="Description">Beschreibung</resource>
       <resource id="HourlyRate">Interner Stundensatz</resource>
       <resource id="ExternalRate">Externer Stundensatz</resource>
@@ -40,6 +41,7 @@
       <resource id="General">Allgemein</resource>
       <resource id="Permissions">Berechtigungen</resource>
       <resource id="Name">Name</resource>
+      <resource id="SubType">Typ</resource> 
       <resource id="Description">Beschreibung</resource>
       <resource id="HourlyRate">Interner Stundensatz</resource>
       <resource id="ExternalRate">Externer Stundensatz</resource>
@@ -56,12 +58,13 @@
       <resource id="Projects">Projekte</resource>
       <resource id="Permissions">Berechtigungen</resource>
       <resource id="Name">Name</resource>
+      <resource id="SubType">Typ</resource> 
       <resource id="Description">Beschreibung</resource>
       <resource id="Available">Verfügbar (%)</resource>
       <resource id="HourlyRate">Interner Stundensatz</resource>
       <resource id="ExternalRate">Externer Stundensatz</resource>
-      <resource id="InheritPoolRate">Stundensätze des Pools nicht berücksichtigen</resource>
-      <resource id="ResponsibleUser">Verantwortlich</resource>
+      <resource id="InheritPoolRate">Pool-Stundensätze überschreiben</resource>
+      <resource id="ResponsibleUser">Verknüpfter Benutzer</resource>
       <resource id="SelectUser">Auswählen</resource>
       <resource id="Pool">Pool</resource>
       <resource id="OK">OK</resource>
@@ -73,12 +76,13 @@
       <resource id="Projects">Projekte</resource>
       <resource id="Permissions">Berechtigungen</resource>
       <resource id="Name">Name</resource>
+      <resource id="SubType">Typ</resource> 
       <resource id="Description">Beschreibung</resource>
       <resource id="Available">Verfügbar (%)</resource>
       <resource id="HourlyRate">Interner Stundensatz</resource>
       <resource id="ExternalRate">Externer Stundensatz</resource>
-      <resource id="InheritPoolRate">Stundensätze des Pools nicht berücksichtigen</resource>
-      <resource id="ResponsibleUser">Verantwortlich</resource>
+      <resource id="InheritPoolRate">Pool-Stundensätze überschreiben</resource>
+      <resource id="ResponsibleUser">Verknüpfter Benutzer</resource>
       <resource id="SelectUser">Auswählen</resource>
       <resource id="Pool">Pool</resource>
       <resource id="OK">OK</resource>

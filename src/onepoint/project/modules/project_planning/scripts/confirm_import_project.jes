@@ -25,6 +25,7 @@ function ok(event) {
    request.setArgument("project_id", projectId);
    request.setArgument("bytes_array", bytes);
    request.setArgument("edit_mode", editMode);
+   request.setArgument("file_name", fileName);
    response = XDisplay.getClient().invokeMethod(request);
    if (handleResponse(response, null, null) == false) {
       thisWindow.close();

@@ -62,41 +62,44 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       projectsDataSet = form.findComponent(PROJECTS_DATA_SET);
       OpProjectSession session = (OpProjectSession) s;
       OpBroker broker = session.newBroker();
+      try {
+         // hide multi-user components
+         if (!OpEnvironmentManager.isMultiUser()) {
+            form.findComponent(ROLE_PANEL).setVisible(false);
+         }
 
-      // hide multi-user components
-      if (!OpEnvironmentManager.isMultiUser()) {
-         form.findComponent(ROLE_PANEL).setVisible(false);
+         String projectChoice = getProjectChoice(parameters, form, session);
+         List levels = getLevelsForChoice(projectChoice);
+         List projectNodeIDs = OpProjectDataSetFactory.getProjectsByPermissions(session, broker, levels);
+
+         //projectMap = new HashMap();
+         for (Object projectNodeID : projectNodeIDs) {
+            Long id = (Long) projectNodeID;
+            OpProjectNode projectNode = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
+            XComponent row = createProjectRow(projectNode, broker);
+            projectsDataSet.addChild(row);
+         }
+
+         //sort by name
+         projectsDataSet.sort(PROJECT_NAME_INDEX);
+
+         //enable the print button if there are any projects
+         if (projectsDataSet.getChildCount() > 0) {
+            form.findComponent(PRINT_BUTTON).setEnabled(true);
+         }
+
+         //hide costs tab and costs column for users that have only the customer level or
+         //if the app. is multiuser and hide manager features is set to true and the user is not manager
+         OpUser user = session.user(broker);
+         if (OpSubjectDataSetFactory.shouldHideFromUser(session, user) || user.getLevel() == OpUser.OBSERVER_CUSTOMER_USER_LEVEL) {
+            form.findComponent(COSTS_TAB).setHidden(true);
+            form.findComponent(COSTS_COLUMN).setHidden(true);
+
+         }
       }
-
-      String projectChoice = getProjectChoice(parameters, form, session);
-      List levels = getLevelsForChoice(projectChoice);
-      List projectNodeIDs = OpProjectDataSetFactory.getProjectsByPermissions(session, broker, levels);
-
-      //projectMap = new HashMap();
-      for (Object projectNodeID : projectNodeIDs) {
-         Long id = (Long) projectNodeID;
-         OpProjectNode projectNode = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
-         XComponent row = createProjectRow(projectNode, broker);
-         projectsDataSet.addChild(row);
+      finally {
+         broker.close();
       }
-
-      //sort by name
-      projectsDataSet.sort(PROJECT_NAME_INDEX);
-
-      //enable the print button if there are any projects
-      if (projectsDataSet.getChildCount() > 0) {
-         form.findComponent(PRINT_BUTTON).setEnabled(true);
-      }
-
-      //hide costs tab and costs column for users that have only the customer level or
-      //if the app. is multiuser and hide manager features is set to true and the user is not manager
-      OpUser user = session.user(broker);
-      if (OpSubjectDataSetFactory.shouldHideFromUser(user) || user.getLevel() == OpUser.OBSERVER_CUSTOMER_USER_LEVEL) {
-         form.findComponent(COSTS_TAB).setHidden(true);
-         form.findComponent(COSTS_COLUMN).setHidden(true);
-
-      }
-      broker.close();
    }
 
    private List getLevelsForChoice(String permission) {

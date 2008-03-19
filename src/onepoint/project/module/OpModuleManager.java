@@ -17,7 +17,6 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.Iterator;
 
 public final class OpModuleManager {
 
@@ -69,34 +68,53 @@ public final class OpModuleManager {
       //<FIXME>
    }
 
-
+   /**
+    * Start all registered modules.
+    */
    public static void start() {
       Collection<OpSource> allSources = OpSourceManager.getAllSources();
       for (OpSource source : allSources) {
-         // Invoke start callbacks
-         OpProjectSession startupSession = new OpProjectSession(source.getName());
-         Iterator<OpModule> modulesIt = moduleRegistry.iterator();
-         while (modulesIt.hasNext()) {
-            OpModule module = modulesIt.next();
-            logger.info("Loading module " + module.getName());
-            module.start(startupSession);
-         }
-         startupSession.close();
+         OpModuleManager.start(source.getName());
       }
    }
 
+   /**
+    * Start all registered modules for a given source.
+    *
+    * @param sourceName source name for which to initialize modules.
+    */
+   public static void start(String sourceName) {
+      // Invoke start callbacks
+      OpProjectSession startupSession = new OpProjectSession(sourceName);
+      for (OpModule module : moduleRegistry) {
+         logger.info("Loading module " + module.getName());
+         module.start(startupSession);
+      }
+      startupSession.close();
+   }
+
+   /**
+    * Stop all registered modules.
+    */
    public static void stop() {
       Collection<OpSource> allSources = OpSourceManager.getAllSources();
       for (OpSource source : allSources) {
-         // *** Write module-registry?
-         OpProjectSession shutdownSession = new OpProjectSession(source.getName());
-         Iterator<OpModule> modulesIt = moduleRegistry.iterator();
-         while (modulesIt.hasNext()) {
-            OpModule module = modulesIt.next();
-            module.stop(shutdownSession);
-         }
-         shutdownSession.close();
+         OpModuleManager.stop(source.getName());
       }
+   }
+
+   /**
+    * Stop all registered modules for a given source.
+    *
+    * @param sourceName source name
+    */
+   public static void stop(String sourceName) {
+      // *** Write module-registry?
+      OpProjectSession shutdownSession = new OpProjectSession(sourceName);
+      for (OpModule module : moduleRegistry) {
+         module.stop(shutdownSession);
+      }
+      shutdownSession.close();
    }
 
    /**
@@ -109,31 +127,33 @@ public final class OpModuleManager {
       Collection<OpSource> allSources = OpSourceManager.getAllSources();
       for (OpSource source : allSources) {
          OpProjectSession session = new OpProjectSession(source.getName());
-         session.loadSettings();
-         Iterator<OpModule> modulesIt = moduleRegistry.iterator();
-         while (modulesIt.hasNext()) {
-            OpModule module = modulesIt.next();
-            for (int i = dbVersion + 1; i <= latestVersion; i++) {
-               String methodName = "upgradeToVersion" + i;
-               try {
-                  Method m = module.getClass().getMethod(methodName, OpProjectSession.class);
-                  logger.info("Invoking " + methodName + " for module " + module.getName());
-                  m.invoke(module, session);
-               }
-               catch (NoSuchMethodException e) {
-                  logger.debug("No upgrade method " + methodName + " found for module " + module.getName());
-               }
-               catch (IllegalAccessException e) {
-                  logger.debug("Cannot access upgrade method ", e);
-               }
-               catch (InvocationTargetException e) {
-                  logger.error("Cannot invoke upgrade method " + methodName + " for module " + module.getName(), e);
-                  //allow exceptions thrown by upgrade methods to be handled by someone else as well
-                  throw new RuntimeException(e.getCause());
+         try {
+            session.loadSettings();
+            for (OpModule module : moduleRegistry) {
+               for (int i = dbVersion + 1; i <= latestVersion; i++) {
+                  String methodName = "upgradeToVersion" + i;
+                  try {
+                     Method m = module.getClass().getMethod(methodName, OpProjectSession.class);
+                     logger.info("Invoking " + methodName + " for module " + module.getName());
+                     m.invoke(module, session);
+                  }
+                  catch (NoSuchMethodException e) {
+                     logger.debug("No upgrade method " + methodName + " found for module " + module.getName());
+                  }
+                  catch (IllegalAccessException e) {
+                     logger.debug("Cannot access upgrade method ", e);
+                  }
+                  catch (InvocationTargetException e) {
+                     logger.error("Cannot invoke upgrade method " + methodName + " for module " + module.getName(), e);
+                     //allow exceptions thrown by upgrade methods to be handled by someone else as well
+                     throw new RuntimeException(e.getCause());
+                  }
                }
             }
          }
-         session.close();
+         finally {
+            session.close();
+         }
       }
    }
 
@@ -146,15 +166,16 @@ public final class OpModuleManager {
       Collection<OpSource> allSources = OpSourceManager.getAllSources();
       for (OpSource source : allSources) {
          OpProjectSession session = new OpProjectSession(source.getName());
-         session.loadSettings();
-         Iterator<OpModule> modulesIt = moduleRegistry.iterator();
-         while (modulesIt.hasNext()) {
-            OpModule module = modulesIt.next();
-            module.check(session);
-            //just a hint, but profiling shows it helps
-            System.gc();
+         try {
+            session.loadSettings();
+            for (OpModule module : moduleRegistry) {
+               module.check(session);
+               //just a hint, but profiling shows it helps
+               System.gc();
+            }
+         } finally {
+            session.close();
          }
-         session.close();
       }
       logger.info("Total checking time: " + (System.currentTimeMillis() - currentTime) / 1000 + " sec");
    }

@@ -70,6 +70,7 @@
       <resource id="General">General</resource>
       <resource id="Name">Name</resource>
       <resource id="Description">Description</resource>
+      <resource id="SubType">Type</resource>
       <resource id="Permissions">Permissions</resource>
       <resource id="Cancel">Cancel</resource>
       <resource id="OK">OK</resource>
@@ -86,6 +87,7 @@
       <resource id="Probability">Probability (%)</resource>
       <resource id="Archived">Archived</resource>
       <resource id="Budget">Budget ({CurrencySymbol})</resource>
+      <resource id="SubType">Type</resource>
       <resource id="Template">Template</resource>
       <resource id="NotSelected">(Not selected)</resource>
 
@@ -130,6 +132,7 @@
       <resource id="Priority">Priority</resource>
       <resource id="Probability">Probability (%)</resource>
       <resource id="Archived">Archived</resource>      
+      <resource id="SubType">Type</resource>
       <resource id="Template">Template</resource>
       <resource id="NotSelected">(Not selected)</resource>
 
@@ -141,11 +144,11 @@
       <resource id="Version">Version</resource>
       <resource id="CreatedBy">Created By</resource>
       <resource id="CreatedOn">Created On</resource>
-      <resource id="Baseline">Baseline Version</resource>
+      <resource id="Baseline">Baseline</resource>
       <resource id="DeleteVersions">Delete Versions</resource>
 
-      <resource id="WorkingVersion">Working Version</resource>
-      <resource id="ActualVersion">Most Current Version</resource>
+      <resource id="WorkingVersion">Working Copy</resource>
+      <resource id="ActualVersion">Most Current</resource>
 
       <resource id="Permissions">Permissions</resource>
 
@@ -182,6 +185,7 @@
       <resource id="General">General</resource>
       <resource id="Name">Name</resource>
       <resource id="Description">Description</resource>
+      <resource id="SubType">Type</resource>
       <resource id="Permissions">Permissions</resource>
       <resource id="Cancel">Cancel</resource>
       <resource id="OK">OK</resource>

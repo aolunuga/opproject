@@ -20,7 +20,7 @@ import java.util.Properties;
 
 public class OpMailer implements Runnable {
 
-   private static final XLog log = XLogFactory.getServerLogger(OpMailer.class);
+   private static final XLog logger = XLogFactory.getServerLogger(OpMailer.class);
 
 	// *** Maybe more concrete: XSMTPMailer
 
@@ -51,13 +51,16 @@ public class OpMailer implements Runnable {
          Thread t = new Thread(new OpMailer(messages));
          t.start();
       }
+      else {
+         logger.warn("No smtp host set: Could not send message: "+message.toString());
+      }
    }
 
    public void run() {
       try {
          sendMessages(messages);
       } catch (Exception e) {
-         log.warn("Could not send email: ", e);
+         logger.warn("Could not send email: ", e);
       }
    }
 

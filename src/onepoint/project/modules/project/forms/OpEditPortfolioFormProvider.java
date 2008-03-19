@@ -30,6 +30,7 @@ public class OpEditPortfolioFormProvider implements XFormProvider {
    private final static String EDIT_MODE = "EditMode";
    private final static String PERMISSION_SET = "PermissionSet";
    private final static String PERMISSIONS_TAB = "PermissionsTab";
+   protected final static String SUB_TYPE_FIELD = "SubTypeField";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -40,48 +41,54 @@ public class OpEditPortfolioFormProvider implements XFormProvider {
 
       logger.debug("OpEditPortfolioFormProvider.prepareForm(): " + id_string);
       OpBroker broker = ((OpProjectSession) session).newBroker();
-      OpProjectNode portfolio = (OpProjectNode) (broker.getObject(id_string));
+      try {
+         OpProjectNode portfolio = (OpProjectNode) (broker.getObject(id_string));
 
-      // Downgrade edit mode to view mode if no manager access
-      byte accessLevel = session.effectiveAccessLevel(broker, portfolio.getID());
-      if (edit_mode.booleanValue() && (accessLevel < OpPermission.MANAGER)) {
-         edit_mode = Boolean.FALSE;
-      }
+         // Downgrade edit mode to view mode if no manager access
+         byte accessLevel = session.effectiveAccessLevel(broker, portfolio.getID());
+         if (edit_mode.booleanValue() && (accessLevel < OpPermission.MANAGER)) {
+            edit_mode = Boolean.FALSE;
+         }
 
-      form.findComponent(PORTFOLIO_ID).setStringValue(id_string);
-      form.findComponent(EDIT_MODE).setBooleanValue(edit_mode.booleanValue());
+         form.findComponent(PORTFOLIO_ID).setStringValue(id_string);
+         form.findComponent(EDIT_MODE).setBooleanValue(edit_mode.booleanValue());
 
-      // Localizer is used to localize name and description of root resource pool
-      XLocalizer localizer = new XLocalizer();
-      localizer.setResourceMap(session.getLocale().getResourceMap(OpProjectDataSetFactory.PROJECT_OBJECTS));
-      XComponent name = form.findComponent(OpProjectNode.NAME);
-      name.setStringValue(localizer.localize(portfolio.getName()));
-      XComponent desc = form.findComponent(OpProjectNode.DESCRIPTION);
-      desc.setStringValue(localizer.localize(portfolio.getDescription()));
+         // Localizer is used to localize name and description of root resource pool
+         XLocalizer localizer = new XLocalizer();
+         localizer.setResourceMap(session.getLocale().getResourceMap(OpProjectDataSetFactory.PROJECT_OBJECTS));
+         XComponent name = form.findComponent(OpProjectNode.NAME);
+         name.setStringValue(localizer.localize(portfolio.getName()));
+         XComponent desc = form.findComponent(OpProjectNode.DESCRIPTION);
+         desc.setStringValue(localizer.localize(portfolio.getDescription()));
 
-      if (!edit_mode.booleanValue()) {
-         name.setEnabled(false);
-         desc.setEnabled(false);
-         form.findComponent("Cancel").setVisible(false);
-         String title = session.getLocale().getResourceMap("project.Info").getResource("InfoPortfolio").getText();
-         form.setText(title);
-      }
-      else if (portfolio.getName().equals(OpProjectNode.ROOT_PROJECT_PORTFOLIO_NAME)) {
-         // Root project portfolio name and description are not editable at all
-         name.setEnabled(false);
-         desc.setEnabled(false);
-      }
+         if (!edit_mode.booleanValue()) {
+            name.setEnabled(false);
+            desc.setEnabled(false);
+            form.findComponent("Cancel").setVisible(false);
+            String title = session.getLocale().getResourceMap("project.Info").getResource("InfoPortfolio").getText();
+            form.setText(title);
+         }
+         else if (portfolio.getName().equals(OpProjectNode.ROOT_PROJECT_PORTFOLIO_NAME)) {
+            // Root project portfolio name and description are not editable at all
+            name.setEnabled(false);
+            desc.setEnabled(false);
+         }
+         // disable sub types
+         form.findComponent(SUB_TYPE_FIELD).setEnabled(false);
 
-      if (OpEnvironmentManager.isMultiUser()) {
-         // Locate permission data set in form
-         XComponent permissionSet = form.findComponent(PERMISSION_SET);
-         OpPermissionDataSetFactory.retrievePermissionSet(session, broker, portfolio.getPermissions(), permissionSet,
-              OpProjectModule.PORTFOLIO_ACCESS_LEVELS, session.getLocale());
-         OpPermissionDataSetFactory.administratePermissionTab(form, edit_mode.booleanValue(), accessLevel);
+         if (OpEnvironmentManager.isMultiUser()) {
+            // Locate permission data set in form
+            XComponent permissionSet = form.findComponent(PERMISSION_SET);
+            OpPermissionDataSetFactory.retrievePermissionSet(session, broker, portfolio.getPermissions(), permissionSet,
+                  OpProjectModule.PORTFOLIO_ACCESS_LEVELS, session.getLocale());
+            OpPermissionDataSetFactory.administratePermissionTab(form, edit_mode.booleanValue(), accessLevel);
+         }
+         else {
+            form.findComponent(PERMISSIONS_TAB).setHidden(true);
+         }
       }
-      else {
-         form.findComponent(PERMISSIONS_TAB).setHidden(true);
+      finally {
+         broker.close();
       }
-      broker.close();
    }
 }

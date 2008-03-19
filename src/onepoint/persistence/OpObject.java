@@ -4,13 +4,29 @@
 
 package onepoint.persistence;
 
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+
+import onepoint.error.XLocalizableException;
+import onepoint.project.OpProjectSession;
 import onepoint.project.modules.custom_attribute.OpCustomAttribute;
-import onepoint.project.modules.custom_attribute.OpCustomTypeManager;
+import onepoint.project.modules.custom_attribute.OpCustomAttributeError;
+import onepoint.project.modules.custom_attribute.OpCustomAttributeErrorMap;
+import onepoint.project.modules.custom_attribute.OpCustomAttributeManager;
+import onepoint.project.modules.custom_attribute.OpCustomAttributeServiceImpl;
+import onepoint.project.modules.custom_attribute.OpCustomType;
 import onepoint.project.modules.custom_attribute.OpCustomValuePage;
 import onepoint.project.modules.user.OpLock;
-
-import java.sql.Timestamp;
-import java.util.*;
+import onepoint.project.modules.user.OpPermission;
+import onepoint.service.server.XServiceManager;
+import onepoint.service.server.XSession;
 
 public class OpObject {
 
@@ -20,9 +36,11 @@ public class OpObject {
    
    public static final int CUSTOM_VALUES_SIZE = 10;
 
+   private static final String NAME_PARAM = "Name";
+
    private Timestamp created;
    private Timestamp modified;
-   private Set permissions;
+   private Set<OpPermission> permissions;
    private Set<OpLock> locks;
    private long id = 0;
    private Set dynamicResources = new HashSet();
@@ -30,6 +48,8 @@ public class OpObject {
    private OpCustomValuePage customValuePage = null;
    private Set<OpCustomValuePage> customValuePages = null;
 
+   private static OpCustomAttributeServiceImpl customAttributesServiceImpl;   
+   
    // for caching only, transient and dynamic
    private Map<String, OpCustomAttribute> customTypeMap;
 
@@ -71,11 +91,11 @@ public class OpObject {
       return modified;
    }
 
-   public void setPermissions(Set permissions) {
+   public void setPermissions(Set<OpPermission> permissions) {
       this.permissions = permissions;
    }
 
-   public Set getPermissions() {
+   public Set<OpPermission> getPermissions() {
       return permissions;
    }
 
@@ -110,9 +130,62 @@ public class OpObject {
    /* (non-Javadoc)
     * @see onepoint.project.modules.custom_attribute.OpCustomizable#getBoolean(java.lang.String)
     */
+   public Object getObject(String name) throws IllegalArgumentException {
+      OpCustomAttribute type = getCustomAttribute(name);
+      Class typeClass = type.getTypeAsClass();
+      if (typeClass == Boolean.class) {
+         return getBoolean(name);
+      }
+      if (typeClass == Date.class) {
+         return getDate(name);
+      }
+      if (typeClass == Double.class) {
+         return getDecimal(name);
+      }
+      if (typeClass == Long.class) {
+         return getNumber(name);
+      }
+      if (typeClass == String.class) {
+         return getText(name);
+      }
+      throw new IllegalArgumentException("type mismatch, attribute '"+name+"' is of unknown type '"+typeClass);
+   }
+
+   /* (non-Javadoc)
+    * @see onepoint.project.modules.custom_attribute.OpCustomizable#getBoolean(java.lang.String)
+    */
+   public void setObject(String name, Object value) throws IllegalArgumentException {
+      OpCustomAttribute type = getCustomAttribute(name);
+      Class typeClass = type.getTypeAsClass();
+      if (typeClass == Boolean.class) {
+         setBoolean(name, (Boolean)value);
+         return;
+      }
+      if (typeClass == Date.class) {
+         setDate(name, (Date) value);
+         return;
+      }
+      if (typeClass == Double.class) {
+         setDecimal(name, (Double) value);
+         return;
+      }
+      if (typeClass == Long.class) {
+         setNumber(name, (Long) value);
+         return;
+      }
+      if (typeClass == String.class) {
+         setText(name, (String) value);
+         return;
+      }
+      throw new IllegalArgumentException("type mismatch, attribute '"+name+"' is of unknown type '"+typeClass);
+   }
+
+   /* (non-Javadoc)
+    * @see onepoint.project.modules.custom_attribute.OpCustomizable#getBoolean(java.lang.String)
+    */
    public Boolean getBoolean(String name) throws IllegalArgumentException {
       OpCustomAttribute type = getCustomAttribute(name);
-      checkType(type, Boolean.class);
+      check(type, Boolean.class);
       int pos = type.getPosition();
       OpCustomValuePage page = getCustomValuePage(pos/CUSTOM_VALUES_SIZE);
       if (page == null) {
@@ -126,7 +199,7 @@ public class OpObject {
     */
    public Date getDate(String name) throws IllegalArgumentException {
       OpCustomAttribute type = getCustomAttribute(name);
-      checkType(type, Date.class);
+      check(type, Date.class);
       int pos = type.getPosition();
       OpCustomValuePage page = getCustomValuePage(pos/CUSTOM_VALUES_SIZE);
       if (page == null) {
@@ -140,7 +213,7 @@ public class OpObject {
     */
    public Double getDecimal(String name) throws IllegalArgumentException {
       OpCustomAttribute type = getCustomAttribute(name);
-      checkType(type, Double.class);
+      check(type, Double.class);
       int pos = type.getPosition();
       OpCustomValuePage page = getCustomValuePage(pos/CUSTOM_VALUES_SIZE);
       if (page == null) {
@@ -154,7 +227,7 @@ public class OpObject {
     */
    public Long getNumber(String name) throws IllegalArgumentException {
       OpCustomAttribute type = getCustomAttribute(name);
-      checkType(type, Long.class);
+      check(type, Long.class);
       int pos = type.getPosition();
       OpCustomValuePage page = getCustomValuePage(pos/CUSTOM_VALUES_SIZE);
       if (page == null) {
@@ -168,7 +241,7 @@ public class OpObject {
     */
    public String getText(String name) throws IllegalArgumentException {
       OpCustomAttribute type = getCustomAttribute(name);
-      checkType(type, String.class);
+      check(type, String.class);
       int pos = type.getPosition();
       OpCustomValuePage page = getCustomValuePage(pos/CUSTOM_VALUES_SIZE);
       if (page == null) {
@@ -182,7 +255,7 @@ public class OpObject {
     */
    public void setBoolean(String name, Boolean value) throws IllegalArgumentException {
       OpCustomAttribute type = getCustomAttribute(name);
-      checkType(type, Boolean.class);
+      check(type, Boolean.class, value);
       int pos = type.getPosition();
       OpCustomValuePage page = getCustomValuePage(pos/CUSTOM_VALUES_SIZE);
       if (page == null) {
@@ -196,7 +269,7 @@ public class OpObject {
     */
    public void setDate(String name, Date value) throws IllegalArgumentException {
       OpCustomAttribute type = getCustomAttribute(name);
-      checkType(type, Date.class);
+      check(type, Date.class, value);
       int pos = type.getPosition();
       OpCustomValuePage page = getCustomValuePage(pos/CUSTOM_VALUES_SIZE);
       if (page == null) {
@@ -210,7 +283,7 @@ public class OpObject {
     */
    public void setDecimal(String name, Double value) throws IllegalArgumentException {
       OpCustomAttribute type = getCustomAttribute(name);
-      checkType(type, Double.class);
+      check(type, Double.class, value);
       int pos = type.getPosition();
       OpCustomValuePage page = getCustomValuePage(pos/CUSTOM_VALUES_SIZE);
       if (page == null) {
@@ -224,7 +297,7 @@ public class OpObject {
     */
    public void setNumber(String name, Long value) throws IllegalArgumentException {
       OpCustomAttribute type = getCustomAttribute(name);
-      checkType(type, Long.class);
+      check(type, Long.class, value);
       int pos = type.getPosition();
       OpCustomValuePage page = getCustomValuePage(pos/CUSTOM_VALUES_SIZE);
       if (page == null) {
@@ -238,7 +311,7 @@ public class OpObject {
     */
    public void setText(String name, String value) throws IllegalArgumentException {
       OpCustomAttribute type = getCustomAttribute(name);
-      checkType(type, String.class);
+      check(type, String.class, value);
       int pos = type.getPosition();
       OpCustomValuePage page = getCustomValuePage(pos/CUSTOM_VALUES_SIZE);
       if (page == null) {
@@ -279,15 +352,16 @@ public class OpObject {
     */
    private OpCustomAttribute getCustomAttribute(String name) {
       Byte subType = null;
-      String customTypeName = null;
+      OpCustomType customType = null;
       if (this instanceof OpSubTypable) {
          subType = ((OpSubTypable) this).getType();
       }
       if (this instanceof OpCustomSubTypable) {
-         customTypeName = ((OpCustomSubTypable) this).getCustomTypeName();
+         customType = ((OpCustomSubTypable) this).getCustomType();
       }
       if (customTypeMap == null) {
-         customTypeMap = OpCustomTypeManager.getInstance().getCustomAttributesMap(this.getClass(), subType, customTypeName);
+         customTypeMap = OpCustomAttributeManager.getInstance().
+            getCustomAttributesMap(this.getClass(), subType, customType == null ? null : customType.getCustomTypeName());
       }
       OpCustomAttribute ret = null;
       if (customTypeMap != null) {
@@ -298,8 +372,8 @@ public class OpObject {
          Class type = this.getClass();
          while (true) {
             if (subType != null) {
-               if (customTypeName != null) {
-                  customTypeName = null;
+               if (customType != null) {
+                  customType = null;
                }
                else {
                   subType = null;
@@ -312,7 +386,8 @@ public class OpObject {
                type = type.getSuperclass();
             }
             
-            OpCustomAttribute value = OpCustomTypeManager.getInstance().getCustomAttribute(type, subType, customTypeName, name);
+            OpCustomAttribute value = OpCustomAttributeManager.getInstance().
+               getCustomAttribute(type, subType, customType == null ? null : customType.getCustomTypeName(), name);
             if (value != null) {
                return value;
             }
@@ -328,10 +403,45 @@ public class OpObject {
     * @pre
     * @post
     */
-   private void checkType(OpCustomAttribute attribute, Class type) {
+   private void check(OpCustomAttribute attribute, Class type) {
       if (attribute.getTypeAsClass() != type) {
          throw new IllegalArgumentException("type mismatch, attribute '"+attribute.getName()+"' is of type '"+
                attribute.getTypeAsClass().getName()+"' and not of type '"+type.getName()+"' as expected");
+      }
+   }
+   /**
+    * @param classType
+    * @param name
+    * @pre
+    * @post
+    */
+   private void check(OpCustomAttribute attribute, Class type, Object value) {
+      check(attribute, type);
+      if (attribute.isMandatory() && value == null) {
+         Map<String, String> params = new HashMap<String, String>();
+         params.put(NAME_PARAM, attribute.getLabel() != null ? attribute.getLabel() : attribute.getName());
+         throw new XLocalizableException(OpCustomAttributeErrorMap.ERROR_MAP, OpCustomAttributeError.MANDATORY_ERROR, params);
+      }
+      if (attribute.isUnique()) {
+         OpProjectSession session = (OpProjectSession) XSession.getSession();
+         OpBroker broker = session.newBroker();
+         try {
+            if (customAttributesServiceImpl == null) {
+               customAttributesServiceImpl = (OpCustomAttributeServiceImpl) XServiceManager.getServiceImpl(OpCustomAttributeServiceImpl.SERVICE_NAME);
+            }
+            List<OpObject> list = customAttributesServiceImpl.getObjects(session, broker, attribute, value);
+            if (list.isEmpty()) {
+               return;
+            }
+            if ((list.size() != 1) || (list.get(0).getID() != getID())) {
+               Map<String, String> params = new HashMap<String, String>();
+               params.put(NAME_PARAM, attribute.getLabel() != null ? attribute.getLabel() : attribute.getName());
+               throw new XLocalizableException(OpCustomAttributeErrorMap.ERROR_MAP, OpCustomAttributeError.NOT_UNIQUE_ERROR, params);               
+            }
+         }
+         finally {
+            broker.close();
+         }
       }
    }
    /**

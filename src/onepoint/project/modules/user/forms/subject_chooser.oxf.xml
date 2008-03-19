@@ -1,4 +1,4 @@
-<form layout="border" width="240" height="144" text="${SelectSubject}" resource-map-ref="user.SubjectChooser" provider-class="onepoint.project.modules.user.forms.OpSubjectChooserFormProvider" script="/modules/user/scripts/subject_chooser.jes">
+<form layout="border" width="400" height="240" text="${SelectSubject}" resource-map-ref="user.SubjectChooser" provider-class="onepoint.project.modules.user.forms.OpSubjectChooserFormProvider" script="/modules/user/scripts/subject_chooser.jes">
 
 	<data-field id="CallingFrameID"/>
 	<data-field id="ActionHandler"/>

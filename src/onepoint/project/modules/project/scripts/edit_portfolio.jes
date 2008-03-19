@@ -28,6 +28,7 @@ function ok_edit(event) {
    portfolio_id = form.findComponent("PortfolioID").getStringValue();
    portfolio_data.Type = 1;
    portfolio_data.Name = form.findComponent("Name").getStringValue();
+   portfolio_data.CustomTypeLocator = form.findComponent("SubTypeField").getStringValue();
    portfolio_data.Description = form.findComponent("Description").getStringValue();
 
    portfolio_data.PermissionSet = form.findComponent("PermissionSet");
@@ -36,6 +37,7 @@ function ok_edit(event) {
    request.setAction("ProjectService.updatePortfolio");
    request.setArgument("portfolio_id", portfolio_id);
    request.setArgument("portfolio_data", portfolio_data);
+   addAdditionalArguments(request);
 
    response = XDisplay.getClient().invokeMethod(request);
 
@@ -53,3 +55,11 @@ function ok_edit(event) {
 function cancel(event) {
    XDisplay.getActiveWindow().close();
 }
+
+function addAdditionalArguments(request) {
+   addCustomAttributes(request);
+}
+
+function subTypeChanged(event) {
+}
+

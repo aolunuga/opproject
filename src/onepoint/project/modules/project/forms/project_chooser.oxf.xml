@@ -1,4 +1,4 @@
-<form layout="border" width="240" height="144" text="${SelectProject}" resource-map-ref="project.ProjectChooser" provider-class="onepoint.project.modules.project.forms.OpProjectChooserFormProvider" script="/modules/project/scripts/project_chooser.jes">
+<form layout="border" width="400" height="240" text="${SelectProject}" resource-map-ref="project.ProjectChooser" provider-class="onepoint.project.modules.project.forms.OpProjectChooserFormProvider" script="/modules/project/scripts/project_chooser.jes">
 
    <data-field id="CallingFrameID"/>
    <data-field id="ActionHandler"/>

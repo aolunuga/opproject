@@ -8,7 +8,10 @@ import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.*;
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpLocator;
+import onepoint.persistence.OpObject;
+import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLanguageResourceMap;
@@ -52,6 +55,8 @@ public class OpPermissionDataSetFactory {
 
    private static final String GET_PERMISSION_COUNT_FOR_OBJECT =
         "select count(permission.ID) from OpPermission permission where permission.Object = (:objectId)";
+   private static final String GET_PERMISSION_COUNT_FOR_OBJECT_AND_SUBJECT_WITH_ACCESS_LEVEL =
+        "select count(permission.ID) from OpPermission permission where permission.Object = (:objectId) and permission.Subject = (:subjectId) and permission.AccessLevel >= (:accessLevel)";
 
    public static XComponent defaultPermissionRows(OpProjectSession session, OpBroker broker, XComponent permissionSet) {
       // Reload user and everyone objects in case it was detached
@@ -309,6 +314,7 @@ public class OpPermissionDataSetFactory {
          OpPermission permission = null;
          //permissions stored during current session for this object
          Map persistedPermissions = new HashMap();
+         Set<OpPermission> permissions = new HashSet<OpPermission>();
 
          for (int i = 0; i < permissionSet.getChildCount(); i++) {
             permissionRow = (XComponent) permissionSet.getChild(i);
@@ -326,20 +332,22 @@ public class OpPermissionDataSetFactory {
                   permission.setObject(object);
                   permission.setSubject(subject);
                   permission.setAccessLevel(accessLevel);
+                  permissions.add(permission);
                   broker.makePersistent(permission);
                   persistedPermissions.put(subjectLocator, permission);
                }
             }
          }
+         object.setPermissions(permissions);
       }
       else {
-
+         Set<OpPermission> permissions = new HashSet<OpPermission>();
          // There are permissions stored for this object: Update permission set
          HashMap permissionMap = new HashMap();
-         Iterator permissions = object.getPermissions().iterator();
+         Iterator iter = object.getPermissions().iterator();
          OpPermission permission = null;
-         while (permissions.hasNext()) {
-            permission = (OpPermission) permissions.next();
+         while (iter.hasNext()) {
+            permission = (OpPermission) iter.next();
             // Only add not system managed permissions to permission set
             // (Cannot be updated and are allowed in parallel to user-defined permissions)
             if (!permission.getSystemManaged()) {
@@ -369,6 +377,7 @@ public class OpPermissionDataSetFactory {
                      permission.setAccessLevel(accessLevel);
                      broker.updateObject(permission);
                   }
+                  permissions.add(permission);
                }
                else {
                   // No permission exists for this subject yet: Insert new permission
@@ -377,6 +386,7 @@ public class OpPermissionDataSetFactory {
                   permission.setObject(object);
                   permission.setSubject(subject);
                   permission.setAccessLevel(accessLevel);
+                  permissions.add(permission);
                   broker.makePersistent(permission);
                }
             }
@@ -399,6 +409,7 @@ public class OpPermissionDataSetFactory {
             permission = (OpPermission) permissionsToDelete.next();
             broker.deleteObject(permission);
          }
+         object.setPermissions(permissions);
 
       }
       return null;
@@ -494,7 +505,7 @@ public class OpPermissionDataSetFactory {
       if (fromPermissions == null || fromPermissions.isEmpty()) {
          return;
       }
-      Set newPermissions = new HashSet(fromPermissions.size());
+      Set<OpPermission> newPermissions = new HashSet<OpPermission>(fromPermissions.size());
       for (Iterator it = fromPermissions.iterator(); it.hasNext();) {
          OpPermission fromPermission = (OpPermission) it.next();
 
@@ -528,4 +539,29 @@ public class OpPermissionDataSetFactory {
       }
       return false;
    }
+
+   /**
+    * Returns <code>true</code> if the <code>OpSubject</code> specified as parameter has at least one permission on the
+    *    <code>OpObject</code> with an access level equal or higher than minAccessLevel or <code>false</code> otherwise.
+    *
+    * @param broker - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param object - the <code>OpObject</code> object.
+    * @param subject - the <code>OpSubject</code> object.
+    * @param minAccessLevel - the minimum value of the access level.
+    * @return <code>true</code> if the <code>OpSubject</code> specified as parameter has at least one permission on the
+    *    <code>OpObject</code> with an access level equal or higher than minAccessLevel or <code>false</code> otherwise.
+    */
+   public static boolean hasSubjectPermissionOnObject(OpBroker broker, OpSubject subject, OpObject object, Byte minAccessLevel) {
+      if (hasPermissions(broker, object)) {
+         OpQuery query = broker.newQuery(GET_PERMISSION_COUNT_FOR_OBJECT_AND_SUBJECT_WITH_ACCESS_LEVEL);
+         query.setLong("objectId", object.getID());
+         query.setLong("subjectId", subject.getID());
+         query.setByte("accessLevel", minAccessLevel);
+         Number counter = (Number) broker.iterate(query).next();
+         if (counter.intValue() > 0) {
+            return true;
+         }
+      }
+      return false;
+   }  
 }

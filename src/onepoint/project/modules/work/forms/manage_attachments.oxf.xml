@@ -1,9 +1,10 @@
 <form id="ManageAttachmentsForm" layout="border" width="500" height="400" text="${ManageAttachments}" resource-map-ref="work.manage_attachments"
       provider-class="onepoint.project.modules.work.forms.OpManageAttachmentsFormProvider"
-      script="/modules/work/scripts/manage_attachments.jes"
+      script="/modules/work/scripts/manage_attachments.jes" on-unload="copyList"
       error-label-ref="ErrorLabel"
       default-button-ref="okButton">
 
+   <data-field id="ViewedNewContents"/>
    <data-set id="AttachmentSet"/>
    <data-set id="AttachmentIconSet">
       <data-row icon="/modules/project_planning/icons/link_attachment_s.png"/>

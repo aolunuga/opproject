@@ -4,8 +4,10 @@
 
 package onepoint.project.modules.resource;
 
+import onepoint.persistence.OpCustomSubTypable;
 import onepoint.persistence.OpEntityException;
 import onepoint.persistence.OpObject;
+import onepoint.project.modules.custom_attribute.OpCustomType;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.project.OpAssignmentVersion;
 import onepoint.project.modules.project.OpProjectNodeAssignment;
@@ -16,7 +18,7 @@ import onepoint.util.XCalendar;
 import java.sql.Date;
 import java.util.*;
 
-public class OpResource extends OpObject {
+public class OpResource extends OpObject implements OpCustomSubTypable {
 
    public final static String RESOURCE = "OpResource";
 
@@ -58,6 +60,7 @@ public class OpResource extends OpObject {
    private Set responsibleActivityVersions;
    private Set<OpHourlyRatesPeriod> hourlyRatesPeriods;
    private Set<OpSkillRating> skillRatings;
+   private OpCustomType customType;
 
 
    public void setName(String name) {
@@ -331,6 +334,20 @@ public class OpResource extends OpObject {
 
    public void setSkillRatings(Set skillRatings) {
       this.skillRatings = skillRatings;
+   }
+
+   /* (non-Javadoc)
+    * @see onepoint.persistence.OpCustomSubTypable#getCustomType()
+    */
+   public OpCustomType getCustomType() {
+      return customType;
+   }
+
+   /* (non-Javadoc)
+    * @see onepoint.persistence.OpCustomSubTypable#setCustomType(onepoint.project.modules.custom_attribute.OpCustomType)
+    */
+   public void setCustomType(OpCustomType customType) {
+      this.customType = customType;
    }
 
    //<FIXME author="Mihai Costin" description="Move validations from service into this method">

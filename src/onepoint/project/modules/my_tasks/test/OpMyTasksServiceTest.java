@@ -7,16 +7,13 @@ import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
-import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.my_tasks.OpMyTasksError;
 import onepoint.project.modules.my_tasks.OpMyTasksService;
-import onepoint.project.modules.project.*;
+import onepoint.project.modules.project.OpActivity;
+import onepoint.project.modules.project.OpAttachment;
 import onepoint.project.modules.project.test.OpProjectTestDataFactory;
-import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.test.OpResourceTestDataFactory;
-import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.test.OpUserTestDataFactory;
 import onepoint.project.test.OpBaseOpenTestCase;
 import onepoint.project.test.OpTestDataFactory;
 import onepoint.project.util.OpProjectConstants;
@@ -40,8 +37,6 @@ public class OpMyTasksServiceTest extends OpBaseOpenTestCase {
 
    private OpMyTasksService service;
    private OpMyTasksTestDataFactory dataFactory;
-   private OpProjectTestDataFactory projectDataFactory;
-   private OpResourceTestDataFactory resourceDataFactory;
 
    private String resId;
    private String res2Id;
@@ -61,18 +56,22 @@ public class OpMyTasksServiceTest extends OpBaseOpenTestCase {
 
       service = OpTestDataFactory.getMyTasksService();
       dataFactory = new OpMyTasksTestDataFactory(session);
-      projectDataFactory = new OpProjectTestDataFactory(session);
-      resourceDataFactory = new OpResourceTestDataFactory(session);
+      OpProjectTestDataFactory projectDataFactory = new OpProjectTestDataFactory(session);
+      OpResourceTestDataFactory resourceDataFactory = new OpResourceTestDataFactory(session);
+
+      clean();
 
       // create resources 'resource', 'resource2'
       String poolid = OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, 0); // fake id
       XMessage request = resourceDataFactory.createResourceMsg(RESOURCE_NAME, "description", 50d, 2d, 1d, false, poolid);
       XMessage response = OpTestDataFactory.getResourceService().insertResource(session, request);
       assertNoError(response);
+
       resId = resourceDataFactory.getResourceByName(RESOURCE_NAME).locator();
       request = resourceDataFactory.createResourceMsg(RESOURCE_NAME + 2, "description", 10d, 9d, 1d, false, poolid);
       response = OpTestDataFactory.getResourceService().insertResource(session, request);
       assertNoError(response);
+
       res2Id = resourceDataFactory.getResourceByName(RESOURCE_NAME + 2).locator();
 
       // create project 'project', 'project2'
@@ -85,10 +84,8 @@ public class OpMyTasksServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
       proj2Id = projectDataFactory.getProjectId(PROJECT_NAME + 2);
 
-      OpBroker broker = session.newBroker();
-      planId = projectDataFactory.getProjectById(broker, projId).getPlan().locator();
-      plan2Id = projectDataFactory.getProjectById(broker, proj2Id).getPlan().locator();
-      broker.close();
+      planId = projectDataFactory.getProjectById(projId).getPlan().locator();
+      plan2Id = projectDataFactory.getProjectById(proj2Id).getPlan().locator();
    }
 
    /**
@@ -186,7 +183,7 @@ public class OpMyTasksServiceTest extends OpBaseOpenTestCase {
       Date duedate = Date.valueOf("2007-05-24");
       String prjChoice = XValidator.choice(projId, PROJECT_NAME);
       String resChoice = XValidator.choice(resId, RESOURCE_NAME);
-      List choices = new ArrayList();
+      List<String> choices = new ArrayList<String>();
       choices.add(XValidator.choice(OpProjectConstants.NO_CONTENT_ID, ATTACH_NAME + 0));
       choices.add(XValidator.choice(OpProjectConstants.NO_CONTENT_ID, ATTACH_NAME + 1));
       choices.add(XValidator.choice(OpProjectConstants.NO_CONTENT_ID, ATTACH_NAME + 2));
@@ -194,6 +191,7 @@ public class OpMyTasksServiceTest extends OpBaseOpenTestCase {
       XMessage request = OpMyTasksTestDataFactory.addAdhocMsg(ACTIVITY_NAME, "descr", 5, duedate, prjChoice, resChoice, attachSet);
       XMessage response = service.addAdhocTask(session, request);
       assertNoError(response);
+
 
       assertEquals(1, dataFactory.getAllActivities().size());
       List attachs = dataFactory.getAllAttachments();
@@ -204,6 +202,7 @@ public class OpMyTasksServiceTest extends OpBaseOpenTestCase {
       }
 
       choices.remove(0);
+
       String locator = dataFactory.getActivityId(ACTIVITY_NAME);
       duedate = Date.valueOf("2007-06-15");
       prjChoice = XValidator.choice(proj2Id, PROJECT_NAME + 2);
@@ -212,6 +211,7 @@ public class OpMyTasksServiceTest extends OpBaseOpenTestCase {
       request = OpMyTasksTestDataFactory.updateAdhocMsg(locator, "New" + ACTIVITY_NAME, "new descr", 9, duedate, prjChoice, resChoice, attachSet);
       response = service.updateAdhocTask(session, request);
       assertNoError(response);
+
 
       OpActivity activity = dataFactory.getActivityById(locator);
       assertNotNull(activity);
@@ -229,7 +229,7 @@ public class OpMyTasksServiceTest extends OpBaseOpenTestCase {
 
       String prjChoice = XValidator.choice(projId, PROJECT_NAME);
       String resChoice = XValidator.choice(resId, RESOURCE_NAME);
-      List ids = new ArrayList();
+      List<String> ids = new ArrayList<String>();
 
       for (int i = 0; i < 3; i++) {
          XMessage request = OpMyTasksTestDataFactory.addAdhocMsg(ACTIVITY_NAME + i, "descr " + i, i + 1, null, prjChoice, resChoice);
@@ -249,54 +249,4 @@ public class OpMyTasksServiceTest extends OpBaseOpenTestCase {
       OpActivity activity = dataFactory.getActivityByName(ACTIVITY_NAME + 1);
       assertNotNull(activity);
    }
-
-   // ******** Helper Methods *********
-
-   /**
-    * Cleans the database
-    *
-    * @throws Exception if deleting test artifacts fails
-    */
-   private void clean()
-        throws Exception {
-
-      OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-
-      OpBroker broker = session.newBroker();
-      OpTransaction transaction = broker.newTransaction();
-
-      for (OpUser user : usrData.getAllUsers(broker)) {
-         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
-            continue;
-         }
-         broker.deleteObject(user);
-      }
-
-      deleteAllObjects(broker, OpAssignment.ASSIGNMENT);
-      deleteAllObjects(broker, OpActivityComment.ACTIVITY_COMMENT);
-      deleteAllObjects(broker, OpActivity.ACTIVITY);
-      deleteAllObjects(broker, OpProjectPlan.PROJECT_PLAN);
-      deleteAllObjects(broker, OpAssignmentVersion.ASSIGNMENT_VERSION);
-      deleteAllObjects(broker, OpProjectPlanVersion.PROJECT_PLAN_VERSION);
-      deleteAllObjects(broker, OpActivityVersion.ACTIVITY_VERSION);
-
-      for (OpProjectNode project : projectDataFactory.getAllProjects(broker)) {
-         broker.deleteObject(project);
-      }
-
-      for (OpResource resource : resourceDataFactory.getAllResources(broker)) {
-         broker.deleteObject(resource);
-      }
-
-      for (OpResourcePool pool : resourceDataFactory.getAllResourcePools(broker)) {
-         if (pool.getName().equals(OpResourcePool.ROOT_RESOURCE_POOL_NAME)) {
-            continue;
-         }
-         broker.deleteObject(pool);
-      }
-
-      transaction.commit();
-      broker.close();
-   }
-
 }

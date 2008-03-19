@@ -16,6 +16,20 @@ public class OpSetting extends OpObject {
    private String name;
    private String value;
 
+   /**
+    * 
+    */
+   public OpSetting() {
+   }
+   /**
+    * @param name
+    * @param value2
+    */
+   public OpSetting(String name, String value) {
+      this.name = name;
+      this.value = value;
+   }
+
    public void setName(String name) {
       this.name = name;
    }

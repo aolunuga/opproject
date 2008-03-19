@@ -38,45 +38,49 @@ public class OpProjectsFormProvider implements XFormProvider {
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
       OpBroker broker = session.newBroker();
+      try {
 
-      //set the value of the manager permission
-      form.findComponent("ManagerPermission").setByteValue(OpPermission.MANAGER);
+         //set the value of the manager permission
+         form.findComponent("ManagerPermission").setByteValue(OpPermission.MANAGER);
 
-      //set the permission for the root portfolio
-      OpProjectNode rootPortfolio = OpProjectAdministrationService.findRootPortfolio(broker);
-      byte rootPortfolioPermission = session.effectiveAccessLevel(broker, rootPortfolio.getID());
-      form.findComponent("RootPortfolioPermission").setByteValue(rootPortfolioPermission);
+         //set the permission for the root portfolio
+         OpProjectNode rootPortfolio = OpProjectAdministrationService.findRootPortfolio(broker);
+         byte rootPortfolioPermission = session.effectiveAccessLevel(broker, rootPortfolio.getID());
+         form.findComponent("RootPortfolioPermission").setByteValue(rootPortfolioPermission);
 
-      //see whether newXXX buttons should be enabled or disabled
-      if (rootPortfolioPermission < OpPermission.MANAGER) {
-         form.findComponent(NEW_PORTFOLIO_BUTTON).setEnabled(false);
-         form.findComponent(NEW_PROJECT_BUTTON).setEnabled(false);
-      }
+         //see whether newXXX buttons should be enabled or disabled
+         if (rootPortfolioPermission < OpPermission.MANAGER) {
+            form.findComponent(NEW_PORTFOLIO_BUTTON).setEnabled(false);
+            form.findComponent(NEW_PROJECT_BUTTON).setEnabled(false);
+         }
 
-      //disable buttons that required selection to work
-      disableSelectionButtons(form);
+         //disable buttons that required selection to work
+         disableSelectionButtons(form);
 
-      //retrieve project data set
-      XComponent dataSet = form.findComponent(PROJECT_DATA_SET);
-      OpProjectDataSetFactory.retrieveProjectDataSetRootHierarchy(session, dataSet, OpProjectDataSetFactory.ALL_TYPES, true, null);
+         //retrieve project data set
+         XComponent dataSet = form.findComponent(PROJECT_DATA_SET);
+         OpProjectDataSetFactory.retrieveProjectDataSetRootHierarchy(session, dataSet, OpProjectDataSetFactory.ALL_TYPES, true, null);
 
-      boolean shouldHideFromUser = false;
-      OpUser user = session.user(broker);
-      //check if the app. is multiuser and hide manager features is set to true and the user is not manager
-      if (OpEnvironmentManager.isMultiUser()) {
-         Boolean hideManagerFeatures = Boolean.valueOf(OpSettingsService.getService().get(OpSettings.HIDE_MANAGER_FEATURES));
-         if(hideManagerFeatures && user.getLevel() < OpUser.MANAGER_USER_LEVEL){
-            shouldHideFromUser = true;
+         boolean shouldHideFromUser = false;
+         OpUser user = session.user(broker);
+         //check if the app. is multiuser and hide manager features is set to true and the user is not manager
+         if (OpEnvironmentManager.isMultiUser()) {
+            Boolean hideManagerFeatures = Boolean.valueOf(OpSettingsService.getService().get(session, OpSettings.HIDE_MANAGER_FEATURES));
+            if(hideManagerFeatures && user.getLevel() < OpUser.MANAGER_USER_LEVEL){
+               shouldHideFromUser = true;
+            }
+         }
+
+         //hide costs tab and costs column for users that have only the customer level or if the app. is
+         // multiuser and hide manager features is set to true and the user is not manager
+         if (user.getLevel() == OpUser.OBSERVER_CUSTOMER_USER_LEVEL || shouldHideFromUser) {
+            form.findComponent(COSTS_TAB).setHidden(true);
+            form.findComponent(COSTS_COLUMN).setHidden(true);
          }
       }
-
-      //hide costs tab and costs column for users that have only the customer level or if the app. is
-      // multiuser and hide manager features is set to true and the user is not manager
-      if (user.getLevel() == OpUser.OBSERVER_CUSTOMER_USER_LEVEL || shouldHideFromUser) {
-         form.findComponent(COSTS_TAB).setHidden(true);
-         form.findComponent(COSTS_COLUMN).setHidden(true);
+      finally {
+         broker.close();
       }
-      broker.close();
    }
 
    /**

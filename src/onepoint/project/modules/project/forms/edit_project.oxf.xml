@@ -1,7 +1,8 @@
-<form layout="border" width="750" height="550" text="${EditProject}" start-focus-ref="Name" default-button-ref="okButton"
+<form layout="border" width="900" height="540" text="${EditProject}" start-focus-ref="Name" default-button-ref="okButton"
       resource-map-ref="project.EditProject" provider-class="onepoint.project.modules.project.forms.OpEditProjectFormProvider"
-      error-label-ref="ErrorLabel" on-unload="clearContents" script="/modules/project/scripts/edit_project.jes">
+      error-label-ref="ErrorLabel" script="/modules/project/scripts/edit_project.jes">
    <data-field id="ProjectID"/>
+   <data-set id="SubTypeSet"/>
    <data-field id="EditMode"/>
    <data-field id="OriginalStartDate"/>
    <data-field id="WorkingVersionNumber"/>
@@ -17,23 +18,28 @@
 
       <data-set id="ProjectStatusDataSet"/>
 
-      <label x="0" y="0" width="2" text="${Name}" style-ref="label-emphasized-default"/><text-field x="2" y="0" width="3" id="Name"/>
-      <label x="0" y="1" width="2" text="${Template}"/><choice-field x="2" y="1" width="3" id="TemplateField" string-value="${NotSelected}" enabled="false"/>
-      <label x="0" y="2" width="2" text="${Description}"/><text-box x="2" y="2" width="3" id="Description"/>
-      <label x="0" y="3" width="2" text="${Start}" style-ref="label-emphasized-default"/><date-field x="2" y="3" width="3" id="Start"/>
+      <label x="0" y="0" width="2" text="${Name}" style-ref="label-emphasized-default"/>
+      <text-field x="2" y="0" width="3" id="Name"/>
+      <label x="0" y="1" width="2" text="${SubType}" />
+      <choice-field x="2" y="1" width="3" id="SubTypeField" on-value-changed="subTypeChanged" data-set-ref="SubTypeSet" />
+      <label x="0" y="2" width="2" text="${Template}" />
+      <choice-field x="2" y="2" width="3" id="TemplateField" string-value="${NotSelected}" enabled="false"/>
+      <label x="0" y="3" width="2" text="${Description}"/>
+      <text-box x="2" y="3" width="3" id="Description"/>
+      <label x="0" y="4" width="2" text="${Start}" style-ref="label-emphasized-default"/>
+      <date-field x="2" y="4" width="3" id="Start"/>
 
       <!-- Probably combine these in 2nd tab 'Vorgaben' -->
-      <label x="0" y="4" width="2" text="${End}"/><date-field x="2" y="4" width="3" id="Finish"/>
-      <label x="0" y="5" width="2" text="${Budget}"/><double-field x="2" y="5" width="3" id="Budget" decimals="2"/>
-      <label x="0" y="6" width="2" text="${Priority}"/>
-      <int-field x="2" y="6" width="3" id="Priority" lower-limit="1" upper-limit="9"/>
-      <label x="0" y="7" width="2" text="${Probability}"/>
-      <int-field x="2" y="7" width="3" id="Probability" lower-limit="0" upper-limit="100"/>
-      <check-box x="2" y="8" width="3" id="CalculationMode" text="${CalculationMode}" boolean-value="true"/>
-      <check-box x="2" y="9" width="3" id="ProgressTracked" text="${ProgressTracked}" boolean-value="true"/>
-      <label x="0" y="10" width="2" text="${Status}" id="StatusLabel"/>
-      <choice-field x="2" y="10" width="3" data-set-ref="ProjectStatusDataSet" id="StatusChoice" selected-index="0"/>
-      <check-box x="2" y="11" width="3" id="Archived" text="${Archived}"/>      
+      <label x="0" y="5" width="2" text="${End}"/>
+      <date-field x="2" y="5" width="3" id="Finish"/>
+      <label x="0" y="6" width="2" text="${Budget}"/>
+      <double-field x="2" y="6" width="3" id="Budget" decimals="2"/>
+      <label x="0" y="7" width="2" text="${Priority}"/>
+      <int-field x="2" y="7" width="3" id="Priority" lower-limit="1" upper-limit="9"/>
+      <label x="0" y="8" width="2" text="${Probability}"/>
+      <int-field x="2" y="8" width="3" id="Probability" lower-limit="0" upper-limit="100"/>
+      <label x="0" y="9" width="2" text="${Status}" id="StatusLabel"/>
+      <choice-field x="2" y="9" width="3" data-set-ref="ProjectStatusDataSet" id="StatusChoice" selected-index="0"/>
    </tab>
 
    <tab text="${Goals}" layout="border" id="GoalsTab">
@@ -49,28 +55,6 @@
          <!-- maybe in addition: Up- and down-arrows -->
       </panel>
    </tab>
-
-      <tab text="${Attachments}" layout="border" id="AttachmentsTab">
-         <data-set id="AttachmentSet"/>
-         <data-set id="AttachmentIconSet">
-            <data-row icon="/modules/project_planning/icons/link_attachment_s.png"/>
-            <data-row icon="/modules/project_planning/icons/document_attachment_s.png"/>
-         </data-set>
-         <data-set id="AttachmentListDataSet"/>
-         <table-box y="0" id="AttachmentList" data-set-ref="AttachmentSet" icon-set-ref="AttachmentIconSet"
-                    flexible="true" on-double-click="viewAttachment">
-            <table-column id="AttachmentTitle" text="${Title}" width="200" data-column-index="1" value-type="Choice"
-                          index-based="true" caption-column-index="1"/>
-            <table-column id="AttachmentLocation" text="${Location}" width="200" data-column-index="2"
-                          value-type="String" index-based="true" caption-column-index="2" sortable="true"/>
-         </table-box>
-         <panel y="1" id="AttachmentsToolPanel" layout="flow" direction="east">
-            <button style-ref="icon-button-default" icon="/modules/project_planning/icons/document.png" on-button-pressed="addDocumentAttachment" id="AddDocumentButton" tooltip="${AddDocumentAttachmentTooltip}"/>
-            <button style-ref="icon-button-default" icon="/modules/project_planning/icons/url.png" on-button-pressed="addURLAttachment" id="AddURLButton" tooltip="${AddLinkAttachmentTooltip}"/>
-            <button style-ref="icon-button-default" icon="/icons/minus_s.png" on-button-pressed="removeAttachments" id="RemoveAttachmentButton" tooltip="${RemoveAttachmentTooltip}"/>
-            <button style-ref="icon-button-default" icon="/icons/info_s.png" on-button-pressed="viewAttachment" id="ViewAttachmentButton" tooltip="${ViewAttachmentTooltip}"/>
-         </panel>
-      </tab>
 
    <tab text="${Resources}" layout="border" id="ResourcesTab">
       <data-set id="AssignedResourceDataSet"/>
@@ -102,6 +86,12 @@
       <panel id="VersionsToolPanel" y="1" layout="flow" direction="east">
          <button style-ref="icon-button-default" id="RemoveVersionButton" icon="/icons/minus_s.png" disabled-icon="/icons/minus_s_disabled.png" on-button-pressed="removeVersions"/>
       </panel>
+   </tab>
+
+   <tab text="${Settings}" layout="table" id="SettingsTab">
+      <check-box x="2" y="0" width="3" id="CalculationMode" text="${CalculationMode}" boolean-value="true" />
+      <check-box x="2" y="1" width="3" id="ProgressTracked" text="${ProgressTracked}" boolean-value="true" />
+      <check-box x="2" y="2" width="3" id="Archived" text="${Archived}" />
    </tab>
 
    <tab text="${Permissions}" layout="border" id="PermissionsTab">

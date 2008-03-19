@@ -7,8 +7,9 @@ package onepoint.project.applet;
 import onepoint.express.XComponent;
 import onepoint.express.XDisplay;
 import onepoint.express.XExtendedComponent;
-import onepoint.express.XView;
 import onepoint.express.applet.XExpressApplet;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 import onepoint.project.modules.project_planning.components.OpProjectComponentProxy;
 import onepoint.project.modules.work.components.OpWorkProxy;
 import onepoint.project.util.OpProjectConstants;
@@ -19,14 +20,26 @@ import onepoint.util.XCalendar;
 import onepoint.util.XCookieManager;
 
 import java.awt.*;
-import java.util.ArrayList;
+import java.io.IOException;
+import java.net.JarURLConnection;
+import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 /**
  * Applet used for the expander application.
  */
 public class OpOpenApplet extends XExpressApplet {
+
+   /**
+    * This class logger.
+    */
+   private static final XLog logger = XLogFactory.getClientLogger(OpOpenApplet.class);
 
    /**
     * Various applet constants.
@@ -38,14 +51,53 @@ public class OpOpenApplet extends XExpressApplet {
     */
    private final static String DEFAULT_CONTEXT_PATH = "opproject";
 
+   private String version;
+
+   private Date build;
+
    /**
     * Registers project proxies.
     */
    static {
       XComponent.registerProxy(new OpProjectComponentProxy());
-      XComponent.registerProxy(new OpWorkProxy());
+      XComponent.registerProxy(new OpWorkProxy());      
    }
 
+   /**
+    * 
+    */
+   public OpOpenApplet() {
+      super();
+      getManifestInfo();
+      logger.info(getClass().getName()+" constructed, version: "+(version == null ? "unknown" : version)+
+                  " build: "+(build == null ? "unknown" : new SimpleDateFormat("yyyyMMdd").format(build)));
+   }
+   /**
+    * 
+    * @pre
+    * @post
+    */
+   private void getManifestInfo() {
+      Manifest mf = getManifest();
+      if (mf != null) {
+         Attributes attr = mf.getAttributes("Implementation");
+         if (attr != null) {
+            version = attr.getValue(Attributes.Name.IMPLEMENTATION_VERSION);
+         }
+         attr = mf.getMainAttributes();
+         if (attr != null) {
+            String buildString = attr.getValue("Build-Date");
+            if (buildString != null) {
+               SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
+               try {
+                  build = df.parse(buildString);
+               }
+               catch (ParseException exc) {
+               }
+            }
+         }
+      }
+   }
    /**
     * @see onepoint.express.applet.XExpressApplet#getAppletPath()
     */
@@ -67,9 +119,14 @@ public class OpOpenApplet extends XExpressApplet {
          parameters.put(OpProjectConstants.RUN_LEVEL, runLevel);
       }
       String startForm = getParameter(OpProjectConstants.START_FORM);
+      String autoLoginStartForm = getParameter(OpProjectConstants.AUTO_LOGIN_START_FORM);
       getClient().setVariable(OpProjectConstants.START_FORM, startForm);
-      if(startForm != null) {
+      getClient().setVariable(OpProjectConstants.AUTO_LOGIN_START_FORM, autoLoginStartForm);
+      if (startForm != null) {
          parameters.put(OpProjectConstants.START_FORM, startForm);
+      }
+      if (autoLoginStartForm != null) {
+         parameters.put(OpProjectConstants.AUTO_LOGIN_START_FORM, autoLoginStartForm);
       }
       return parameters;
    }
@@ -92,10 +149,10 @@ public class OpOpenApplet extends XExpressApplet {
    public void showMainForm(int group, int pos) {
       showMainForm(group, pos, null);
    }
-   
+
    private void showMainForm(int group, int pos, String mainLocation) {
       XComponent dockFrame = XDisplay.findFrame("DockFrame");
-      XComponent form = (XComponent)dockFrame.getChild(0);
+      XComponent form = (XComponent) dockFrame.getChild(0);
       XExtendedComponent box = (XExtendedComponent) form.findComponent("NavigationBox");
       box.requestFocus();
 
@@ -114,12 +171,26 @@ public class OpOpenApplet extends XExpressApplet {
     */
    public void showStartForm(Map parameters) {
       String startForm = (String) parameters.get(OpProjectConstants.START_FORM);
+      String runLevel = (String) parameters.get(OpProjectConstants.RUN_LEVEL);
+
+      boolean success = false;
+      //if everything is ok determine how to login the user
+      if (runLevel != null && Byte.parseByte(runLevel) == OpProjectConstants.SUCCESS_RUN_LEVEL) {
+         success = autoLogin();
+         if (success) {
+            startForm = (String) parameters.get(OpProjectConstants.AUTO_LOGIN_START_FORM);
+         }
+      }
+
       if (startForm != null) {
          getDisplay().showForm(startForm, parameters);
       }
       else {
-         if(getClient().getVariable(OpProjectConstants.START_FORM) != null) {
+         if (getClient().getVariable(OpProjectConstants.START_FORM) != null) {
             startForm = (String) getClient().getVariable(OpProjectConstants.START_FORM);
+            if (success) {
+               startForm = (String) getClient().getVariable(OpProjectConstants.AUTO_LOGIN_START_FORM);
+            }
             getDisplay().showForm(startForm, parameters);
          }
          else {
@@ -137,6 +208,10 @@ public class OpOpenApplet extends XExpressApplet {
       XBinaryClient client = (XBinaryClient) getClient();
       String value = client.getCookieValue(XCookieManager.AUTO_LOGIN);
       if (value != null) {
+         // In case that encoded string exceeds XBase64.MAX_LINE_LENGTH length \n char is added to encoded value
+         // and as a result value is quoted into cookie. Now we have to remove quotes if present.
+         value = value.indexOf('"') != -1 ? value.replaceAll("\"", "") : value;
+
          String logindata = XBase64.decodeToString(value);
          XMessage request = new XMessage();
          request.setAction(OpProjectConstants.SIGNON_ACTION);
@@ -167,6 +242,54 @@ public class OpOpenApplet extends XExpressApplet {
       g.setClip(bounds);
       g.setColor(Color.RED);
       g.drawString(APPLET_LOADED, 10, 10);
+   }
+
+   public void destroy() {
+      super.destroy();
+      logger.info(getClass().getName()+" destroyed");
+   }
+
+   /* (non-Javadoc)
+    * @see onepoint.express.applet.XExpressApplet#init()
+    */
+   public void init() {
+      super.init();
+      logger.info(getClass().getName()+" initialized");
+   }
+
+   /* (non-Javadoc)
+    * @see onepoint.express.applet.XExpressApplet#start()
+    */
+   public void start() {
+      super.start();
+      logger.info(getClass().getName()+" started");
+   }
+
+   /* (non-Javadoc)
+    * @see java.applet.Applet#stop()
+    */
+   public void stop() {
+      super.stop();
+      logger.info(getClass().getName()+" stopped");
+   }
+   
+   /**
+    * Returns the manifest this class is in
+    * @return the manifest this class is in
+    */
+   private static Manifest getManifest() {
+      // try reading infos from manifest
+      try {
+         URL url = OpOpenApplet.class.getResource("");
+         JarURLConnection jconn = (JarURLConnection) url.openConnection();
+         Manifest mf = jconn.getManifest();
+         return mf;
+      }
+      catch (IOException exc) {
+      }
+      catch (ClassCastException exc) {
+      }
+      return null;
    }
 }
 

@@ -41,8 +41,8 @@
       <resource id="Next2Months">Nächste 2 Monate</resource>
 
       <resource id="Resources">Ressourcen</resource>
-      <resource id="Responsible">Verantwortlich</resource>
-      <resource id="Managed">Managed</resource>
+      <resource id="Responsible">Verknüpft</resource>
+      <resource id="Managed">Gemanaged</resource>
 
       <resource id="SaveCSV">Als Tabelle speichern...</resource>
       <resource id="SaveImage">Als Bild speichern...</resource>

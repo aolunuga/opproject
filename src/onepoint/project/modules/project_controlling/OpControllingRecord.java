@@ -1,13 +1,11 @@
 package onepoint.project.modules.project_controlling;
 
-import java.sql.Date;
 import java.util.HashSet;
 import java.util.Set;
 
 import onepoint.persistence.OpObject;
+import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
-import onepoint.project.modules.project.OpProjectPlanVersion;
-import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.work.OpWorkRecord;
 
 public class OpControllingRecord extends OpObject {
@@ -22,11 +20,13 @@ public class OpControllingRecord extends OpObject {
    
    private double recordEffortSubTotal = 0;
    private double rowEffortBilled = 0;
-   private boolean closeAssignment = false;
+   private boolean closeActivity = false;
+   private String comment;
+   
    private OpControllingSheet controllingSheet;
    private Set<OpWorkRecord> workRecords;
    
-   private OpAssignment assignment; 
+   private OpActivity activity; 
 
    public Double getRecordEffortSubTotal() {
       return recordEffortSubTotal;
@@ -40,11 +40,17 @@ public class OpControllingRecord extends OpObject {
    public void setRowEffortBilled(Double rowEffortBilled) {
       this.rowEffortBilled = rowEffortBilled;
    }
-   public boolean isCloseAssignment() {
-      return closeAssignment;
+   public boolean isCloseActivity() {
+      return closeActivity;
    }
-   public void setCloseAssignment(boolean closeAssignment) {
-      this.closeAssignment = closeAssignment;
+   public void setCloseActivity(boolean closeAssignment) {
+      this.closeActivity = closeAssignment;
+   }
+   public String getComment() {
+      return comment;
+   }
+   public void setComment(String comment) {
+      this.comment = comment;
    }
    public OpControllingSheet getControllingSheet() {
       return controllingSheet;
@@ -57,10 +63,11 @@ public class OpControllingRecord extends OpObject {
    }
    
    public void setWorkRecords(Set<OpWorkRecord> workRecords) {
-      if (this.workRecords != null)
+      if (this.workRecords != null) {
          for (OpWorkRecord wr : this.workRecords) {
             wr.setControllingRecord(null);
          }
+      }
          
       recordEffortSubTotal = 0;
       this.workRecords = workRecords;
@@ -72,19 +79,18 @@ public class OpControllingRecord extends OpObject {
       }
    }
    
-   public void setAssignment(OpAssignment assignment) {
-      this.assignment = assignment;
+   public OpActivity getActivity() {
+      return activity;
    }
-   
-   public OpAssignment getAssignment() {
-      return assignment;
+   public void setActivity(OpActivity activity) {
+      this.activity = activity;
    }
    
    public void addWorkRecord(OpWorkRecord workRecord) {
-      if (getAssignment() == null)
-         setAssignment(workRecord.getAssignment());
-      else if (getAssignment() != workRecord.getAssignment())
-         throw new RuntimeException("Assignments messed up for controlling record...");
+      if (getActivity() == null)
+         setActivity(workRecord.getAssignment().getActivity());
+      else if (getActivity() != workRecord.getAssignment().getActivity())
+         throw new RuntimeException("Activities messed up for controlling record...");
          
       if (workRecords == null)
          workRecords = new HashSet<OpWorkRecord>();

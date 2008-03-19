@@ -5,6 +5,9 @@ package onepoint.project.test;
 
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
+import onepoint.persistence.*;
 import onepoint.project.OpProjectSession;
 import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.configuration.OpConfigurationLoader;
@@ -13,7 +16,6 @@ import onepoint.project.modules.configuration_wizard.OpConfigurationWizardServic
 import onepoint.project.modules.my_tasks.OpMyTasksService;
 import onepoint.project.modules.preferences.OpPreferencesService;
 import onepoint.project.modules.project.OpProjectAdministrationService;
-import onepoint.project.modules.project_checklist.OpProjectChecklistService;
 import onepoint.project.modules.project_planning.OpProjectPlanningService;
 import onepoint.project.modules.project_status.OpProjectStatusService;
 import onepoint.project.modules.report.OpReportService;
@@ -27,6 +29,8 @@ import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.server.XServiceManager;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * This is a helper class that helps you to generate strctures necessary into test (E.g to call services) and
@@ -35,9 +39,6 @@ import java.io.File;
  * @author calin.pavel
  */
 public abstract class OpTestDataFactory {
-
-   // This is the session that must be used to get data.
-   protected OpProjectSession session;
 
    // Defines the name of the registry file used through tests.
    public static final String RESOURCE_PATH = "onepoint/project";
@@ -87,8 +88,12 @@ public abstract class OpTestDataFactory {
    // Name of the documents service.
    public static final String DOCUMENTS_SERVICE_NAME = "DocumentsService";
 
-   // Name of the project checklist service
-   public static final String PROJECT_CHECKLIST_SERVICE_NAME = "ProjectChecklistService";
+
+   // This class's logger
+   private static final XLog logger = XLogFactory.getServerLogger(XLogFactory.class);
+
+   // This is the session that must be used to get data.
+   protected OpProjectSession session;
 
    /**
     * Creates a new data factory with the given session
@@ -133,7 +138,7 @@ public abstract class OpTestDataFactory {
    public static OpConfiguration getTestingConfiguration() {
       OpConfigurationLoader configurationLoader = new OpConfigurationLoader();
       String projectPath = OpEnvironmentManager.getOnePointHome();
-      OpConfiguration configuration = null;
+      OpConfiguration configuration;
       try {
          configuration = configurationLoader.loadConfiguration(projectPath
               + File.separator + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
@@ -263,12 +268,32 @@ public abstract class OpTestDataFactory {
    }
 
    /**
-    * Return the Project Checklist Service instance
+    * Performs the initialization of lazy relationships for the given object, to that the relationships
+    * are loaded into memory.
     *
-    * @return an instance of <code>OpProjectChecklistService</code>
+    * Note that only the first level relationships are initialized.
+    * @param object a <code>OpObject</code> instance.
     */
-   public static OpProjectChecklistService getProjectChecklistService() {
-      return (OpProjectChecklistService) XServiceManager.getService(PROJECT_CHECKLIST_SERVICE_NAME);
+   protected static void initializeLazyRelationships(OpObject object) {
+      OpPrototype prototype = OpTypeManager.getPrototypeForObject(object);
+      for (Iterator<OpMember> it = prototype.getMembers(); it.hasNext(); ) {
+         OpMember member = it.next();
+         if (member instanceof OpRelationship) {
+            String methodName = "get" + member.getName();
+            try {
+               Object result = object.getClass().getMethod(methodName).invoke(object);
+               if (result instanceof Collection) {
+                  //this triggers the lazy load
+                  ((Collection) result).size();
+               }
+               else if (result instanceof OpObject) {
+                  ((OpObject) result).locator();
+               }
+            }
+            catch (Exception e) {
+               logger.debug("Cannot lazy initialize collection ", e);
+            }
+         }
+      }
    }
-
 }

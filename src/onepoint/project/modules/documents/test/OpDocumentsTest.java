@@ -3,45 +3,51 @@
  */
 package onepoint.project.modules.documents.test;
 
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
+import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.project.OpAttachment;
 import onepoint.project.test.OpBaseOpenTestCase;
 import onepoint.service.XSizeInputStream;
-import onepoint.util.XIOHelper;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class test document classes.
  *
  * @author lucian.furtos
  */
-//<FIXME author="Mihai Costin" description="Test methods that cause out of memory have been removed. Should be added back when the issue will be addressed">
 public class OpDocumentsTest extends OpBaseOpenTestCase {
-//</FIXME>
+
+   /**
+    * This class logger
+    */
+   private static final XLog logger = XLogFactory.getServerLogger(OpBaseOpenTestCase.class);
 
    private static final long ONE_MB = 1024L * 1024L; // 1 MB
    private static final String BINARY_MIME_TYPE = "binary/octet-stream";
+   private OpDocumentsTestDataFactory dataFactory;
 
    /**
     * Base set-up.  By default authenticate Administrator user.
     *
     * @throws Exception If setup process can not be successfuly finished
     */
+   @Override
    protected void setUp()
         throws Exception {
       super.setUp();
-
-      //set the stream member of the OpContent class to lazy=false so that it is loaded
-      OpContent.setStreamLazy(false);
+      dataFactory = new OpDocumentsTestDataFactory(session);
    }
 
    /**
@@ -49,12 +55,10 @@ public class OpDocumentsTest extends OpBaseOpenTestCase {
     *
     * @throws Exception If tearDown process can not be successfuly finished
     */
+   @Override
    protected void tearDown()
         throws Exception {
-      //reset the lazy loading of the stream member from OpContent
-      OpContent.setStreamLazy(true);
-
-      clean();
+      super.deleteAllObjects(OpContent.CONTENT);
       super.tearDown();
    }
 
@@ -65,21 +69,22 @@ public class OpDocumentsTest extends OpBaseOpenTestCase {
     */
    public void testCreateContent()
         throws Exception {
-
       String mimeType = BINARY_MIME_TYPE;
 
       // save content
-      createContent(generateInputStream(ONE_MB), mimeType, ONE_MB);
+      long contentId = createContent(dataFactory.generateInputStream(ONE_MB), mimeType, ONE_MB);
 
       // load content
+      OpContent actual = null;
       OpBroker broker = session.newBroker();
+      try {
+         actual = (OpContent) broker.getObject(OpContent.class, contentId);
+      }
+      finally {
+         broker.close();
+      }
 
-      OpQuery query = broker.newQuery("from " + OpContent.CONTENT);
-      List list = broker.list(query);
-
-      assertNotNull(list);
-      assertEquals(1, list.size());
-      OpContent actual = (OpContent) list.get(0);
+      assertNotNull(actual);
       assertEquals(mimeType, actual.getMediaType());
       assertEquals(ONE_MB, actual.getSize());
       assertEquals(1, actual.getRefCount());
@@ -87,10 +92,6 @@ public class OpDocumentsTest extends OpBaseOpenTestCase {
       assertNotNull(actualStream);
       assertEquals(ONE_MB, actualStream.getSize());
       assertNotNull(actualStream.getInputStream());
-
-      long count = XIOHelper.copy(actualStream, generateFakeOutputStream());
-      assertEquals(ONE_MB, count);
-      broker.close();
    }
 
    /**
@@ -100,38 +101,29 @@ public class OpDocumentsTest extends OpBaseOpenTestCase {
     */
    public void testCreateLazyLoadedContent()
         throws Exception {
-      //set the stream member of the OpContent class to lazy=true so that it is NOT loaded
-      OpContent.setStreamLazy(true);
-
       String mimeType = BINARY_MIME_TYPE;
 
       // save content
-      createContent(generateInputStream(ONE_MB), mimeType, ONE_MB);
+      long contentId = createContent(dataFactory.generateInputStream(ONE_MB), mimeType, ONE_MB);
 
       // load content
       OpBroker broker = session.newBroker();
+      OpContent actual = null;
+      try {
+         actual = broker.getObject(OpContent.class, contentId);
+         assertNotNull(actual);
+      }
+      finally {
+         broker.close();
+      }
 
-      OpQuery query = broker.newQuery("from " + OpContent.CONTENT);
-      List list = broker.list(query);
-
-      assertNotNull(list);
-      assertEquals(1, list.size());
-      OpContent actual = (OpContent) list.get(0);
       assertEquals(mimeType, actual.getMediaType());
       assertEquals(ONE_MB, actual.getSize());
       assertEquals(1, actual.getRefCount());
       XSizeInputStream actualStream = actual.getStream();
       assertNotNull(actualStream);
-      assertEquals(ONE_MB, actualStream.getSize());
-      assertNotNull(actualStream.getInputStream());
-
-      long count = XIOHelper.copy(actualStream, generateFakeOutputStream());
-      //the stream is empty
-      assertEquals(0, count);
-      broker.close();
-
-      //set the stream member of the OpContent class to lazy=false so that it is loaded
-      OpContent.setStreamLazy(false);
+      assertEquals(actual.getSize(), actualStream.getSize());
+      assertEquals(0, actualStream.available());
    }
 
    /**
@@ -141,37 +133,34 @@ public class OpDocumentsTest extends OpBaseOpenTestCase {
     */
    public void testUpdateContent()
         throws Exception {
-
       String mimeType = BINARY_MIME_TYPE;
 
       // save content
-      createContent(generateInputStream(ONE_MB), mimeType, ONE_MB);
+      long contentId = createContent(dataFactory.generateInputStream(ONE_MB), mimeType, ONE_MB);
 
       // load content
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("from " + OpContent.CONTENT);
-      List list = broker.list(query);
-      OpContent content = (OpContent) list.get(0);
-      String id = content.locator();
-      OpTransaction t = broker.newTransaction();
-      OpContentManager.updateContent(content, broker, true, (OpAttachment) null);
-      t.commit();
-      broker.close();
+      try {
+         OpContent content = broker.getObject(OpContent.class, contentId);
+         assertNotNull(content);
 
-      broker = session.newBroker();
-      OpContent actual = (OpContent) broker.getObject(id);
+         OpTransaction t = broker.newTransaction();
+         OpContentManager.updateContent(content, broker, true, (OpAttachment) null);
+         t.commit();
+         broker.clear();
 
-      assertEquals(mimeType, actual.getMediaType());
-      assertEquals(ONE_MB, actual.getSize());
-      assertEquals(2, actual.getRefCount());
-      XSizeInputStream actualStream = actual.getStream();
-      assertNotNull(actualStream);
-      assertEquals(ONE_MB, actualStream.getSize());
-      assertNotNull(actualStream.getInputStream());
-
-      long count = XIOHelper.copy(actualStream, generateFakeOutputStream());
-      assertEquals(ONE_MB, count);
-      broker.close();
+         OpContent actual = (OpContent) broker.getObject(OpContent.class, contentId);
+         assertEquals(mimeType, actual.getMediaType());
+         assertEquals(ONE_MB, actual.getSize());
+         assertEquals(2, actual.getRefCount());
+         XSizeInputStream actualStream = actual.getStream();
+         assertNotNull(actualStream);
+         assertEquals(ONE_MB, actualStream.getSize());
+         assertNotNull(actualStream.getInputStream());
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -185,44 +174,148 @@ public class OpDocumentsTest extends OpBaseOpenTestCase {
       String mimeType = BINARY_MIME_TYPE;
 
       // save content
-      createContent(generateInputStream(ONE_MB), mimeType, ONE_MB);
+      long contentId = createContent(dataFactory.generateInputStream(ONE_MB), mimeType, ONE_MB);
 
       // load content
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("from " + OpContent.CONTENT);
-      List list = broker.list(query);
-      OpContent content = (OpContent) list.get(0);
-      OpTransaction t = broker.newTransaction();
-      OpContentManager.updateContent(content, broker, false, (OpAttachment) null);
-      t.commit();
-      broker.close();
+      try {
+         OpContent content = broker.getObject(OpContent.class, contentId);
+         assertNotNull(content);
 
-      broker = session.newBroker();
-      query = broker.newQuery("from " + OpContent.CONTENT);
-      list = broker.list(query);
-
-      assertNotNull(list);
-      assertTrue(list.isEmpty());
-
-      broker.close();
+         OpTransaction t = broker.newTransaction();
+         OpContentManager.updateContent(content, broker, false, (OpAttachment) null);
+         t.commit();
+         OpQuery query = broker.newQuery("select count(content.ID) from " + OpContent.CONTENT + " content");
+         Number count = (Number) broker.list(query).get(0);
+         assertEquals("Contents are still present in the database ", 0, count.intValue());
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
-    * Tests the creation of a 5 MB OpContent.
+    * Tests the creation of a OpContent which has the size equal to the maximum application
+    * allowed size.
     *
     * @throws Exception if anything fails.
     */
-   public void removedtestCreate5MBContent()
+   public void testCreateDefaultMaxSizeContent()
         throws Exception {
-      contentSizeTesting(5 * ONE_MB);
+      contentSizeTesting(OpConfiguration.DEFAULT_MAX_ATTACHMENT_SIZE * ONE_MB);
    }
 
+   /**
+    * Tests that the stream of contents is lazy loaded, when working with multiple contents
+    * if the contents are loaded one by one, using a <coed>OpBroker</code>.
+    *
+    * @throws Exception if anything unexpected fails.
+    */
+   public void testMultipleContentsLazyStream()
+        throws Exception {
+      int contentsNumber = 10;
+      Map<Long, Long> contentsSizesMap = createContents(contentsNumber);
+
+      OpBroker broker = session.newBroker();
+      try {
+         OpQuery query = broker.newQuery("select content.ID  from " + OpContent.CONTENT + " content ");
+         List list = broker.list(query);
+
+         assertNotNull(list);
+         assertEquals(contentsNumber, list.size());
+         for (Iterator it = list.iterator(); it.hasNext();) {
+            Long id = (Long) it.next();
+            OpContent actualContent = broker.getObject(OpContent.class, id);
+            long contentSize = contentsSizesMap.get(actualContent.getID()).longValue();
+            this.assertLazyContent(actualContent, contentSize);
+         }
+      }
+      finally {
+         broker.close();
+      }
+   }
+
+   /**
+    * Tests that the stream of contents is lazy loaded,  when working with multiple contents
+    * and retrieving them via a HQL query.
+    *
+    * @throws Exception if anything unexpected fails.
+    */
+   //<FIXME author="Calin Pavel" description="Test is commented out because on MySQL at the moment it blocks indifinetly when performing broker.list()">
+   public void _testMultipleContentsLazyStreamQuery()
+        throws Exception {
+
+      int contentsNumber = 10;
+      Map<Long, Long> contentsSizesMap = createContents(contentsNumber);
+
+      OpBroker broker = session.newBroker();
+      try {
+         OpQuery query = broker.newQuery(" from " + OpContent.CONTENT);
+         List list = broker.list(query);
+
+         assertNotNull(list);
+         assertEquals(contentsNumber, list.size());
+         for (Iterator it = list.iterator(); it.hasNext();) {
+            OpContent actualContent = (OpContent) it.next();
+            long contentSize = contentsSizesMap.get(actualContent.getID()).longValue();
+            this.assertLazyContent(actualContent, contentSize);
+         }
+      }
+      finally {
+         broker.close();
+      }
+   }
+   //<FIXME>
+
+   /**
+    * Asserts that the given content is valid and its stream is lazy loaded.
+    *
+    * @param actualContent an <code>OpContent</code> instance.
+    * @param contentSize   a <code>long</code> the expected size of the content.
+    * @throws IOException if the stream of the content cannot be queried.
+    */
+   private void assertLazyContent(OpContent actualContent, long contentSize)
+        throws IOException {
+      assertEquals(BINARY_MIME_TYPE, actualContent.getMediaType());
+      assertEquals(contentSize, actualContent.getSize());
+      assertEquals(1, actualContent.getRefCount());
+      assertEquals(0, actualContent.getStream().available());
+      assertEquals(actualContent.getSize(), actualContent.getStream().getSize());
+   }
+
+   /**
+    * Creates multiple contents and persists them in the db.
+    *
+    * @param contentsNumber a <code>int</code> the number of contents to create.
+    * @return a <code>Map(Long, Long)</code> of content ids and their sizes.
+    */
+   private Map<Long, Long> createContents(int contentsNumber) {
+      Map<Long, Long> contentsSizesMap = new HashMap<Long, Long>();
+      //create contents into DB
+      for (int i = 0; i < contentsNumber; i++) {
+         long contentSize = Math.round(Math.random() * OpConfiguration.DEFAULT_MAX_ATTACHMENT_SIZE);
+         if (contentSize == 0) {
+            contentSize++;
+         }
+         contentSize *= ONE_MB;
+
+         InputStream is = dataFactory.generateInputStream(contentSize);
+         logger.info("Creating content with of size:  " + contentSize / ONE_MB + " MB");
+         long contentId = this.createContent(is, BINARY_MIME_TYPE, contentSize);
+         assertTrue(" The content wasn't created ", contentId > 0);
+         contentsSizesMap.put(contentId, contentSize);
+      }
+      return contentsSizesMap;
+   }
+
+
+   //<FIXME author="Calin Pavel" description="These following tests are removed from running because of issue OPP-147. They fail with OOM">
    /**
     * Tests the creation of a 10 MB OpContent.
     *
     * @throws Exception if anything fails.
     */
-   public void removedtestCreate10MBContent()
+   public void _testCreate10MBContent()
         throws Exception {
       contentSizeTesting(10 * ONE_MB);
    }
@@ -232,7 +325,7 @@ public class OpDocumentsTest extends OpBaseOpenTestCase {
     *
     * @throws Exception if anything fails.
     */
-   public void removedtestCreate20MBContent()
+   public void _testCreate20MBContent()
         throws Exception {
       contentSizeTesting(20 * ONE_MB);
    }
@@ -242,7 +335,7 @@ public class OpDocumentsTest extends OpBaseOpenTestCase {
     *
     * @throws Exception if anything fails.
     */
-   public void removedtestCreate50MBContent()
+   public void _testCreate50MBContent()
         throws Exception {
       contentSizeTesting(50 * ONE_MB);
    }
@@ -252,10 +345,11 @@ public class OpDocumentsTest extends OpBaseOpenTestCase {
     *
     * @throws Exception if anything fails.
     */
-   public void removedtestCreate100MBContent()
+   public void _testCreate100MBContent()
         throws Exception {
       contentSizeTesting(100 * ONE_MB);
    }
+   //<FIXME>
 
    // ******** Helper Methods *********
 
@@ -263,23 +357,28 @@ public class OpDocumentsTest extends OpBaseOpenTestCase {
     * Test the creation of a content with a specified size
     *
     * @param size the size of the content to create
+    * @throws IOException if streams cannot be copied
     */
    private void contentSizeTesting(long size)
-        throws Exception {
-      InputStream is = generateInputStream(size);
+        throws IOException {
+      InputStream is = dataFactory.generateInputStream(size);
 
       // save content
-      createContent(is, BINARY_MIME_TYPE, size);
-
+      long contentId = createContent(is, BINARY_MIME_TYPE, size);
+      is.close();
+      is = null;
+      
       // load content
       OpBroker broker = session.newBroker();
+      OpContent actual = null;
+      try {
+         actual = (OpContent) broker.getObject(OpContent.class, contentId);
+      }
+      finally {
+         broker.close();
+      }
 
-      OpQuery query = broker.newQuery("from " + OpContent.CONTENT);
-      List list = broker.list(query);
-
-      assertNotNull(list);
-      assertEquals(1, list.size());
-      OpContent actual = (OpContent) list.get(0);
+      assertNotNull(actual);
       assertEquals(BINARY_MIME_TYPE, actual.getMediaType());
       assertEquals(size, actual.getSize());
       assertEquals(1, actual.getRefCount());
@@ -287,10 +386,6 @@ public class OpDocumentsTest extends OpBaseOpenTestCase {
       assertNotNull(actualStream);
       assertEquals(size, actualStream.getSize());
       assertNotNull(actualStream.getInputStream());
-
-      long count = XIOHelper.copy(actualStream, generateFakeOutputStream());
-      assertEquals(size, count);
-      broker.close();
    }
 
    /**
@@ -299,81 +394,22 @@ public class OpDocumentsTest extends OpBaseOpenTestCase {
     * @param is       Input stream
     * @param mimeType the type of the file
     * @param size     the size of the content
-    * @throws FileNotFoundException if the file cannot be found when datastream is read.
+    * @return a <code>long</code> the id of the newly created content
     */
-   private void createContent(InputStream is, String mimeType, long size)
-        throws FileNotFoundException {
+   private long createContent(InputStream is, String mimeType, long size) {
       OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
+      try {
+         OpTransaction t = broker.newTransaction();
 
-      XSizeInputStream stream = new XSizeInputStream(is, size);
-      OpContent content = OpContentManager.newContent(stream, mimeType);
-      broker.makePersistent(content);
+         XSizeInputStream stream = new XSizeInputStream(is, size);
+         OpContent content = OpContentManager.newContent(stream, mimeType, 1);
+         broker.makePersistent(content);
 
-      t.commit();
-      broker.close();
-   }
-
-   /**
-    * Cleans the database
-    *
-    * @throws Exception if deleting test artifacts fails
-    */
-   private void clean()
-        throws Exception {
-      OpBroker broker = session.newBroker();
-      OpTransaction transaction = broker.newTransaction();
-      deleteAllObjects(broker, OpContent.CONTENT);
-      transaction.commit();
-      broker.close();
-   }
-
-   /**
-    * Generate an <code>InputStream</code> with a given size.
-    *
-    * @param streamSize the size of the generated stream
-    * @return an instance of <code>InputStream</code>
-    */
-   private InputStream generateInputStream(final long streamSize) {
-      return new InputStream() {
-         private long counter = 0;
-         private long size = streamSize;
-
-         /**
-          * Reads the next byte of data from the input stream. The value byte is
-          * returned as an <code>int</code> in the range <code>0</code> to
-          * <code>255</code>. If no byte is available because the end of the stream
-          * has been reached, the value <code>-1</code> is returned. This method
-          * blocks until input data is available, the end of the stream is detected,
-          * or an exception is thrown.
-          * <p/>
-          * <p> A subclass must provide an implementation of this method.
-          *
-          * @return the next byte of data, or <code>-1</code> if the end of the
-          *         stream is reached.
-          * @throws java.io.IOException if an I/O error occurs.
-          */
-         public int read()
-              throws IOException {
-            if (counter < size) {
-               return (int) (counter++ % 256);
-            }
-            return -1;
-         }
-      };
-   }
-
-   /**
-    * Generates a fake output stream.
-    *
-    * @return an instance of <code>OutputStream</code>
-    */
-   private OutputStream generateFakeOutputStream() {
-      return new OutputStream() {
-         public void write(int b)
-              throws IOException {
-            //do nothing
-         }
-      };
+         t.commit();
+         return content.getID();
+      }
+      finally {
+         broker.close();
+      }
    }
 }

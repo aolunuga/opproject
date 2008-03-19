@@ -17,6 +17,7 @@ import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.server.XService;
 import onepoint.service.server.XServiceManager;
+import onepoint.service.server.XSession;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.XmlRpcRequest;
 import org.apache.xmlrpc.server.PropertyHandlerMapping;
@@ -193,9 +194,9 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
             session = new OpProjectSession();
             request.getSession().setAttribute(OP_PROJECT_SESSION, session);
          }
-         OpProjectSession.setSession(session);
+         XSession.setSession(session);
          super.doPost(request, response);
-         OpProjectSession.removeSession();
+         XSession.removeSession();
       }
       catch (Throwable t) {
          logger.error("XML-RPC: get Exception during doPost()", t);

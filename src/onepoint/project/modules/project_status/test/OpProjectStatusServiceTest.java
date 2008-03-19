@@ -25,7 +25,7 @@ import onepoint.service.XMessage;
 import onepoint.service.server.XServiceException;
 
 import java.sql.Date;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,7 +85,7 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
     */
    public void testCreateProjectStatus()
         throws Exception {
-      HashMap args = new HashMap();
+      Map<String, Object> args = new HashMap<String, Object>();
       args.put(OpProjectStatus.NAME, NAME);
       args.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
       args.put(OpProjectStatus.COLOR, new Integer(7));
@@ -109,7 +109,7 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
     */
    public void testInvalidName()
         throws Exception {
-      HashMap args = new HashMap();
+      Map<String, Object> args = new HashMap<String, Object>();
       args.put(OpProjectStatus.NAME, null);
       args.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
       args.put(OpProjectStatus.COLOR, new Integer(7));
@@ -134,7 +134,7 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
     */
    public void testDuplicateName()
         throws Exception {
-      HashMap args = new HashMap();
+      Map<String, Object> args = new HashMap<String, Object>();
       args.put(OpProjectStatus.NAME, NAME);
       args.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
       args.put(OpProjectStatus.COLOR, new Integer(7));
@@ -156,88 +156,85 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
     *
     * @throws Exception if the test fails
     */
-   public void testExistingNameInactiveProjectStatus() throws Exception {
-      OpBroker broker = null;
-      OpTransaction t = null;
-      
-      //create the status
-      HashMap args = new HashMap();
-      args.put(OpProjectStatus.NAME, NAME);
-      args.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
-      args.put(OpProjectStatus.COLOR, new Integer(7));
-      XMessage request = new XMessage();
-      request.setArgument("project_status_data", args);
-      XMessage response = service.insertProjectStatus(session, request);  
+   public void testExistingNameInactiveProjectStatus()
+        throws Exception {
+      OpBroker broker = session.newBroker();
+      try {
+         OpTransaction t = null;
 
-      assertNoError(response);
+         //create the status
+         Map<String, Object> args = new HashMap<String, Object>();
+         args.put(OpProjectStatus.NAME, NAME);
+         args.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
+         args.put(OpProjectStatus.COLOR, new Integer(7));
+         XMessage request = new XMessage();
+         request.setArgument("project_status_data", args);
+         XMessage response = service.insertProjectStatus(session, request);
 
-      Long statusId = dataFactory.getProjectStatusId(NAME);
-      String statusLocator = OpLocator.locatorString(OpProjectStatus.PROJECT_STATUS, statusId);
-      broker = session.newBroker();
-      OpProjectStatus status = (OpProjectStatus) broker.getObject(statusLocator);
+         assertNoError(response);
 
-      assertNotNull(status);
-      assertEquals(DESCRIPTION, status.getDescription());
-      assertEquals(7, status.getColor());
+         Long statusId = dataFactory.getProjectStatusId(NAME);
+         String statusLocator = OpLocator.locatorString(OpProjectStatus.PROJECT_STATUS, statusId);
+         OpProjectStatus status = (OpProjectStatus) broker.getObject(statusLocator);
 
-      broker.close();
-      //create the project
-      Date date = Date.valueOf("2007-06-06");
-      request = OpProjectTestDataFactory.createProjectMsg(PRJ_NAME, date, 100d, null, null);
-      response = projectService.insertProject(session, request);
+         assertNotNull(status);
+         assertEquals(DESCRIPTION, status.getDescription());
+         assertEquals(7, status.getColor());
 
-      assertNoError(response);
+         //create the project
+         Date date = Date.valueOf("2007-06-06");
+         request = OpProjectTestDataFactory.createProjectMsg(PRJ_NAME, date, 100d, null, null);
+         response = projectService.insertProject(session, request);
 
-      String projectLocator = projectDataFactory.getProjectId(PRJ_NAME);
-      broker = session.newBroker();
-      OpProjectNode project = (OpProjectNode) broker.getObject(projectLocator);
+         assertNoError(response);
 
-      assertEquals(date, project.getStart());
+         String projectLocator = projectDataFactory.getProjectId(PRJ_NAME);
+         OpProjectNode project = (OpProjectNode) broker.getObject(projectLocator);
 
-      //assign the status to project
-      project.setStatus(status);
-      t = broker.newTransaction();
-      broker.updateObject(project);
-      t.commit();
-      broker.close();
+         assertEquals(date, project.getStart());
 
-      //delete the status
-      ArrayList ids = new ArrayList(1);
-      ids.add(statusLocator);
-      request = new XMessage();
-      request.setArgument("project_status_ids", ids);
-      response = service.deleteProjectStatus(session, request);
+         //assign the status to project
+         project.setStatus(status);
+         t = broker.newTransaction();
+         broker.updateObject(project);
+         t.commit();
 
-      assertNoError(response);
+         //delete the status
+         request = new XMessage();
+         request.setArgument("project_status_ids", Arrays.asList(statusLocator));
+         response = service.deleteProjectStatus(session, request);
 
-      //create a status with the same name
-      args = new HashMap();
-      args.put(OpProjectStatus.NAME, NAME);
-      args.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
-      args.put(OpProjectStatus.COLOR, new Integer(10));
-      request = new XMessage();
-      request.setArgument("project_status_data", args);
-      response = service.insertProjectStatus(session, request);
+         assertNoError(response);
 
-      assertNoError(response);
-      
-      broker = session.newBroker();
-      status = (OpProjectStatus) broker.getObject(statusLocator);
-      broker.close();
+         //create a status with the same name
+         args = new HashMap<String, Object>();
+         args.put(OpProjectStatus.NAME, NAME);
+         args.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
+         args.put(OpProjectStatus.COLOR, new Integer(10));
+         request = new XMessage();
+         request.setArgument("project_status_data", args);
+         response = service.insertProjectStatus(session, request);
 
-      assertNoError(response);
+         assertNoError(response);
 
-      Long newStatusId = dataFactory.getProjectStatusId(NAME);
-      String newStatusLocator = OpLocator.locatorString(OpProjectStatus.PROJECT_STATUS, newStatusId);
-      broker = session.newBroker();
-      OpProjectStatus newStatus = (OpProjectStatus) broker.getObject(newStatusLocator);
-      broker.close();
-      
-      assertNotNull(newStatus);
-      assertEquals(status.getID(), newStatus.getID());
-      assertEquals(DESCRIPTION, newStatus.getDescription());
-      assertEquals(10, newStatus.getColor());
+         status = (OpProjectStatus) broker.getObject(statusLocator);
 
+         assertNoError(response);
+
+         broker.clear();
+
+         Long newStatusId = dataFactory.getProjectStatusId(NAME);
+         String newStatusLocator = OpLocator.locatorString(OpProjectStatus.PROJECT_STATUS, newStatusId);
+         OpProjectStatus newStatus = (OpProjectStatus) broker.getObject(newStatusLocator);
+
+         assertNotNull(newStatus);
+         assertEquals(status.getID(), newStatus.getID());
+         assertEquals(DESCRIPTION, newStatus.getDescription());
+         assertEquals(10, newStatus.getColor());
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -247,7 +244,7 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
     */
    public void testUpdateProjectStatus()
         throws Exception {
-      HashMap args = new HashMap();
+      Map<String, Object> args = new HashMap<String, Object>();
       args.put(OpProjectStatus.NAME, NAME);
       args.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
       args.put(OpProjectStatus.COLOR, new Integer(7));
@@ -284,7 +281,7 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
     */
    public void testUpdateNotExist()
         throws Exception {
-      HashMap args = new HashMap();
+      Map<String, Object> args = new HashMap<String, Object>();
       args.put(OpProjectStatus.NAME, NAME);
       args.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
       args.put(OpProjectStatus.COLOR, new Integer(7));
@@ -303,7 +300,7 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
     */
    public void testUpdateNoName()
         throws Exception {
-      HashMap args = new HashMap();
+      Map<String, Object> args = new HashMap<String, Object>();
       args.put(OpProjectStatus.NAME, NAME);
       args.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
       args.put(OpProjectStatus.COLOR, new Integer(7));
@@ -312,7 +309,6 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
       request.setArgument("project_status_data", new HashMap(args));
       XMessage response = service.insertProjectStatus(session, request);
       assertNoError(response);
-
       OpProjectStatus status = dataFactory.getProjectStatusByName(NAME);
       String id = status.locator();
 
@@ -342,7 +338,7 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
     */
    public void testUpdateDuplicate()
         throws Exception {
-      HashMap args = new HashMap();
+      Map<String, Object> args = new HashMap<String, Object>();
       args.put(OpProjectStatus.NAME, NAME + 1);
       args.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
       args.put(OpProjectStatus.COLOR, new Integer(7));
@@ -376,7 +372,7 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
     */
    public void testDeleteProjectStatus()
         throws Exception {
-      HashMap args = new HashMap();
+      Map<String, Object> args = new HashMap<String, Object>();
       args.put(OpProjectStatus.NAME, NAME + 1);
       args.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
       args.put(OpProjectStatus.COLOR, new Integer(7));
@@ -400,10 +396,8 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
       assertEquals(1, ((OpProjectStatus) statusList.get(1)).getSequence());
       assertEquals(2, ((OpProjectStatus) statusList.get(2)).getSequence());
 
-      ArrayList ids = new ArrayList(1);
-      ids.add(((OpProjectStatus) statusList.get(1)).locator());
       request = new XMessage();
-      request.setArgument("project_status_ids", ids);
+      request.setArgument("project_status_ids", Arrays.asList(((OpProjectStatus) statusList.get(1)).locator()));
       response = service.deleteProjectStatus(session, request);
       assertNoError(response);
 
@@ -420,7 +414,7 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
     */
    public void testDeleteStatusWithProjects()
         throws Exception {
-      HashMap args = new HashMap();
+      Map<String, Object> args = new HashMap<String, Object>();
       args.put(OpProjectStatus.NAME, NAME + 1);
       args.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
       args.put(OpProjectStatus.COLOR, new Integer(7));
@@ -454,17 +448,12 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
       request.setArgument(OpProjectAdministrationService.PROJECT_DATA, args);
       request.setArgument(OpProjectAdministrationService.GOALS_SET, new XComponent(XComponent.DATA_SET));
       request.setArgument("to_dos_set", new XComponent(XComponent.DATA_SET));
-      
-      XComponent attachmentDataSet = OpProjectTestDataFactory.createEmptyAttachmentDataSet();
-      request.setArgument(OpProjectAdministrationService.ATTACHMENTS_LIST_SET, attachmentDataSet);
+
       response = OpTestDataFactory.getProjectService().insertProject(session, request);
       assertNoError(response);
 
-      ArrayList ids = new ArrayList(1);
-      ids.add(status1.locator());
-      ids.add(status2.locator());
       request = new XMessage();
-      request.setArgument("project_status_ids", ids);
+      request.setArgument("project_status_ids", Arrays.asList(status1.locator(), status2.locator()));
       response = service.deleteProjectStatus(session, request);
       assertNoError(response);
 
@@ -481,7 +470,7 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
     */
    public void testMoveUpProjectStatus()
         throws Exception {
-      HashMap args = new HashMap();
+      Map<String, Object> args = new HashMap<String, Object>();
       args.put(OpProjectStatus.NAME, NAME + 1);
       args.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
       args.put(OpProjectStatus.COLOR, new Integer(7));
@@ -506,11 +495,8 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
       OpProjectStatus status3 = dataFactory.getProjectStatusByName(NAME + 3);
       assertEquals(2, status3.getSequence());
 
-      ArrayList ids = new ArrayList(2);
-      ids.add(status2.locator());
-      ids.add(status3.locator());
       request = new XMessage();
-      request.setArgument("project_locators", ids);
+      request.setArgument("project_locators", Arrays.asList(status2.locator(), status3.locator()));
       request.setArgument("direction", new Integer(-1));
       response = service.move(session, request);
       assertNoError(response);
@@ -530,7 +516,7 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
     */
    public void testMoveDownProjectStatus()
         throws Exception {
-      HashMap args = new HashMap();
+      Map<String, Object> args = new HashMap<String, Object>();
       args.put(OpProjectStatus.NAME, NAME + 1);
       args.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
       args.put(OpProjectStatus.COLOR, new Integer(7));
@@ -547,7 +533,6 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
       args.put(OpProjectStatus.NAME, NAME + 3);
       response = service.insertProjectStatus(session, request);
       assertNoError(response);
-
       OpProjectStatus status1 = dataFactory.getProjectStatusByName(NAME + 1);
       assertEquals(0, status1.getSequence());
       OpProjectStatus status2 = dataFactory.getProjectStatusByName(NAME + 2);
@@ -555,11 +540,8 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
       OpProjectStatus status3 = dataFactory.getProjectStatusByName(NAME + 3);
       assertEquals(2, status3.getSequence());
 
-      ArrayList ids = new ArrayList(2);
-      ids.add(status1.locator());
-      ids.add(status2.locator());
       request = new XMessage();
-      request.setArgument("project_locators", ids);
+      request.setArgument("project_locators", Arrays.asList(status1.locator(), status2.locator()));
       request.setArgument("direction", new Integer(1));
       response = service.move(session, request);
       assertNoError(response);
@@ -592,9 +574,9 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
       }
       catch (XServiceException e) {
          exceptionThrown = true;
-         assertEquals("OpUserServiceInterceptor failed for method in OpProjectStatusService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
+         assertEquals("OpPermissionCheckServiceInterceptor failed for method in OpProjectStatusService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
       }
-      assertTrue("OpUserServiceInterceptor failed for method in OpProjectStatusService, exception should have been thrown", exceptionThrown);
+      assertTrue("OpPermissionCheckServiceInterceptor failed for method in OpProjectStatusService, exception should have been thrown", exceptionThrown);
 
       exceptionThrown = false;
       try {
@@ -602,9 +584,9 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
       }
       catch (XServiceException e) {
          exceptionThrown = true;
-         assertEquals("OpUserServiceInterceptor failed for method in OpProjectStatusService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
+         assertEquals("OpPermissionCheckServiceInterceptor failed for method in OpProjectStatusService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
       }
-      assertTrue("OpUserServiceInterceptor failed for method in OpProjectStatusService, exception should have been thrown", exceptionThrown);
+      assertTrue("OpPermissionCheckServiceInterceptor failed for method in OpProjectStatusService, exception should have been thrown", exceptionThrown);
 
       exceptionThrown = false;
       try {
@@ -612,9 +594,9 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
       }
       catch (XServiceException e) {
          exceptionThrown = true;
-         assertEquals("OpUserServiceInterceptor failed for method in OpProjectStatusService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
+         assertEquals("OpPermissionCheckServiceInterceptor failed for method in OpProjectStatusService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
       }
-      assertTrue("OpUserServiceInterceptor failed for method in OpProjectStatusService, exception should have been thrown", exceptionThrown);
+      assertTrue("OpPermissionCheckServiceInterceptor failed for method in OpProjectStatusService, exception should have been thrown", exceptionThrown);
 
       exceptionThrown = false;
       try {
@@ -622,47 +604,8 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
       }
       catch (XServiceException e) {
          exceptionThrown = true;
-         assertEquals("OpUserServiceInterceptor failed for method in OpProjectStatusService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
+         assertEquals("OpPermissionCheckServiceInterceptor failed for method in OpProjectStatusService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
       }
-      assertTrue("OpUserServiceInterceptor failed for method in OpProjectStatusService, exception should have been thrown", exceptionThrown);
-   }
-
-//                             ***** Helper Methods *****
-
-   private void clean()
-        throws Exception {
-      logOut();
-      logIn();
-      OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-      OpBroker broker = session.newBroker();
-      OpUser user = usrData.getUserByName(broker, DEFAULT_USER);
-      if (user != null) {
-         List ids = new ArrayList();
-         ids.add(user.locator());
-         XMessage request = new XMessage();
-         request.setArgument(OpUserService.SUBJECT_IDS, ids);
-         OpTestDataFactory.getUserService().deleteSubjects(session, request);
-      }
-      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
-      broker.close();
-      broker = session.newBroker();
-      OpTransaction transaction = broker.newTransaction();
-
-      OpProjectTestDataFactory projectDataFactory = new OpProjectTestDataFactory(session);
-      List projectList = projectDataFactory.getAllProjects(broker);
-      for (Object aProjectList : projectList) {
-         OpProjectNode project = (OpProjectNode) aProjectList;
-         broker.deleteObject(project);
-      }
-
-      List statusList = dataFactory.getAllProjectsStatus();
-      for (Object aStatusList : statusList) {
-         OpProjectStatus status = (OpProjectStatus) aStatusList;
-         broker.deleteObject(status);
-      }
-
-      transaction.commit();
-      broker.close();
-
+      assertTrue("OpPermissionCheckServiceInterceptor failed for method in OpProjectStatusService, exception should have been thrown", exceptionThrown);
    }
 }

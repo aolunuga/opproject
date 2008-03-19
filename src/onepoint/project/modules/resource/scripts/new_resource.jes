@@ -18,6 +18,7 @@ function ok(event) {
    form = XDisplay.getActiveForm();
    resource_data.PoolID = form.findComponent("PoolID").getStringValue();
    resource_data.Name = form.findComponent("Name").getStringValue();
+   resource_data.CustomTypeLocator = form.findComponent("SubTypeField").getStringValue();
    resource_data.Description = form.findComponent("Description").getStringValue();
    resource_data.Available = form.findComponent("Available").getDoubleValue();
    resource_data.HourlyRate = form.findComponent("HourlyRate").getDoubleValue();
@@ -45,6 +46,7 @@ function ok(event) {
    request = new XMessage;
    request.setAction("ResourceService.insertResource");
    request.setArgument("resource_data", resource_data);
+   addAdditionalArguments(request);
    response = XDisplay.getClient().invokeMethod(request);
 
    if (handleError(form, response, "ErrorLabel") == true) {
@@ -60,6 +62,12 @@ function ok(event) {
       XDisplay.getActiveWindow().close();
       mainFrame.refreshForm();
    }
+}
+
+function addAdditionalArguments(request) {
+}
+
+function subTypeChanged(event) {
 }
 
 function cancel(event) {

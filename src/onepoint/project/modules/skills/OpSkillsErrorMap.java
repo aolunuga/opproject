@@ -8,7 +8,7 @@ import onepoint.error.XErrorMap;
 
 public class OpSkillsErrorMap extends XErrorMap {
 
-   public final static String RESOURCE_MAP_ID = "skill.error";
+   public final static String RESOURCE_MAP_ID = "skills.error";
 //   public static final int EMPTY_NAME_ERROR = 0;
 //   public static final int NO_PARENT_CATEGORY = 1;
 //   public static final int INSUFICIENT_PERMISSIONS_ERROR_CODE = 2;

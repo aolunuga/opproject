@@ -66,80 +66,83 @@ public class OpProjectDatesFormProvider implements XFormProvider {
 
       OpProjectSession session = (OpProjectSession) s;
       OpBroker broker = session.newBroker();
-
-      String project_locator = (String) (parameters.get(PROJECT_ID));
-      if (project_locator != null) {
-         // Get open project-ID from parameters and set project-ID session variable
-         session.setVariable(PROJECT_ID, project_locator);
-      }
-      else {
-         project_locator = (String) (session.getVariable(PROJECT_ID));
-      }
-      if (project_locator != null) {
-
-         OpProjectNode project = (OpProjectNode) (broker.getObject(project_locator));
-
-         //set start and end for project
-         form.findComponent(PROJECT_START).setDateValue(project.getStart());
-         form.findComponent(PROJECT_FINISH).setDateValue(project.getFinish());
-
-         //print title
-         form.findComponent(PRINT_TITLE).setStringValue(project.getName());
-         form.findComponent(PRINT_BUTTON).setEnabled(true);
-         form.findComponent(RESOURCE_CHOICE_FIELD).setEnabled(true);
-         form.findComponent(VERSION_CHOICE_FIELD).setEnabled(true);
-         form.findComponent(TIME_CHOICE_FIELD).setEnabled(true);
-
-         //check manager rights for costs view
-         if (OpSubjectDataSetFactory.shouldHideFromUser(session.user(broker))) {
-             ((OpProjectComponent) form.findComponent(ACTIVITY_GANTT_CHART)).setShowCosts(false);
+      try {
+         String project_locator = (String) (parameters.get(PROJECT_ID));
+         if (project_locator != null) {
+            // Get open project-ID from parameters and set project-ID session variable
+            session.setVariable(PROJECT_ID, project_locator);
          }
+         else {
+            project_locator = (String) (session.getVariable(PROJECT_ID));
+         }
+         if (project_locator != null) {
 
-         //fill resource set for selected project's assignments
-         XComponent resourceDataSet = form.findComponent(RESOURCE_SET);
-         fillResourcesDataSet(project, resourceDataSet);
+            OpProjectNode project = (OpProjectNode) (broker.getObject(project_locator));
 
-         //selected resource from choice field
-         String filterResourceId = (String) parameters.get(RESOURCE_ID);
-         //selected version from choice field
-         String filterVersionId = (String) parameters.get(VERSION_ID);
-         //set up the default selected index
-         if (filterResourceId == null && filterVersionId == null) {
-            Integer defaultSelectedIndex = new Integer(0);
-            Map stateMap = session.getComponentStateMap(FORM_ID);
-            if (stateMap != null) {
-               stateMap.put(VERSION_CHOICE_FIELD, defaultSelectedIndex);
-               stateMap.put(RESOURCE_CHOICE_FIELD, defaultSelectedIndex);
+            //set start and end for project
+            form.findComponent(PROJECT_START).setDateValue(project.getStart());
+            form.findComponent(PROJECT_FINISH).setDateValue(project.getFinish());
+
+            //print title
+            form.findComponent(PRINT_TITLE).setStringValue(project.getName());
+            form.findComponent(PRINT_BUTTON).setEnabled(true);
+            form.findComponent(RESOURCE_CHOICE_FIELD).setEnabled(true);
+            form.findComponent(VERSION_CHOICE_FIELD).setEnabled(true);
+            form.findComponent(TIME_CHOICE_FIELD).setEnabled(true);
+
+            //check manager rights for costs view
+            if (OpSubjectDataSetFactory.shouldHideFromUser(session, session.user(broker))) {
+               ((OpProjectComponent) form.findComponent(ACTIVITY_GANTT_CHART)).setShowCosts(false);
             }
+
+            //fill resource set for selected project's assignments
+            XComponent resourceDataSet = form.findComponent(RESOURCE_SET);
+            fillResourcesDataSet(project, resourceDataSet);
+
+            //selected resource from choice field
+            String filterResourceId = (String) parameters.get(RESOURCE_ID);
+            //selected version from choice field
+            String filterVersionId = (String) parameters.get(VERSION_ID);
+            //set up the default selected index
+            if (filterResourceId == null && filterVersionId == null) {
+               Integer defaultSelectedIndex = new Integer(0);
+               Map stateMap = session.getComponentStateMap(FORM_ID);
+               if (stateMap != null) {
+                  stateMap.put(VERSION_CHOICE_FIELD, defaultSelectedIndex);
+                  stateMap.put(RESOURCE_CHOICE_FIELD, defaultSelectedIndex);
+               }
+            }
+
+            // Check it there is already a project plan
+            OpProjectPlan projectPlan = project.getPlan();
+            if (projectPlan != null) {
+               //fill the project name
+               XComponent project_name_set = form.findComponent("ProjectNameSet");
+               fillProjectName(project, project_name_set);
+
+               //locate and fill history data set (use project plan history BLOBs)
+               XComponent historyDataSet = form.findComponent(HISTORY_SET);
+               boolean showAllResources = (filterResourceId == null) || (filterResourceId != null && filterResourceId.equals(ALL_RESOURCES));
+               fillHistoryDataSet(showAllResources, filterResourceId, broker, projectPlan.getID(), filterVersionId, historyDataSet);
+
+               //fill the activity set
+               XComponent activityDataSet = form.findComponent(ACTIVITY_SET);
+               fillActivitySet(session, broker, activityDataSet, showAllResources, projectPlan, filterResourceId, project.getID());
+
+               // fill category color data set
+               XComponent categoryColorDataSet = form.findComponent(CATEGORY_COLOR_DATA_SET);
+               OpActivityDataSetFactory.fillCategoryColorDataSet(broker, categoryColorDataSet);
+            }
+
+            //fill the availability map
+            XComponent resourceAvailability = form.findComponent(RESOURCE_AVAILABILITY);
+            Map<String, Double> availabilityMap = OpResourceDataSetFactory.createResourceAvailabilityMap(broker);
+            resourceAvailability.setValue(availabilityMap);
          }
-
-         // Check it there is already a project plan
-         OpProjectPlan projectPlan = project.getPlan();
-         if (projectPlan != null) {
-            //fill the project name
-            XComponent project_name_set = form.findComponent("ProjectNameSet");
-            fillProjectName(project, project_name_set);
-
-            //locate and fill history data set (use project plan history BLOBs)
-            XComponent historyDataSet = form.findComponent(HISTORY_SET);
-            boolean showAllResources = (filterResourceId == null) || (filterResourceId != null && filterResourceId.equals(ALL_RESOURCES));
-            fillHistoryDataSet(showAllResources, filterResourceId, broker, projectPlan.getID(), filterVersionId, historyDataSet);
-
-            //fill the activity set
-            XComponent activityDataSet = form.findComponent(ACTIVITY_SET);
-            fillActivitySet(session, broker, activityDataSet, showAllResources, projectPlan, filterResourceId, project.getID());
-
-            // fill category color data set
-            XComponent categoryColorDataSet = form.findComponent(CATEGORY_COLOR_DATA_SET);
-            OpActivityDataSetFactory.fillCategoryColorDataSet(broker, categoryColorDataSet);
-         }
-
-         //fill the availability map
-         XComponent resourceAvailability = form.findComponent(RESOURCE_AVAILABILITY);
-         Map<String, Double> availabilityMap = OpResourceDataSetFactory.createResourceAvailabilityMap(broker);
-         resourceAvailability.setValue(availabilityMap);
       }
-      broker.close();
+      finally {
+         broker.close();
+      }
    }
 
    private void fillActivitySet(OpProjectSession session, OpBroker broker, XComponent activityDataSet, boolean showAllResources,
@@ -147,7 +150,7 @@ public class OpProjectDatesFormProvider implements XFormProvider {
       OpUser currentUser = session.user(broker);
       String showHoursPref = currentUser.getPreferenceValue(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
       if (showHoursPref == null) {
-         showHoursPref = OpSettingsService.getService().get(OpSettings.SHOW_RESOURCES_IN_HOURS);
+         showHoursPref = OpSettingsService.getService().get(session, OpSettings.SHOW_RESOURCES_IN_HOURS);
       }
       activityDataSet.setValue(Boolean.valueOf(showHoursPref));
 

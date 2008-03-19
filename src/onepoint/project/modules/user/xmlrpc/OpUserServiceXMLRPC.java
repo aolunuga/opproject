@@ -16,6 +16,7 @@ import onepoint.project.modules.user.OpUserServiceImpl;
 import onepoint.service.server.XService;
 import onepoint.service.server.XServiceException;
 import onepoint.service.server.XServiceManager;
+import onepoint.service.server.XSession;
 import org.apache.xmlrpc.XmlRpcException;
 
 import java.util.HashMap;
@@ -57,7 +58,7 @@ public class OpUserServiceXMLRPC {
     */
    public boolean signOn(String username, String password)
         throws XmlRpcException {
-      OpProjectSession session = OpProjectSession.getSession();
+      OpProjectSession session = (OpProjectSession) XSession.getSession();
       try {
          impl.signOn(session, username, password);
       }
@@ -74,7 +75,7 @@ public class OpUserServiceXMLRPC {
     */
    public boolean signOff()
         throws XmlRpcException {
-      OpProjectSession session = OpProjectSession.getSession();
+      OpProjectSession session = (OpProjectSession) XSession.getSession();
       try {
          impl.signOff(session);
       }
@@ -92,9 +93,8 @@ public class OpUserServiceXMLRPC {
     */
    public Map<String, Object> getSignedOnUserData()
         throws XmlRpcException {
-      OpProjectSession session = OpProjectSession.getSession();
+      OpProjectSession session = (OpProjectSession) XSession.getSession();
       OpBroker broker = session.newBroker();
-
       try {
          return (getUserData(impl.signedOnAs(session, broker)));
       }

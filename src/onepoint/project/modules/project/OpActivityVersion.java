@@ -4,16 +4,24 @@
 
 package onepoint.project.modules.project;
 
-import onepoint.persistence.OpObject;
-import onepoint.project.modules.project.components.OpGanttValidator;
-import onepoint.project.modules.resource.OpResource;
-
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class OpActivityVersion extends OpObject {
+import onepoint.persistence.OpObject;
+import onepoint.persistence.hibernate.OpPropertyAccessor;
+import onepoint.project.modules.project.OpActivity.OpProgressDelta;
+import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.project.modules.resource.OpResource;
+
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+public class OpActivityVersion extends OpObject implements OpActivityIfc {
 
    public final static String ACTIVITY_VERSION = "OpActivityVersion";
 
@@ -55,6 +63,7 @@ public class OpActivityVersion extends OpObject {
    public final static byte TASK = OpGanttValidator.TASK;
    public final static byte COLLECTION_TASK = OpGanttValidator.COLLECTION_TASK;
    public final static byte SCHEDULED_TASK = OpGanttValidator.SCHEDULED_TASK;
+   public final static byte ADHOC_TASK = OpGanttValidator.ADHOC_TASK;
 
    // Activity attributes
    public final static int MANDATORY = OpGanttValidator.MANDATORY;
@@ -99,7 +108,33 @@ public class OpActivityVersion extends OpObject {
    private Set predecessorVersions;
    private Set<OpAttachmentVersion> attachmentVersions;
    private OpResource responsibleResource;
+   
+   
+   private static class ActualValues {
+      private double actualEffort = 0d;
+      private double remainingEffort = 0d;
+      
+      public ActualValues(double actualEffort, double remainingEffort) {
+         this.actualEffort = actualEffort;
+         this.remainingEffort = remainingEffort;
+      }
+      
+      public double getActualEffort() {
+         return actualEffort;
+      }
+      public void setActualEffort(double actualEffort) {
+         this.actualEffort = actualEffort;
+      }
+      public double getRemainingEffort() {
+         return remainingEffort;
+      }
+      public void setRemainingEffort(double remainingEffort) {
+         this.remainingEffort = remainingEffort;
+      }
+   }
 
+   private ActualValues actualValues = null;
+   
    public void setName(String name) {
       this.name = name;
    }
@@ -120,7 +155,7 @@ public class OpActivityVersion extends OpObject {
       this.type = type;
    }
 
-   public byte getType() {
+   public Byte getType() {
       return type;
    }
 
@@ -252,8 +287,8 @@ public class OpActivityVersion extends OpObject {
       return template;
    }
 
-   public Double getEffortBillable() {
-      return effortBillable;
+   public double getEffortBillable() {
+      return effortBillable == null ? OpActivity.DEFAULT_BILLABLE : effortBillable.doubleValue();
    }
 
    public void setEffortBillable(Double effortBillable) {
@@ -288,7 +323,7 @@ public class OpActivityVersion extends OpObject {
       this.subActivityVersions = subActivityVersions;
    }
 
-   public Set getSubActivityVersions() {
+   public Set<OpActivityVersion> getSubActivityVersions() {
       return subActivityVersions;
    }
 
@@ -421,4 +456,164 @@ public class OpActivityVersion extends OpObject {
 
       return dates;
    }
+
+   /* (non-Javadoc)
+    * @see onepoint.persistence.OpCustomClassable#getCustomClass()
+    */
+   public Class getCustomClass() {
+      return OpActivity.class;
+   }
+
+   /**
+    * Called from OpActivity whenever progress needs to be updated for the Working Version
+    * (for now, I cannot tell whether this is relevant, by maybe someone knows...)
+    * @param delta      delta information collected for activity/assignment...
+    * @param baseWeighting method of aggregation for super-ActivityVersions...
+    */
+   public void updateComplete(OpProgressDelta delta) {
+      if (isProgressTracked()) {
+         if (isDiskreteActivity()) {
+            // The Problem: the switch from none-diskrete to diskret eis determined by actual effort and remainig effort.
+            // So this might change anytime...
+            // step down one level and collect complete values (very ugly...)
+            double complete = 0d;
+            double oldComplete = getComplete();
+            if (getSubActivityVersions() != null && !getSubActivityVersions().isEmpty()) {
+               double factor = getSubActivityVersions().size();
+               for (OpActivityVersion a: getSubActivityVersions()) {
+                  complete += a.getComplete();
+               }
+               complete = complete / factor;
+            }
+            else if (getActivity() != null) {
+               complete = getActivity().getComplete();
+            }
+            setComplete(complete);
+            delta.setWeigthedCompleteDelta(getComplete() - oldComplete);
+         }
+         else {
+            setComplete(OpGanttValidator.calculateCompleteValue(getActualEffort(), getBaseEffort(), getRemainingEffort()));
+         }
+      }
+      if (getSuperActivityVersion() != null) {
+         getSuperActivityVersion().updateComplete(delta);
+      }
+   }
+   
+   public boolean isCollection() {
+      return getType() == OpActivity.COLLECTION
+            || getType() == OpActivity.COLLECTION_TASK
+            || getType() == OpActivity.SCHEDULED_TASK;
+   }
+
+   public void resetValues() {
+      setBaseEffort(0d);
+      setBaseExternalCosts(0d);
+      setBaseMaterialCosts(0d);
+      setBaseMiscellaneousCosts(0d);
+      setBasePersonnelCosts(0d);
+      setBasePersonnelCosts(0d);
+      setBaseProceeds(0d);
+      setBaseTravelCosts(0d);
+      
+      actualValues = null;
+      setSubActivityVersions(new HashSet<OpActivityVersion>());
+   }
+   
+   public void addActualEffort(double actualEffort) {
+      if (actualValues == null) {
+         actualValues = new ActualValues(actualEffort, 0d);
+      }
+      else {
+         actualValues.setActualEffort(actualValues.getActualEffort() + actualEffort);
+      }
+   }
+   
+   public void addRemainingEffort(double remainingEffort) {
+      if (actualValues == null) {
+         actualValues = new ActualValues(0d, remainingEffort);
+      }
+      else {
+         actualValues.setRemainingEffort(actualValues.getRemainingEffort() + remainingEffort);
+      }
+   }
+
+   public double getActualEffort() {
+      if (actualValues != null) {
+         return actualValues.getActualEffort();
+      }
+      else if (getActivity() != null) {
+         return getActivity().getActualEffort();
+      }
+      else {
+         return 0d;
+      }
+   }
+   
+   public double getRemainingEffort() {
+      if (actualValues != null) {
+         return actualValues.getRemainingEffort();
+      }
+      else if (getActivity() != null) {
+         return getActivity().getRemainingEffort();
+      }
+      else {
+         return getBaseEffort();
+      }
+   }
+   
+   public boolean isZero() {
+      return getRemainingEffort() == 0d && getActualEffort() == 0d;
+   }
+   
+   public boolean isMilestone() {
+      return getType() == OpActivity.MILESTONE;
+   }
+   
+   public boolean isProgressTracked() {
+      return getPlanVersion().getProjectPlan().getProgressTracked()
+            || getType() == OpActivityVersion.ADHOC_TASK || isCollection();
+   }
+   
+   public double getCompleteFromTracking() {
+      if (isProgressTracked()) {
+         if (isDiskreteActivity()) {
+            if (!isCollection()) {
+               return (getActivity() != null
+                     && getActivity().getType() == getType() ? getActivity()
+                     .getCompleteFromTracking() : 0);
+            }
+            else {
+               double complete = 0;
+               if (getSubActivityVersions() != null) {
+                  double factor =  getSubActivityVersions().size();
+                  for (OpActivityVersion a : getSubActivityVersions()) {
+                     complete += a.getCompleteFromTracking() / factor;
+                  }
+               }
+               return complete;
+            }
+         } else {
+            return OpGanttValidator.calculateCompleteValue(getActualEffort(),
+                  getBaseEffort(), getRemainingEffort());
+         }
+      } else {
+         return getComplete();
+      }
+   }
+   
+   public void addSubActivityVersion(OpActivityVersion v) {
+      if (getSubActivityVersions() == null) {
+         setSubActivityVersions(new HashSet<OpActivityVersion>());
+      }
+      getSubActivityVersions().add(v);
+      v.setSuperActivityVersion(this);
+   }
+   
+   public boolean isDiskreteActivity() {
+      return getType() == OpActivity.ADHOC_TASK
+      || getType() == OpActivity.MILESTONE || isZero();
+   }
+
+
 }

@@ -5,7 +5,6 @@
 // Helper script for new/edit project
 
 require "onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
-require "onepoint/project/modules/project_planning/scripts/attachments.jes";
 
 import onepoint.express.XDisplay;
 import onepoint.service.XMessage;
@@ -73,12 +72,13 @@ function addProjectAssignment(event){
    }
    readonly_resource_data_set = XDisplay.getActiveForm().findComponent("ReadOnlyResourceDataSet");
    index = 0;
+   resourceIds = new HashSet;
    while (index < readonly_resource_data_set.getChildCount()) {
-      resource_ids[i] = XValidator.choiceID(readonly_resource_data_set.getChild(index).getStringValue());
+      resourceIds.add(XValidator.choiceID(readonly_resource_data_set.getChild(index).getStringValue()));
       j++;
       index++;
    }
-   openResourceChooser("MainFrame", "addProjectResourceOk", resource_ids, true, false, true, null);
+   openResourceChooser("MainFrame", "addProjectResourceOk", resourceIds, true, false, true, null);
 }
 
 function removeGoals(event) {
@@ -109,29 +109,8 @@ function addGoal(event) {
    XDisplay.getActiveForm().findComponent("GoalsTableBox").update();
 }
 
-//put the list of attachments into a XComponent so that the file objects can be replaced with their path
-function addAttachmentListToDataSet(attachmentList) {
-   attachmentListDataSet = XDisplay.getActiveForm().findComponent("AttachmentListDataSet");
-   dataRow = attachmentListDataSet.newDataRow();
-   attachmentListDataSet.addChild(dataRow);
-   dataCell = XComponent.newDataCell();
-   dataCell.setValue(attachmentList);
-   dataRow.addChild(dataCell);
-   return attachmentListDataSet;
+function addAdditionalArguments(request) {
 }
 
-function addURLAttachment(event) {
-  addURL(event);
-}
-
-function addDocumentAttachment(event) {
-   addDocument(event);
-}
-
-function removeAttachments(event) {
-   remove(event);
-}
-
-function viewAttachment(event) {
-   view(event);
+function subTypeChanged(event) {
 }

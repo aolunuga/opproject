@@ -1,18 +1,15 @@
-<service name="WorkService" class="onepoint.project.modules.work.OpWorkService" interceptor="onepoint.project.OpServiceInterceptor">
-   <method name="insertWorkSlip">
+<service name="WorkService" class="onepoint.project.modules.work.OpWorkService"
+         interceptor="onepoint.project.modules.documents.OpContentCheckServiceInterceptor">
+   <method name="insertWorkSlip" contentCheck="true">
       <parameter name="start" instance-class="java.util.Date" mode="input"/>
       <parameter name="end" instance-class="java.util.Date" mode="input"/>
       <parameter name="work_record_set" instance-class="onepoint.express.XComponent" mode="input"/>
    </method>
-   <method name="editWorkSlip">
+   <method name="editWorkSlip" contentCheck="true">
       <parameter name="work_slip_id" instance-class="java.lang.String" mode="input"/>
       <parameter name="work_record_set" instance-class="onepoint.express.XComponent" mode="input"/>
    </method>
    <method name="deleteWorkSlips">
       <parameter name="work_slip_ids" instance-class="java.util.ArrayList" mode="input"/>
-   </method>
-   <method name="changeWorkSlipState">
-      <parameter name="work_slip_set" instance-class="onepoint.express.XComponent" mode="input"/>
-      <parameter name="work_slip_state" instance-class="java.lang.String" mode="input"/>
    </method>
 </service>

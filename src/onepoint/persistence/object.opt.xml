@@ -6,9 +6,8 @@
 	<relationship name="Locks" type="OpLock" collection-type="Set" back-relationship="Target" inverse="true" cascade="delete"/>
 	<relationship name="DynamicResources" type="OpDynamicResource" collection-type="Set" back-relationship="Object" inverse="true" cascade="delete"/>
 <!-- shortcut object directly references the first custom value page
-     fixme (dfreis): needed recursive="true" to prevent loop within backup manager, needs this until backup manager is able to handle circular references!  
 -->
-  <relationship name="CustomValuePage" type="OpCustomValuePage" recursive="true" fetch="join" />
+  <relationship name="CustomValuePage" type="OpCustomValuePage" transient="true" fetch="join" />
   <relationship name="CustomValuePages" type="OpCustomValuePage" collection-type="Set" back-relationship="Object" inverse="true" cascade="delete"/>
 
 </prototype>

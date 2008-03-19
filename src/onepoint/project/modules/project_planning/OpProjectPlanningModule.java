@@ -56,34 +56,37 @@ public class OpProjectPlanningModule extends OpModule {
     */
    public void upgradeToVersion3(OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("select project from OpProjectNode as project where project.Type = ?");
-      query.setByte(0, OpProjectNode.PROJECT);
+      try {
+         OpQuery query = broker.newQuery("select project from OpProjectNode as project where project.Type = ?");
+         query.setByte(0, OpProjectNode.PROJECT);
 
-      Iterator result = broker.iterate(query);
-      List<Long> projectPlans = new ArrayList<Long>();
-      //validate the tasks & collection tasks.
-      while (result.hasNext()) {
-         OpProjectNode projectNode = (OpProjectNode) result.next();
-         OpProjectPlan projectPlan = projectNode.getPlan();
+         Iterator result = broker.iterate(query);
+         List<Long> projectPlans = new ArrayList<Long>();
+         //validate the tasks & collection tasks.
+         while (result.hasNext()) {
+            OpProjectNode projectNode = (OpProjectNode) result.next();
+            OpProjectPlan projectPlan = projectNode.getPlan();
 
-         logger.info("Upgrade tasks and scheduled tasks for " + projectNode.getName());
-         updateTasks(projectPlan.getID(), projectNode, session);
-         updateActivitiesAndChildren(projectPlan.getID(), session);
+            logger.info("Upgrade tasks and scheduled tasks for " + projectNode.getName());
+            updateTasks(projectPlan.getID(), projectNode, session);
+            updateActivitiesAndChildren(projectPlan.getID(), session);
 
-         //same update for all the activity versions from all the project versions.
-         Set allVersions = projectPlan.getVersions();
-         for (Object allVersion : allVersions) {
-            OpProjectPlanVersion planVersion = (OpProjectPlanVersion) allVersion;
+            //same update for all the activity versions from all the project versions.
+            Set allVersions = projectPlan.getVersions();
+            for (Object allVersion : allVersions) {
+               OpProjectPlanVersion planVersion = (OpProjectPlanVersion) allVersion;
 
-            updateTasksVersions(planVersion.getID(), projectNode, session);
-            updateActivityVersionsAndChildren(planVersion.getID(), session);
+               updateTasksVersions(planVersion.getID(), projectNode, session);
+               updateActivityVersionsAndChildren(planVersion.getID(), session);
+            }
+            projectPlans.add(projectPlan.getID());
          }
-         projectPlans.add(projectPlan.getID());
+         //recalculate the project plans
+         revalidateProjectPlans(session, projectPlans);
       }
-      broker.closeAndEvict();
-
-      //recalculate the project plans
-      revalidateProjectPlans(session, projectPlans);
+      finally {
+         broker.closeAndEvict();         
+      }
    }
 
    /**
@@ -93,14 +96,18 @@ public class OpProjectPlanningModule extends OpModule {
     */
    public void upgradeToVersion5(OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("select projectPlan from OpProjectNode project inner join project.Plan projectPlan where project.Type = ?");
-      query.setByte(0, OpProjectNode.PROJECT);
-      Iterator iterator = broker.iterate(query);
-      while (iterator.hasNext()) {
-         OpProjectPlan projectPlan = (OpProjectPlan) iterator.next();
-         updateProceeds(projectPlan, broker);
+      try {
+         OpQuery query = broker.newQuery("select projectPlan from OpProjectNode project inner join project.Plan projectPlan where project.Type = ?");
+         query.setByte(0, OpProjectNode.PROJECT);
+         Iterator iterator = broker.iterate(query);
+         while (iterator.hasNext()) {
+            OpProjectPlan projectPlan = (OpProjectPlan) iterator.next();
+            updateProceeds(projectPlan, broker);
+         }
       }
-      broker.closeAndEvict();
+      finally {
+         broker.closeAndEvict();         
+      }
    }
 
    /**
@@ -110,29 +117,33 @@ public class OpProjectPlanningModule extends OpModule {
     */
    public void upgradeToVersion26(OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("from OpProjectPlan");
-      Iterator result = broker.iterate(query);
+      try {
+         OpQuery query = broker.newQuery("from OpProjectPlan");
+         Iterator result = broker.iterate(query);
 
-      query = broker.newQuery("select setting.Value from OpSetting as setting where setting.Name = '" + OpSettings.CALENDAR_HOLIDAYS_LOCATION + "'");
-      Iterator calendarResult = broker.iterate(query);
-      String holidayCalendarId = null;
-      if (calendarResult.hasNext()) {
-         holidayCalendarId = (String) calendarResult.next();
-      }
-
-      OpTransaction tx = broker.newTransaction();
-      while (result.hasNext()) {
-         OpProjectPlan projectPlan = (OpProjectPlan) result.next();
-         projectPlan.setHolidayCalendar(holidayCalendarId);
-         for (OpProjectPlanVersion planVersion : projectPlan.getVersions()) {
-            planVersion.setHolidayCalendar(holidayCalendarId);
-            broker.updateObject(planVersion);
+         query = broker.newQuery("select setting.Value from OpSetting as setting where setting.Name = '" + OpSettings.CALENDAR_HOLIDAYS_LOCATION + "'");
+         Iterator calendarResult = broker.iterate(query);
+         String holidayCalendarId = null;
+         if (calendarResult.hasNext()) {
+            holidayCalendarId = (String) calendarResult.next();
          }
-         logger.info("Upgrade holiday calendar id to: " + holidayCalendarId);
-         broker.updateObject(projectPlan);
+
+         OpTransaction tx = broker.newTransaction();
+         while (result.hasNext()) {
+            OpProjectPlan projectPlan = (OpProjectPlan) result.next();
+            projectPlan.setHolidayCalendar(holidayCalendarId);
+            for (OpProjectPlanVersion planVersion : projectPlan.getVersions()) {
+               planVersion.setHolidayCalendar(holidayCalendarId);
+               broker.updateObject(planVersion);
+            }
+            logger.info("Upgrade holiday calendar id to: " + holidayCalendarId);
+            broker.updateObject(projectPlan);
+         }
+         tx.commit();
       }
-      tx.commit();
-      broker.closeAndEvict();
+      finally {
+         broker.closeAndEvict();
+      }
    }
 
    /**
@@ -145,14 +156,18 @@ public class OpProjectPlanningModule extends OpModule {
 
       OpBroker broker = session.newBroker();
       OpQuery query = broker.newQuery("from OpProjectPlan");
-      Iterator result = broker.iterate(query);
+      try {
+         Iterator result = broker.iterate(query);
 
-      while (result.hasNext()) {
-         OpProjectPlan projectPlan = (OpProjectPlan) result.next();
-         OpProjectPlanValidator validator = new OpProjectPlanValidator(projectPlan);
-         validator.validateProjectPlanWorkingVersion(broker, null, true);
+         while (result.hasNext()) {
+            OpProjectPlan projectPlan = (OpProjectPlan) result.next();
+            OpProjectPlanValidator validator = new OpProjectPlanValidator(projectPlan);
+            validator.validateProjectPlanWorkingVersion(session, broker, null, true);
+         }
       }
-      broker.closeAndEvict();
+      finally {
+         broker.closeAndEvict();         
+      }
    }
 
    /**
@@ -162,46 +177,50 @@ public class OpProjectPlanningModule extends OpModule {
     */
    public void upgradeToVersion33(OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      OpTransaction tx = broker.newTransaction();
-      List<OpActivity> collectionList = new ArrayList<OpActivity>();
+      try {
+         OpTransaction tx = broker.newTransaction();
+         List<OpActivity> collectionList = new ArrayList<OpActivity>();
 
-      //set the collection's remaining personnel costs and remaining proceeds to 0
-      OpQuery query = broker.newQuery("from OpActivity activity where not exists (select assignment.ID from OpAssignment assignment where assignment.Activity.ID = activity.ID)");
-      Iterator<OpActivity> result = broker.iterate(query);
+         //set the collection's remaining personnel costs and remaining proceeds to 0
+         OpQuery query = broker.newQuery("from OpActivity activity where not exists (select assignment.ID from OpAssignment assignment where assignment.Activity.ID = activity.ID)");
+         Iterator<OpActivity> result = broker.iterate(query);
 
-      while (result.hasNext()) {
-         OpActivity activity = result.next();
-         activity.setRemainingPersonnelCosts(0d);
-         activity.setRemainingProceeds(0d);
-         collectionList.add(activity);
-      }
-
-      query = broker.newQuery("from OpActivity activity where exists (select assignment.ID from OpAssignment assignment where assignment.Activity.ID = activity.ID)");
-      result = broker.iterate(query);
-
-      while (result.hasNext()) {
-         OpActivity activity = result.next();
-         activity.setRemainingPersonnelCosts(0d);
-         activity.setRemainingProceeds(0d);
-         double totalRemainingPersonnelCosts = 0;
-         double totalRemainingProceeds = 0;
-
-         //update the remaining personnel costs and remaining proceeds on the activity and its parents
-         for (OpAssignment assignment : activity.getAssignments()) {
-            totalRemainingPersonnelCosts -= assignment.getRemainingPersonnelCosts();
-            totalRemainingProceeds -= assignment.getRemainingProceeds();
+         while (result.hasNext()) {
+            OpActivity activity = result.next();
+            activity.setRemainingPersonnelCosts(0d);
+            activity.setRemainingProceeds(0d);
+            collectionList.add(activity);
          }
-         activity.updateRemainingPersonnelCosts(totalRemainingPersonnelCosts);
-         activity.updateRemainingProceeds(totalRemainingProceeds);
-         broker.updateObject(activity);
-      }
 
-      for (OpActivity activity : collectionList) {
-         broker.updateObject(activity);
-      }
+         query = broker.newQuery("from OpActivity activity where exists (select assignment.ID from OpAssignment assignment where assignment.Activity.ID = activity.ID)");
+         result = broker.iterate(query);
 
-      tx.commit();
-      broker.closeAndEvict();
+         while (result.hasNext()) {
+            OpActivity activity = result.next();
+            activity.setRemainingPersonnelCosts(0d);
+            activity.setRemainingProceeds(0d);
+            double totalRemainingPersonnelCosts = 0;
+            double totalRemainingProceeds = 0;
+
+            //update the remaining personnel costs and remaining proceeds on the activity and its parents
+            for (OpAssignment assignment : activity.getAssignments()) {
+               totalRemainingPersonnelCosts -= assignment.getRemainingPersonnelCosts();
+               totalRemainingProceeds -= assignment.getRemainingProceeds();
+            }
+            activity.updateRemainingPersonnelCosts(totalRemainingPersonnelCosts);
+            activity.updateRemainingProceeds(totalRemainingProceeds);
+            broker.updateObject(activity);
+         }
+
+         for (OpActivity activity : collectionList) {
+            broker.updateObject(activity);
+         }
+
+         tx.commit();
+      }
+      finally {
+         broker.closeAndEvict();         
+      }
    }
 
    /**
@@ -217,33 +236,37 @@ public class OpProjectPlanningModule extends OpModule {
       acceptedTypes.add(new Byte(OpActivity.TASK));
 
       OpBroker broker = session.newBroker();
-      OpTransaction tx = broker.newTransaction();
+      try {
+         OpTransaction tx = broker.newTransaction();
 
-      //set the priority default value on all activities which are not collections and for which this field is null
-      OpQuery query = broker.newQuery("from OpActivity activity where activity.Type in (:types) and activity.Priority = (:noPriority)");
-      query.setCollection("types", acceptedTypes);
-      query.setInteger("noPriority", 0);
-      Iterator<OpActivity> result = broker.iterate(query);
-      while (result.hasNext()) {
-         OpActivity activity = result.next();
-         activity.setPriority(OpActivity.DEFAULT_PRIORITY);
-         broker.updateObject(activity);
+         //set the priority default value on all activities which are not collections and for which this field is null
+         OpQuery query = broker.newQuery("from OpActivity activity where activity.Type in (:types) and activity.Priority = (:noPriority)");
+         query.setCollection("types", acceptedTypes);
+         query.setInteger("noPriority", 0);
+         Iterator<OpActivity> result = broker.iterate(query);
+         while (result.hasNext()) {
+            OpActivity activity = result.next();
+            activity.setPriority(OpActivity.DEFAULT_PRIORITY);
+            broker.updateObject(activity);
+         }
+
+         //get all activities versions belonging to working plan versions and update their priorities to the default value
+         query = broker.newQuery("from OpActivityVersion activityVersion where activityVersion.PlanVersion.VersionNumber = (:workingVersionNumber) and activityVersion.Type in (:types) and activityVersion.Priority = (:noPriority)");
+         query.setInteger("workingVersionNumber", OpProjectPlan.WORKING_VERSION_NUMBER);
+         query.setCollection("types", acceptedTypes);
+         query.setInteger("noPriority", 0);
+         Iterator<OpActivityVersion> resultVersion = broker.iterate(query);
+         while (resultVersion.hasNext()) {
+            OpActivityVersion activityVersion = resultVersion.next();
+            activityVersion.setPriority(OpActivity.DEFAULT_PRIORITY);
+            broker.updateObject(activityVersion);
+         }
+
+         tx.commit();
       }
-
-      //get all activities versions belonging to working plan versions and update their priorities to the default value
-      query = broker.newQuery("from OpActivityVersion activityVersion where activityVersion.PlanVersion.VersionNumber = (:workingVersionNumber) and activityVersion.Type in (:types) and activityVersion.Priority = (:noPriority)");
-      query.setInteger("workingVersionNumber", OpProjectPlan.WORKING_VERSION_NUMBER);
-      query.setCollection("types", acceptedTypes);
-      query.setInteger("noPriority", 0);
-      Iterator<OpActivityVersion> resultVersion = broker.iterate(query);
-      while (resultVersion.hasNext()) {
-         OpActivityVersion activityVersion = resultVersion.next();
-         activityVersion.setPriority(OpActivity.DEFAULT_PRIORITY);
-         broker.updateObject(activityVersion);
+      finally {
+         broker.closeAndEvict();         
       }
-
-      tx.commit();
-      broker.closeAndEvict();
    }
 
    /**
@@ -285,9 +308,13 @@ public class OpProjectPlanningModule extends OpModule {
       //validate all the project plans (this includes also the work phase -> work period upgrade)
       for (Long projectPlanId : projectPlanIds) {
          OpBroker broker = session.newBroker();
-         OpProjectPlan projectPlan = (OpProjectPlan) broker.getObject(OpProjectPlan.class, projectPlanId);
-         new OpProjectPlanValidator(projectPlan).validateProjectPlan(broker, null, OpUser.SYSTEM_USER_NAME);
-         broker.closeAndEvict();
+         try {
+            OpProjectPlan projectPlan = (OpProjectPlan) broker.getObject(OpProjectPlan.class, projectPlanId);
+            new OpProjectPlanValidator(projectPlan).validateProjectPlan(session, broker, null, OpUser.SYSTEM_USER_NAME);
+         }
+         finally {
+            broker.closeAndEvict();            
+         }
       }
    }
 
@@ -300,27 +327,31 @@ public class OpProjectPlanningModule extends OpModule {
     */
    private void updateTasks(long projectPlanId, OpProjectNode projectNode, OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      String queryString = "select activity from OpProjectPlan projectPlan inner join projectPlan.Activities activity where projectPlan.ID=? and activity.Type=? and activity.Deleted=false";
-      OpQuery query = broker.newQuery(queryString);
-      query.setLong(0, projectPlanId);
-      query.setByte(1, OpActivity.TASK);
-      Iterator tasks = broker.iterate(query);
-      OpTransaction t = broker.newTransaction();
-      while (tasks.hasNext()) {
-         OpActivity task = (OpActivity) tasks.next();
-         OpActivity superActivity = task.getSuperActivity();
-         if (superActivity == null) {
-            task.setStart(projectNode.getStart());
-            task.setFinish(projectNode.getFinish());
+      try {
+         String queryString = "select activity from OpProjectPlan projectPlan inner join projectPlan.Activities activity where projectPlan.ID=? and activity.Type=? and activity.Deleted=false";
+         OpQuery query = broker.newQuery(queryString);
+         query.setLong(0, projectPlanId);
+         query.setByte(1, OpActivity.TASK);
+         Iterator tasks = broker.iterate(query);
+         OpTransaction t = broker.newTransaction();
+         while (tasks.hasNext()) {
+            OpActivity task = (OpActivity) tasks.next();
+            OpActivity superActivity = task.getSuperActivity();
+            if (superActivity == null) {
+               task.setStart(projectNode.getStart());
+               task.setFinish(projectNode.getFinish());
+            }
+            else {
+               task.setStart(superActivity.getStart());
+               task.setFinish(superActivity.getFinish());
+            }
+            broker.updateObject(task);
          }
-         else {
-            task.setStart(superActivity.getStart());
-            task.setFinish(superActivity.getFinish());
-         }
-         broker.updateObject(task);
+         t.commit();
       }
-      t.commit();
-      broker.closeAndEvict();
+      finally {
+         broker.closeAndEvict();         
+      }
    }
 
    /**
@@ -332,27 +363,31 @@ public class OpProjectPlanningModule extends OpModule {
     */
    private void updateTasksVersions(long projectPlanVersionId, OpProjectNode projectNode, OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      String queryString = "select activityVersion from OpProjectPlanVersion projectPlanVersion inner join projectPlanVersion.ActivityVersions activityVersion where projectPlanVersion.ID=? and activityVersion.Type=? and activityVersion.Activity.Deleted=false";
-      OpQuery query = broker.newQuery(queryString);
-      query.setLong(0, projectPlanVersionId);
-      query.setByte(1, OpActivity.TASK);
-      Iterator tasksVersions = broker.iterate(query);
-      OpTransaction t = broker.newTransaction();
-      while (tasksVersions.hasNext()) {
-         OpActivityVersion taskVersion = (OpActivityVersion) tasksVersions.next();
-         OpActivityVersion superActivityVersion = taskVersion.getSuperActivityVersion();
-         if (superActivityVersion == null) {
-            taskVersion.setStart(projectNode.getStart());
-            taskVersion.setFinish(projectNode.getFinish());
+      try {
+         String queryString = "select activityVersion from OpProjectPlanVersion projectPlanVersion inner join projectPlanVersion.ActivityVersions activityVersion where projectPlanVersion.ID=? and activityVersion.Type=? and activityVersion.Activity.Deleted=false";
+         OpQuery query = broker.newQuery(queryString);
+         query.setLong(0, projectPlanVersionId);
+         query.setByte(1, OpActivity.TASK);
+         Iterator tasksVersions = broker.iterate(query);
+         OpTransaction t = broker.newTransaction();
+         while (tasksVersions.hasNext()) {
+            OpActivityVersion taskVersion = (OpActivityVersion) tasksVersions.next();
+            OpActivityVersion superActivityVersion = taskVersion.getSuperActivityVersion();
+            if (superActivityVersion == null) {
+               taskVersion.setStart(projectNode.getStart());
+               taskVersion.setFinish(projectNode.getFinish());
+            }
+            else {
+               taskVersion.setStart(superActivityVersion.getStart());
+               taskVersion.setFinish(superActivityVersion.getFinish());
+            }
+            broker.updateObject(taskVersion);
          }
-         else {
-            taskVersion.setStart(superActivityVersion.getStart());
-            taskVersion.setFinish(superActivityVersion.getFinish());
-         }
-         broker.updateObject(taskVersion);
+         t.commit();
       }
-      t.commit();
-      broker.closeAndEvict();
+      finally {
+         broker.closeAndEvict();         
+      }
    }
 
    /**
@@ -363,57 +398,61 @@ public class OpProjectPlanningModule extends OpModule {
     */
    private void updateActivitiesAndChildren(long projectPlanId, OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      StringBuffer queryBuffer = new StringBuffer("select activity.ID, count(subActivity) from OpProjectPlan projectPlan ");
-      queryBuffer.append(" inner join projectPlan.Activities activity inner join activity.SubActivities subActivity ");
-      queryBuffer.append(" where projectPlan.ID=? and activity.Deleted=false and subActivity.Deleted=false and (subActivity.Type=? or subActivity.Type=?)");
-      queryBuffer.append(" group by activity.ID");
-      queryBuffer.append(" having count(subActivity) > 0");
-      OpQuery query = broker.newQuery(queryBuffer.toString());
-      query.setLong(0, projectPlanId);
-      query.setByte(1, OpActivity.TASK);
-      query.setByte(2, OpActivity.COLLECTION_TASK);
-      Iterator it = broker.iterate(query);
-      OpTransaction t = broker.newTransaction();
-      while (it.hasNext()) {
-         Object[] result = (Object[]) it.next();
+      try {
+         StringBuffer queryBuffer = new StringBuffer("select activity.ID, count(subActivity) from OpProjectPlan projectPlan ");
+         queryBuffer.append(" inner join projectPlan.Activities activity inner join activity.SubActivities subActivity ");
+         queryBuffer.append(" where projectPlan.ID=? and activity.Deleted=false and subActivity.Deleted=false and (subActivity.Type=? or subActivity.Type=?)");
+         queryBuffer.append(" group by activity.ID");
+         queryBuffer.append(" having count(subActivity) > 0");
+         OpQuery query = broker.newQuery(queryBuffer.toString());
+         query.setLong(0, projectPlanId);
+         query.setByte(1, OpActivity.TASK);
+         query.setByte(2, OpActivity.COLLECTION_TASK);
+         Iterator it = broker.iterate(query);
+         OpTransaction t = broker.newTransaction();
+         while (it.hasNext()) {
+            Object[] result = (Object[]) it.next();
 
-         Long activityId = (Long) result[0];
-         OpActivity activity = (OpActivity) broker.getObject(OpActivity.class, activityId);
-         int activityType = activity.getType();
-         int totalChildCount = OpActivityDataSetFactory.getSubactivitiesCount(broker, activity);
-         int subTasksCount = ((Number) result[1]).intValue();
+            Long activityId = (Long) result[0];
+            OpActivity activity = (OpActivity) broker.getObject(OpActivity.class, activityId);
+            int activityType = activity.getType();
+            int totalChildCount = OpActivityDataSetFactory.getSubactivitiesCount(broker, activity);
+            int subTasksCount = ((Number) result[1]).intValue();
 
-         if (totalChildCount == subTasksCount && activityType != OpActivity.COLLECTION_TASK && activityType != OpActivity.SCHEDULED_TASK) {
-            //<FIXME author="Horia Chiorean" description="Shouldn't we remove assignments and work-records ?">
-            activity.setType(OpActivity.SCHEDULED_TASK);
-            broker.updateObject(activity);
-            //<FIXME>
-         }
-         else {
-            queryBuffer = new StringBuffer("select subActivity ");
-            queryBuffer.append(" from OpActivity activity inner join activity.SubActivities subActivity ");
-            queryBuffer.append(" where activity.ID=? and subActivity.Deleted=false and (subActivity.Type=? or subActivity.Type=?) ");
-            query = broker.newQuery(queryBuffer.toString());
-            query.setLong(0, activity.getID());
-            query.setByte(1, OpActivity.TASK);
-            query.setByte(2, OpActivity.COLLECTION_TASK);
-            for (Object o : broker.list(query)) {
-               OpActivity subTask = (OpActivity) o;
-               subTask.setStart(activity.getStart());
-               subTask.setFinish(activity.getFinish());
-               subTask.setDuration(activity.getDuration());
-               if (OpActivityDataSetFactory.getSubactivitiesCount(broker, subTask) == 0) {
-                  subTask.setType(OpActivityVersion.STANDARD);
+            if (totalChildCount == subTasksCount && activityType != OpActivity.COLLECTION_TASK && activityType != OpActivity.SCHEDULED_TASK) {
+               //<FIXME author="Horia Chiorean" description="Shouldn't we remove assignments and work-records ?">
+               activity.setType(OpActivity.SCHEDULED_TASK);
+               broker.updateObject(activity);
+               //<FIXME>
+            }
+            else {
+               queryBuffer = new StringBuffer("select subActivity ");
+               queryBuffer.append(" from OpActivity activity inner join activity.SubActivities subActivity ");
+               queryBuffer.append(" where activity.ID=? and subActivity.Deleted=false and (subActivity.Type=? or subActivity.Type=?) ");
+               query = broker.newQuery(queryBuffer.toString());
+               query.setLong(0, activity.getID());
+               query.setByte(1, OpActivity.TASK);
+               query.setByte(2, OpActivity.COLLECTION_TASK);
+               for (Object o : broker.list(query)) {
+                  OpActivity subTask = (OpActivity) o;
+                  subTask.setStart(activity.getStart());
+                  subTask.setFinish(activity.getFinish());
+                  subTask.setDuration(activity.getDuration());
+                  if (OpActivityDataSetFactory.getSubactivitiesCount(broker, subTask) == 0) {
+                     subTask.setType(OpActivityVersion.STANDARD);
+                  }
+                  else {
+                     subTask.setType(OpActivityVersion.COLLECTION);
+                  }
+                  broker.updateObject(subTask);
                }
-               else {
-                  subTask.setType(OpActivityVersion.COLLECTION);
-               }
-               broker.updateObject(subTask);
             }
          }
+         t.commit();
       }
-      t.commit();
-      broker.closeAndEvict();
+      finally {
+         broker.closeAndEvict();
+      }
    }
 
    /**
@@ -430,51 +469,55 @@ public class OpProjectPlanningModule extends OpModule {
       queryBuffer.append(" group by activityVersion.ID");
       queryBuffer.append(" having count(subActivityVersion) > 0");
       OpQuery query = broker.newQuery(queryBuffer.toString());
-      query.setLong(0, projectPlanVersionId);
-      query.setByte(1, OpActivity.TASK);
-      query.setByte(2, OpActivity.COLLECTION_TASK);
-      Iterator it = broker.iterate(query);
-      OpTransaction t = broker.newTransaction();
-      while (it.hasNext()) {
-         Object[] result = (Object[]) it.next();
+      try {
+         query.setLong(0, projectPlanVersionId);
+         query.setByte(1, OpActivity.TASK);
+         query.setByte(2, OpActivity.COLLECTION_TASK);
+         Iterator it = broker.iterate(query);
+         OpTransaction t = broker.newTransaction();
+         while (it.hasNext()) {
+            Object[] result = (Object[]) it.next();
 
-         Long activityVersionId = (Long) result[0];
-         OpActivityVersion activityVersion = (OpActivityVersion) broker.getObject(OpActivityVersion.class, activityVersionId);
-         int activityVersionType = activityVersion.getType();
-         int totalChildCount = OpActivityVersionDataSetFactory.getSubactivityVersionsCount(broker, activityVersion);
-         int subTaskVersionsCount = ((Number) result[1]).intValue();
+            Long activityVersionId = (Long) result[0];
+            OpActivityVersion activityVersion = (OpActivityVersion) broker.getObject(OpActivityVersion.class, activityVersionId);
+            int activityVersionType = activityVersion.getType();
+            int totalChildCount = OpActivityVersionDataSetFactory.getSubactivityVersionsCount(broker, activityVersion);
+            int subTaskVersionsCount = ((Number) result[1]).intValue();
 
-         if (totalChildCount == subTaskVersionsCount && activityVersionType != OpActivity.COLLECTION_TASK && activityVersionType != OpActivity.SCHEDULED_TASK) {
-            //<FIXME author="Horia Chiorean" description="Shouldn't we also remove assignments and work-records ?">
-            activityVersion.setType(OpActivity.SCHEDULED_TASK);
-            broker.updateObject(activityVersion);
-            //<FIXME>
-         }
-         else {
-            queryBuffer = new StringBuffer("select subActivityVersion ");
-            queryBuffer.append(" from OpActivityVersion activityVersion inner join activityVersion.SubActivityVersions subActivityVersion ");
-            queryBuffer.append(" where activityVersion.ID=? and subActivityVersion.Activity.Deleted=false and (subActivityVersion.Type=? or subActivityVersion.Type=?) ");
-            query = broker.newQuery(queryBuffer.toString());
-            query.setLong(0, activityVersion.getID());
-            query.setByte(1, OpActivity.TASK);
-            query.setByte(2, OpActivity.COLLECTION_TASK);
-            for (Object o : broker.list(query)) {
-               OpActivityVersion subTaskVersion = (OpActivityVersion) o;
-               subTaskVersion.setStart(activityVersion.getStart());
-               subTaskVersion.setFinish(activityVersion.getFinish());
-               subTaskVersion.setDuration(activityVersion.getDuration());
-               if (OpActivityVersionDataSetFactory.getSubactivityVersionsCount(broker, subTaskVersion) == 0) {
-                  subTaskVersion.setType(OpActivityVersion.STANDARD);
+            if (totalChildCount == subTaskVersionsCount && activityVersionType != OpActivity.COLLECTION_TASK && activityVersionType != OpActivity.SCHEDULED_TASK) {
+               //<FIXME author="Horia Chiorean" description="Shouldn't we also remove assignments and work-records ?">
+               activityVersion.setType(OpActivity.SCHEDULED_TASK);
+               broker.updateObject(activityVersion);
+               //<FIXME>
+            }
+            else {
+               queryBuffer = new StringBuffer("select subActivityVersion ");
+               queryBuffer.append(" from OpActivityVersion activityVersion inner join activityVersion.SubActivityVersions subActivityVersion ");
+               queryBuffer.append(" where activityVersion.ID=? and subActivityVersion.Activity.Deleted=false and (subActivityVersion.Type=? or subActivityVersion.Type=?) ");
+               query = broker.newQuery(queryBuffer.toString());
+               query.setLong(0, activityVersion.getID());
+               query.setByte(1, OpActivity.TASK);
+               query.setByte(2, OpActivity.COLLECTION_TASK);
+               for (Object o : broker.list(query)) {
+                  OpActivityVersion subTaskVersion = (OpActivityVersion) o;
+                  subTaskVersion.setStart(activityVersion.getStart());
+                  subTaskVersion.setFinish(activityVersion.getFinish());
+                  subTaskVersion.setDuration(activityVersion.getDuration());
+                  if (OpActivityVersionDataSetFactory.getSubactivityVersionsCount(broker, subTaskVersion) == 0) {
+                     subTaskVersion.setType(OpActivityVersion.STANDARD);
+                  }
+                  else {
+                     subTaskVersion.setType(OpActivityVersion.COLLECTION);
+                  }
+                  broker.updateObject(subTaskVersion);
                }
-               else {
-                  subTaskVersion.setType(OpActivityVersion.COLLECTION);
-               }
-               broker.updateObject(subTaskVersion);
             }
          }
+         t.commit();
       }
-      t.commit();
-      broker.closeAndEvict();
+      finally {
+         broker.closeAndEvict();
+      }
    }
 
 

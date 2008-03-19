@@ -6,7 +6,6 @@
       <data-set id="goals_set"/>
       <data-set id="resource_set"/>
       <data-set id="versions_set"/>
-      <data-set id="attachment_set"/>
 
       <label y="0" id="ConfirmChangeLabel"/>
       <panel y="1" layout="flow" direction="west">

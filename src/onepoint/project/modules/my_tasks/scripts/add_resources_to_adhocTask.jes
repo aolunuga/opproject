@@ -12,12 +12,14 @@ function addResource(event) {
 
    i = 0;
    j = 0;
+   resourceIds = new HashSet;
+
    while (i < excludedResourceSet.getChildCount()) {
       if (!resourceList.contains(excludedResourceSet.getChild(i).getStringValue())) {
-         resource_ids[j] = XValidator.choiceID(excludedResourceSet.getChild(i).getStringValue());
+         resourceIds.add(XValidator.choiceID(excludedResourceSet.getChild(i).getStringValue()));
          j++;
       }
       i++;
    }
-   openResourceChooser("MainFrame", "addResourceOk", resource_ids, false, false, true, null);
+   openResourceChooser("MainFrame", "addResourceOk", resourceIds, false, false, true, null);
 }

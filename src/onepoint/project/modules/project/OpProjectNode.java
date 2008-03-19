@@ -8,6 +8,8 @@ import onepoint.persistence.OpCustomSubTypable;
 import onepoint.persistence.OpEntityException;
 import onepoint.persistence.OpObject;
 import onepoint.persistence.OpSubTypable;
+import onepoint.project.modules.custom_attribute.OpCustomType;
+import onepoint.project.modules.documents.OpFolder;
 import onepoint.project.modules.report.OpReport;
 
 import java.sql.Date;
@@ -21,6 +23,7 @@ public class OpProjectNode extends OpObject implements OpSubTypable, OpCustomSub
 
    public final static String NAME = "Name";
    public final static String TYPE = "Type";
+   public final static String CUSTOM_TYPE = "CustomType";
    public final static String DESCRIPTION = "Description";
    public final static String START = "Start";
    public final static String FINISH = "Finish";
@@ -56,7 +59,7 @@ public class OpProjectNode extends OpObject implements OpSubTypable, OpCustomSub
 
    private String name;
    private byte type;
-   private String customTypeName;
+   private OpCustomType customType;
    private String description;
    private Date start;
    private Date finish;
@@ -75,6 +78,7 @@ public class OpProjectNode extends OpObject implements OpSubTypable, OpCustomSub
    private OpProjectStatus status;
    private Set<OpAttachment> attachments = new HashSet<OpAttachment>();
    private Set<OpReport> reports  = new HashSet<OpReport>();
+   private Set<OpFolder> folders = new HashSet<OpFolder>();
 
    public void setName(String name) {
       this.name = name;
@@ -88,15 +92,15 @@ public class OpProjectNode extends OpObject implements OpSubTypable, OpCustomSub
       this.type = type;
    }
 
-   private void setCustomTypeName(String customTypeName) {
-      this.customTypeName = customTypeName;
+   public void setCustomType(OpCustomType customType) {
+      this.customType = customType;
    }
 
    /* (non-Javadoc)
     * @see onepoint.persistence.OpCustomSubTypable#getCustomTypeName()
     */
-   public String getCustomTypeName() {
-      return customTypeName;
+   public OpCustomType getCustomType() {
+      return customType;
    }
 
    public Byte getType() {
@@ -231,6 +235,22 @@ public class OpProjectNode extends OpObject implements OpSubTypable, OpCustomSub
     */
    public Set<OpReport> getReports() {
       return reports;
+   }
+
+   /**
+    * Sets the <code>Set</code> of folders defined on this project.
+    * @param folders - the <code>Set</code> of folders.
+    */
+   public void setFolders(Set<OpFolder> folders) {
+      this.folders = folders;
+   }
+
+   /**
+    * Gets the <code>Set</code> of folders defined on this project.
+    * @return a <code>Set</code> containing the folders defined on this project.
+    */
+   public Set<OpFolder> getFolders() {
+      return folders;
    }
 
    /**

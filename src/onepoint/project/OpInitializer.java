@@ -7,7 +7,10 @@ package onepoint.project;
 import onepoint.express.server.XExpressSession;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.*;
+import onepoint.persistence.OpConnectionManager;
+import onepoint.persistence.OpPersistenceManager;
+import onepoint.persistence.OpSource;
+import onepoint.persistence.OpSourceManager;
 import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.configuration.OpConfigurationLoader;
@@ -18,7 +21,6 @@ import onepoint.project.module.OpModuleManager;
 import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.modules.configuration_wizard.OpConfigurationWizardManager;
 import onepoint.project.modules.mail.OpMailer;
-import onepoint.project.modules.user.OpUserService;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.*;
@@ -59,6 +61,11 @@ public class OpInitializer {
     * The start form of the application.
     */
    protected String startForm;
+
+   /**
+    * The auto login start form of the application.
+    */
+   protected String autoLoginStartForm;
 
    /**
     * The code of the db connection test
@@ -107,6 +114,15 @@ public class OpInitializer {
     */
    public String getStartForm() {
       return startForm;
+   }
+
+   /**
+    * Returns the auto login start form of the application
+    *
+    * @return <code>String</code> auto login start form
+    */
+   public String getAutoLoginStartForm() {
+      return autoLoginStartForm;
    }
 
    /**
@@ -218,14 +234,16 @@ public class OpInitializer {
    }
 
    /**
-    * Determine the start form of the application based on the run level.
+    * Determine the auto login start form and the start form of the application based on the run level.
     */
    protected void determineStartForm() {
       startForm = OpEnvironmentManager.getStartForm();
+      autoLoginStartForm = OpEnvironmentManager.getAutoLoginStartForm();
       if (runLevel == OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL) {
          startForm = OpProjectConstants.CONFIGURATION_WIZARD_FORM;
       }
       initParams.put(OpProjectConstants.START_FORM, startForm);
+      initParams.put(OpProjectConstants.AUTO_LOGIN_START_FORM, autoLoginStartForm);
    }
 
    /**
@@ -304,8 +322,7 @@ public class OpInitializer {
       OpSourceManager.closeAllSources();
 
       for (OpSource dataSource : createDefaultSources(databaseUrl, databaseDriver, databaseLogin, databasePassword, databaseType)) {
-         OpSourceManager.registerSource(dataSource);
-         dataSource.open();
+         registerSource(dataSource);
       }
    }
 
@@ -321,9 +338,18 @@ public class OpInitializer {
    private void registerAdditionalDataSources(String databaseUrl, String databaseDriver,
         String databaseLogin, String databasePassword, int databaseType) {
       for (OpSource dataSource : createAdditionalSources(databaseUrl, databaseDriver, databaseLogin, databasePassword, databaseType)) {
-         OpSourceManager.registerSource(dataSource);
-         dataSource.open();
+         registerSource(dataSource);
       }
+   }
+
+   /**
+    * Register and open a source
+    *
+    * @param source sorce to be registered.
+    */
+   protected void registerSource(OpSource source) {
+      OpSourceManager.registerSource(source);
+      source.open();
    }
 
    /**
@@ -420,20 +446,20 @@ public class OpInitializer {
    }
 
    /**
-    * Creates an empty db schema, if necessary.
+    * Creates an empty db schema, if necessary. The check to see whether the schema is
+    * empty or not is done by searching the global "op_object" table.
+    *
+    * @throws UnsupportedOperationException if the default application source has not
+    *                                       been registered with the <code>OpSourceManager</code>.
     */
    private void createEmptySchema() {
-      Collection<OpSource> allSources = OpSourceManager.getAllSources();
-      for (OpSource source : allSources) {
-         if (!source.existsTable(OpProjectConstants.OP_OBJECT_TABLE_NAME)) {
-            OpPersistenceManager.createSchema();
-         }
+      OpSource defaultSource = OpSourceManager.getDefaultSource();
+      if (defaultSource == null) {
+         throw new UnsupportedOperationException("The default source has not been registered yet ");
+      }
 
-         OpBroker broker = OpPersistenceManager.newBroker(source.getName());
-         // Create identification-related system objects (helpers supply their own transactions)
-         OpUserService.createAdministrator(broker);
-         OpUserService.createEveryone(broker);
-         broker.close();
+     	if (!defaultSource.existsTable(OpProjectConstants.OP_OBJECT_TABLE_NAME)) {
+         OpPersistenceManager.createSchema();
       }
    }
 
@@ -469,14 +495,12 @@ public class OpInitializer {
         throws SQLException {
       logger.info("Stopping modules");
       OpModuleManager.stop();
-
-      logger.info("Dropping schema...");
-      OpPersistenceManager.dropSchema();
+      
+      logger.info("Updating DB schema...");
+      OpPersistenceManager.updateDBSchema();
+      
       OpSourceManager.clearAllSources();
-
-      logger.info("Creating schema...");
-      createEmptySchema();
-
+            
       logger.info("Starting modules");
       OpModuleManager.start();
 

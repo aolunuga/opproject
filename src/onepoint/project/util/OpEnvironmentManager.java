@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * Environment manager class for the One Point applications.
+ * Environment manager class for the Onepoint applications.
  *
  * @author horia.chiorean
  */
@@ -54,12 +54,23 @@ public final class OpEnvironmentManager {
    /**
     * A map of [productCode, boolean] pairs, indicating which application is multi user and which is not.
     */
-   private static final Map PRODUCT_CODES_MAP = new HashMap();
+   private static final Map<String, Boolean> PRODUCT_CODES_MAP = new HashMap<String, Boolean>();
 
    /**
     * A map of [productCode, String] pairs, indicating which start form should be used for each type of application.
     */
-   private static final Map CODE_START_FORM_MAP = new HashMap();
+   private static final Map<String, String> CODE_START_FORM_MAP = new HashMap<String, String>();
+
+   /**
+    * A map of [productCode (String), about image path (String)] pairs
+    */
+   private static final Map<String, String> ABOUT_IMAGE_MAP = new HashMap<String, String>();
+
+   /**
+    * A map of [productCode, String] pairs, indicating which start form should be used for each type of application
+    * in the case of autologin.
+    */
+   private static final Map<String, String> CODE_START_FORM_AUTO_LOGIN_MAP = new HashMap<String, String>();
 
    /**
     * Initialize the product codes map
@@ -67,6 +78,7 @@ public final class OpEnvironmentManager {
    static {
       PRODUCT_CODES_MAP.put(OpProjectConstants.BASIC_EDITION_CODE, Boolean.FALSE);
       PRODUCT_CODES_MAP.put(OpProjectConstants.PROFESSIONAL_EDITION_CODE, Boolean.FALSE);
+      PRODUCT_CODES_MAP.put(OpProjectConstants.STANDARD_EDITION_CODE, Boolean.FALSE);
       PRODUCT_CODES_MAP.put(OpProjectConstants.OPEN_EDITION_CODE, Boolean.TRUE);
       PRODUCT_CODES_MAP.put(OpProjectConstants.TEAM_EDITION_CODE, Boolean.TRUE);
       PRODUCT_CODES_MAP.put(OpProjectConstants.ON_DEMAND_EDITION_CODE, Boolean.TRUE);
@@ -74,10 +86,24 @@ public final class OpEnvironmentManager {
 
       CODE_START_FORM_MAP.put(OpProjectConstants.BASIC_EDITION_CODE, "/forms/start.oxf.xml");
       CODE_START_FORM_MAP.put(OpProjectConstants.PROFESSIONAL_EDITION_CODE, "/team/forms/start.oxf.xml");
+      CODE_START_FORM_MAP.put(OpProjectConstants.STANDARD_EDITION_CODE, "/team/forms/start.oxf.xml");
       CODE_START_FORM_MAP.put(OpProjectConstants.OPEN_EDITION_CODE, "/forms/login.oxf.xml");
       CODE_START_FORM_MAP.put(OpProjectConstants.TEAM_EDITION_CODE, "/team/forms/login.oxf.xml");
-      CODE_START_FORM_MAP.put(OpProjectConstants.ON_DEMAND_EDITION_CODE, "/team/forms/login.oxf.xml");
+      CODE_START_FORM_MAP.put(OpProjectConstants.ON_DEMAND_EDITION_CODE, "/od/forms/login.oxf.xml");
       CODE_START_FORM_MAP.put(OpProjectConstants.NETWORK_EDITION_CODE, "/team/forms/login.oxf.xml");
+
+      ABOUT_IMAGE_MAP.put(OpProjectConstants.BASIC_EDITION_CODE, "/application/about_basic.png");
+      ABOUT_IMAGE_MAP.put(OpProjectConstants.STANDARD_EDITION_CODE, "/standard/about_standard.png");
+      ABOUT_IMAGE_MAP.put(OpProjectConstants.PROFESSIONAL_EDITION_CODE, "/professional/about_pro.png");
+      ABOUT_IMAGE_MAP.put(OpProjectConstants.OPEN_EDITION_CODE, "/servlet/about_open.png");
+      ABOUT_IMAGE_MAP.put(OpProjectConstants.TEAM_EDITION_CODE, "/servlet/about_enterprise.png");
+      ABOUT_IMAGE_MAP.put(OpProjectConstants.NETWORK_EDITION_CODE, "/servlet/about_network.png");
+      ABOUT_IMAGE_MAP.put(OpProjectConstants.ON_DEMAND_EDITION_CODE, "/od/servlet/about_ondemand.png");
+
+      CODE_START_FORM_AUTO_LOGIN_MAP.put(OpProjectConstants.OPEN_EDITION_CODE, "/forms/start.oxf.xml");
+      CODE_START_FORM_AUTO_LOGIN_MAP.put(OpProjectConstants.TEAM_EDITION_CODE, "/team/forms/start.oxf.xml");
+      CODE_START_FORM_AUTO_LOGIN_MAP.put(OpProjectConstants.ON_DEMAND_EDITION_CODE, "/od/forms/start.oxf.xml");
+      CODE_START_FORM_AUTO_LOGIN_MAP.put(OpProjectConstants.NETWORK_EDITION_CODE, "/team/forms/start.oxf.xml");
    }
 
    /**
@@ -217,24 +243,30 @@ public final class OpEnvironmentManager {
       }
       else {
          if (DATA_FOLDER_PATH == null) {
-            String userHome = System.getProperty("user.home");
-            String path;
-            if (OpEnvironmentManager.OS_NAME.equals("Mac OS X")) {
-               //$HOME/Library/Application Support/Onepoint Project
-               path = userHome + File.separator + "Library" + File.separator + "Application Support" +
-                    File.separator + ONEPOINT_FOLDER;
-            }
-            else {
-               //$HOME/Onepoint Project
-               path = userHome + File.separator + ONEPOINT_FOLDER;
-            }
-            path = XEnvironmentManager.convertPathToSlash(path);
+            String path = createDataFolderPath();
             setDataFolderPath(path);
          }
       }
       return DATA_FOLDER_PATH;
    }
 
+   /**
+    * Returns the path to the onepoint data directory. This path is system dependent. The returned path will NOT be set
+    *    as the data folder path.
+    *
+    * @return Path of the onepoint data folder. Path uses "/" separator.
+    */
+   public static String getDataFolderVirtualPath() {
+      if (isMultiUser()) {
+         return getOnePointHome();
+      }
+      else {
+         if (DATA_FOLDER_PATH == null) {
+            return createDataFolderPath();
+         }
+      }
+      return DATA_FOLDER_PATH;
+   }
 
    /**
     * Returns the value of the multi-user flag, using the product code.
@@ -274,12 +306,39 @@ public final class OpEnvironmentManager {
    }
 
    /**
+    * Returns the path of the about image based on the product code.
+    *
+    * @return about image path.
+    */
+   public static String getAboutImage() {
+      return ABOUT_IMAGE_MAP.get(getProductCode());
+   }
+
+   /**
+    * Returns the path of the start form of the application based on the product code when the user is logged in automatically.
+    *
+    * @return start form path.
+    */
+   public static String getAutoLoginStartForm() {
+      return (String) CODE_START_FORM_AUTO_LOGIN_MAP.get(getProductCode());
+   }
+
+   /**
     * sets the product code
     *
     * @param productCode new product code
     */
    public static void setProductCode(String productCode) {
       OpEnvironmentManager.productCode = productCode;
+   }
+
+   /**
+    * Returns the product code, together the version numbers.
+    *
+    * @return a <code>String</code> composed of: "productCodeName" + "majorVersion" + "minorVersion";
+    */
+   public static String getProductString() {
+      return productCode + OpProjectConstants.CODE_VERSION_MAJOR_NUMBER + OpProjectConstants.CODE_VERSION_MINOR_NUMBER;
    }
 
    /**
@@ -318,6 +377,27 @@ public final class OpEnvironmentManager {
             }
          }
       }
+   }
+
+   /**
+    * Creates the path to the onepoint data directory. This path is system dependent.
+    *
+    * @return the <code>String</code> representing the path to the onepoint data directory.
+    */
+   private static String createDataFolderPath() {
+      String userHome = System.getProperty("user.home");
+      String path;
+      if (OpEnvironmentManager.OS_NAME.equals("Mac OS X")) {
+         //$HOME/Library/Application Support/Onepoint Project
+         path = userHome + File.separator + "Library" + File.separator + "Application Support" +
+              File.separator + ONEPOINT_FOLDER;
+      }
+      else {
+         //$HOME/Onepoint Project
+         path = userHome + File.separator + ONEPOINT_FOLDER;
+      }
+      path = XEnvironmentManager.convertPathToSlash(path);
+      return path;
    }
 }
 

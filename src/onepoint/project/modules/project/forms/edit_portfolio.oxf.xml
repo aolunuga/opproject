@@ -1,6 +1,9 @@
-<form layout="border" width="400" height="240" text="${EditPortfolio}" start-focus-ref="Name" default-button-ref="okButton" resource-map-ref="project.EditPortfolio" provider-class="onepoint.project.modules.project.forms.OpEditPortfolioFormProvider" script="/modules/project/scripts/edit_portfolio.jes">
+<form layout="border" width="400" height="400" text="${EditPortfolio}" start-focus-ref="Name" default-button-ref="okButton" resource-map-ref="project.EditPortfolio" provider-class="onepoint.project.modules.project.forms.OpEditPortfolioFormProvider" script="/modules/project/scripts/edit_portfolio.jes">
+   <data-set id="SubTypeSet"/>
+
    <data-field id="PortfolioID"/>
    <data-field id="EditMode"/>
+
    <panel y="0" layout="border">
    <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
 
@@ -8,7 +11,15 @@
 
    <tab text="${General}" layout="table" id="GeneralTab">
       <label x="0" y="0" width="2" text="${Name}" style-ref="label-emphasized-default"/><text-field x="2" y="0" width="3" id="Name"/>
-      <label x="0" y="1" width="2" text="${Description}"/><text-box x="2" y="1" width="3" id="Description"/>
+      <label x="0" y="1" width="2" text="${SubType}"/><choice-field x="2" y="1" width="3" id="SubTypeField" on-value-changed="subTypeChanged" data-set-ref="SubTypeSet"/>
+      <label x="0" y="2" width="2" text="${Description}"/><text-box x="2" y="2" width="3" id="Description"/>
+   </tab>
+
+   <tab text="${CustomAttributes}" layout="border" id="customAttributesTab"
+        parent-id="TabBoxId" hidden="true">
+      <scroll-box flexible="true" style-ref="tab-box-default" borderless="true">
+         <panel layout="table" flexible="true" borderless="true" id="customAttributes" />
+      </scroll-box>
    </tab>
 
    <tab text="${Permissions}" layout="border" id="PermissionsTab">

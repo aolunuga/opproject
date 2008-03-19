@@ -30,8 +30,11 @@ function newPool(event) {
 
    dialog = XComponent.newDialog();
    dialog.setText("Neuer Pool");
-   dialog.open("/modules/resource/forms/new_pool.oxf.xml", parameters);
+   openNewPoolDialog(dialog, parameters);
+}
 
+function openNewPoolDialog(dialog, parameters) {
+   dialog.open("/modules/resource/forms/new_pool.oxf.xml", parameters);
 }
 
 function newResource(event) {
@@ -234,7 +237,7 @@ function edit(event) {
          if (is_pool) {
             parameters.pool_id = selected_rows[0].getStringValue();
             dialog = XComponent.newDialog();
-            dialog.open("/modules/resource/forms/edit_pool.oxf.xml", parameters);
+            openEditPoolDialog(dialog, parameters);
          }
          else {
             parameters.resource_id = selected_rows[0].getStringValue();
@@ -243,6 +246,10 @@ function edit(event) {
          }
       }
    }
+}
+
+function openEditPoolDialog(dialog, parameters) {
+   dialog.open("/modules/resource/forms/edit_pool.oxf.xml", parameters);
 }
 
 function openEditDialog(dialog, parameters) {

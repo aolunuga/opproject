@@ -220,7 +220,6 @@ public class OpNewConfigurationHandler {
          });
          File configFile = new File("/usr/users/dfreis/projects/trunk/opproject_closed/build/classes/onepoint/project/team/test/configuration.oxc.xml");
   //       File configFile = new File(OpEnvironmentManager.getOnePointHome(), CONFIGURATION_FILE_NAME);
-         System.err.println("XXXXXXXXXX: "+configFile.getAbsolutePath());
          FileInputStream is = new FileInputStream(configFile);
 
          JAXBElement<?> poElement = (JAXBElement<?>) unmarshaller.unmarshal(is);

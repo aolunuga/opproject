@@ -58,7 +58,7 @@ public class OpReportListFormProvider implements XFormProvider {
       XComponent resultRow = null;
       //fill the currency field
       XComponent currencyField = form.findComponent(CURRENCY_FIELD);
-      currencyField.setStringValue(OpSettingsService.getService().get(OpSettings.CURRENCY_SYMBOL));    
+      currencyField.setStringValue(OpSettingsService.getService().get(s, OpSettings.CURRENCY_SYMBOL));    
 
       //Now we deal with the jasper-stuff...
       String currLocale = s.getLocale().getID();

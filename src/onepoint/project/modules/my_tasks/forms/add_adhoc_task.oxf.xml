@@ -6,6 +6,7 @@
    <data-set id="ResourceSet"/>
    <data-set id="ProjectSet"/>
    <data-field id="ProjectToResourceMap"/>
+   <data-field id="ViewedNewContents"/>
 
    <data-field id="AllResources"/>
 

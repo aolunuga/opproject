@@ -9,6 +9,8 @@
    <data-field id="DeletePermissionSet"/>
    <data-field id="NoResourcesForUser" text="${NoResourcesForUser}"/>
    <data-field id="ResourceAvailability"/>
+   <data-field id="ExistingWorkSlip"/>
+   <data-field id="EditableWorkSlip"/>
 
    <pop-up-menu id="ActivityTablePopupMenu">
       <pop-up-item text="${SaveCSV}" on-item-selected="saveActivityTableCSV"/>

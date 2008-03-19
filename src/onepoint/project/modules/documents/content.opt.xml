@@ -6,4 +6,5 @@
    <relationship name="Attachments" collection-type="Set" type="OpAttachment" back-relationship="Content" inverse="true"/>
    <relationship name="AttachmentVersions" collection-type="Set" type="OpAttachmentVersion" back-relationship="Content" inverse="true"/>
    <relationship name="Documents" collection-type="Set" type="OpDocument" back-relationship="Content" inverse="true"/>
+   <relationship name="DocumentNodes" collection-type="Set" type="OpDocumentNode" back-relationship="Content" inverse="true"/>
 </prototype>

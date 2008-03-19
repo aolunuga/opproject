@@ -22,6 +22,7 @@ public class OpCostRecord extends OpObject implements OpSubTypable {
 
    public final static String COST_RECORD = "OpCostRecord";
 
+   public static final byte COST_TYPE_UNDEFINED = 0;
    public static final byte TRAVEL_COST = 2;
    public static final byte MATERIAL_COST = 3;
    public static final byte EXTERNAL_COST = 4;

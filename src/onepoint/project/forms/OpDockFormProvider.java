@@ -4,6 +4,12 @@
 
 package onepoint.project.forms;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import onepoint.express.XComponent;
 import onepoint.express.XExtendedComponent;
 import onepoint.express.server.XFormProvider;
@@ -17,12 +23,11 @@ import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.util.OpEnvironmentManager;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
-
-import java.util.*;
 
 /**
  * Form provider class for the application's navigation dock.
@@ -43,7 +48,9 @@ public class OpDockFormProvider implements XFormProvider {
    private static final String RESOURCES_TOOL_GROUP_NAME = "resources";
    private static final String REPORTS_TOOL_GROUP_NAME = "reports";
    private static final String CATEGORY_NAME = "category";
-   private static final String DEFAULT_CATEGORY = "default";
+   static final String DEFAULT_CATEGORY = "default";
+
+   private final static String FORM_ID = "NavigationBox";
 
    /**
     * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession, onepoint.express.XComponent, java.util.HashMap)
@@ -51,17 +58,21 @@ public class OpDockFormProvider implements XFormProvider {
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
       XComponent navigationBox = form.findComponent(NAVIGATION_BOX);
-      String category = (String) parameters.get(CATEGORY_NAME);
+      String category = (String) parameters.get(OpProjectConstants.CATEGORY_NAME);
+      
       XComponent categoryComp = form.findComponent(CATEGORY_NAME);
       if (category != null) {
-         categoryComp.setStringValue(category);
+         session.setVariable(OpProjectConstants.CATEGORY_NAME, category);
       }
       else {
-         category = categoryComp.getStringValue();
+         category = (String) session.getVariable(OpProjectConstants.CATEGORY_NAME);
          if (category == null) {
             category = DEFAULT_CATEGORY;
+            session.setVariable(OpProjectConstants.CATEGORY_NAME, category);            
          }
       }
+      categoryComp.setStringValue(category);
+      
       //add the tool groups
       Map<String, XComponent> navigationGroupMap = addToolGroups(session, navigationBox, category);
 
@@ -75,23 +86,28 @@ public class OpDockFormProvider implements XFormProvider {
     * @param navigationGroupMap a <code>Map</code> of [String, XComponent(NAVIGATION_GROUP)] pairs.
     */
    private void addTools(OpProjectSession session, Map<String, XComponent> navigationGroupMap) {
-      List<List<OpTool>> toolLists = removeToolsWithHigherLevels(session);
-
-      for (List<OpTool> toolList : toolLists) {
-         for (OpTool tool : toolList) {
-            //link the tools
-            if (tool.getGroupRef() != null) {
-               XComponent navigationGroup = (XComponent) navigationGroupMap.get(tool.getGroupRef());
-               //navigation group might be null 
-               if (navigationGroup != null) {
-                  XComponent navigationItem = createNavigationItem(tool, session);
-                  navigationGroup.addChild(navigationItem);
-                  if (navigationItem.getSelected()) {
-                     navigationGroup.setSelectedIndex(new Integer(navigationItem.getIndex()));
+      OpBroker broker = session.newBroker();
+      try {
+         List<List<OpTool>> toolLists = prepareToolSet(session, broker);
+         for (List<OpTool> toolList : toolLists) {
+            for (OpTool tool : toolList) {
+               //link the tools
+               if (tool.getGroupRef() != null) {
+                  XComponent navigationGroup = (XComponent) navigationGroupMap.get(tool.getGroupRef());
+                  //navigation group might be null 
+                  if (navigationGroup != null) {
+                     XComponent navigationItem = createNavigationItem(tool, session);
+                     navigationGroup.addChild(navigationItem);
+                     if (navigationItem.getSelected()) {
+                        navigationGroup.setSelectedIndex(new Integer(navigationItem.getIndex()));
+                     }
                   }
                }
             }
          }
+      }
+      finally {
+         broker.close();
       }
    }
 
@@ -99,8 +115,8 @@ public class OpDockFormProvider implements XFormProvider {
     * Checks the setting that hides manager features and sets(if the setting is set to true)/removes(if the setting
     *    is set to false) the manager level on the tools that need to be hidden/shown from non manager users.
     */
-   private void modifyToolManagerLevel() {
-      Boolean hideManagerFeatures = Boolean.valueOf(OpSettingsService.getService().get(OpSettings.HIDE_MANAGER_FEATURES));
+   protected void modifyToolManagerLevel(OpProjectSession session) {
+      Boolean hideManagerFeatures = Boolean.valueOf(OpSettingsService.getService().get(session, OpSettings.HIDE_MANAGER_FEATURES));
 
       Iterator<List<OpTool>> toolListsIterator = OpToolManager.getToolLists();
       while (toolListsIterator.hasNext()) {
@@ -129,14 +145,13 @@ public class OpDockFormProvider implements XFormProvider {
     * @param session - the <code>OpProjectSession</code> needed to get the user's level
     * @return the list of <code>OpTool</code> objects for which the user has the appropriate level.
     */
-   private List<List<OpTool>> removeToolsWithHigherLevels(OpProjectSession session) {
-      OpBroker broker = session.newBroker();
+   protected List<List<OpTool>> prepareToolSet(OpProjectSession session, OpBroker broker) {
       OpUser user = session.user(broker);
       Byte userLevel = user.getLevel();
 
       //add multi user manager level rights
       if (OpEnvironmentManager.isMultiUser()) {
-         modifyToolManagerLevel();
+         modifyToolManagerLevel(session);
       }
 
       Iterator<List<OpTool>> toolListsIterator = OpToolManager.getToolLists();
@@ -223,20 +238,26 @@ public class OpDockFormProvider implements XFormProvider {
     */
    private Map<String, XComponent> addToolGroups(OpProjectSession session, XComponent navigationBox, String category) {
       Map navigationGroupMap = new HashMap();
-      List<List<OpToolGroup>> groupLists = removeToolGroupsWithHigherLevels(session);
+      OpBroker broker = session.newBroker();
+      try {
+         List<List<OpToolGroup>> groupLists = removeToolGroupsWithHigherLevels(session, broker);
 
-       for (List<OpToolGroup> groupList : groupLists) {
-         for (OpToolGroup group : groupList) {
-            if (category == null || !category.equals(group.getCategory())) {
-               continue;
+         for (List<OpToolGroup> groupList : groupLists) {
+            for (OpToolGroup group : groupList) {
+               if (category == null || !category.equals(group.getCategory())) {
+                  continue;
+               }
+               if (group.isAdministratorOnly() && !session.userIsAdministrator()) {
+                  continue;
+               }
+               XComponent navigationGroup = createNavigationGroup(group, session);
+               navigationBox.addChild(navigationGroup);
+               navigationGroupMap.put(group.getName(), navigationGroup);
             }
-            if (group.isAdministratorOnly() && !session.userIsAdministrator()) {
-               continue;
-            }
-            XComponent navigationGroup = createNavigationGroup(group, session);
-            navigationBox.addChild(navigationGroup);
-            navigationGroupMap.put(group.getName(), navigationGroup);
          }
+      }
+      finally {
+         broker.close();
       }
       return navigationGroupMap;
    }
@@ -245,8 +266,8 @@ public class OpDockFormProvider implements XFormProvider {
     * Checks the setting that hides manager features and sets(if the setting is set to true)/removes(if the setting
     *    is set to false) the manager level on the tool groups that need to be hidden/shown from non manager users.
     */
-   private void modifyToolGroupManagerLevel() {
-      Boolean hideManagerFeatures = Boolean.valueOf(OpSettingsService.getService().get(OpSettings.HIDE_MANAGER_FEATURES));
+   private void modifyToolGroupManagerLevel(OpProjectSession session) {
+      Boolean hideManagerFeatures = Boolean.valueOf(OpSettingsService.getService().get(session, OpSettings.HIDE_MANAGER_FEATURES));
 
      Iterator<List<OpToolGroup>> groupListsIterator = OpToolManager.getGroupLists();
       while (groupListsIterator.hasNext()) {
@@ -274,14 +295,13 @@ public class OpDockFormProvider implements XFormProvider {
     * @param session - the <code>OpProjectSession</code> needed to get the user's level
     * @return the list of <code>OpToolGroup</code> objects for which the user has the appropriate level.
     */
-   private List<List<OpToolGroup>> removeToolGroupsWithHigherLevels(OpProjectSession session) {
-      OpBroker broker = session.newBroker();
+   private List<List<OpToolGroup>> removeToolGroupsWithHigherLevels(OpProjectSession session, OpBroker broker) {
       OpUser user = session.user(broker);
       Byte userLevel = user.getLevel();
 
       //add multi user manager level rights
       if (OpEnvironmentManager.isMultiUser()) {
-         modifyToolGroupManagerLevel();
+         modifyToolGroupManagerLevel(session);
       }
 
       Iterator<List<OpToolGroup>> groupListsIterator = OpToolManager.getGroupLists();

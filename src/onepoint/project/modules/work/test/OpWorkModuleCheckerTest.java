@@ -6,7 +6,12 @@ package onepoint.project.modules.work.test;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpTransaction;
-import onepoint.project.modules.project.*;
+import onepoint.project.modules.project.OpActivity;
+import onepoint.project.modules.project.OpAssignment;
+import onepoint.project.modules.project.OpProjectNode;
+import onepoint.project.modules.project.OpProjectNodeAssignment;
+import onepoint.project.modules.project.OpProjectPlan;
+import onepoint.project.modules.project.OpWorkMonth;
 import onepoint.project.modules.project.test.OpActivityTestDataFactory;
 import onepoint.project.modules.project.test.OpProjectTestDataFactory;
 import onepoint.project.modules.resource.OpResource;
@@ -50,6 +55,7 @@ public class OpWorkModuleCheckerTest extends OpBaseOpenTestCase {
     *
     * @throws Exception If setup process can not be successfuly finished
     */
+   @Override
    protected void setUp()
         throws Exception {
       super.setUp();
@@ -77,19 +83,13 @@ public class OpWorkModuleCheckerTest extends OpBaseOpenTestCase {
       response = OpTestDataFactory.getProjectService().insertProject(session, request);
       assertNoError(response);
       String projectLocator = projectFactory.getProjectId(PROJECT_NAME);
-      OpBroker broker = session.newBroker();
-      try {
-         planLocator = projectFactory.getProjectById(broker, projectLocator).getPlan().locator();
+      planLocator = projectFactory.getProjectById(projectLocator).getPlan().locator();
 
-         //insert two activities for the project
-         Date activity1Start = new Date(getCalendarWithExactDaySet(2007, 10, 12).getTimeInMillis());
-         Date activity1Finish = new Date(getCalendarWithExactDaySet(2007, 10, 14).getTimeInMillis());
-         activity1Locator = insertActivity(PROJECT_NAME, ACTIVITY_NAME + 1, OpActivity.STANDARD, activity1Start, activity1Finish);
-         activity2Locator = insertActivity(PROJECT_NAME, ACTIVITY_NAME + 2, OpActivity.STANDARD, activity1Start, activity1Finish);
-      }
-      finally {
-         broker.close();
-      }
+      //insert two activities for the project
+      Date activity1Start = new Date(getCalendarWithExactDaySet(2007, 10, 12).getTimeInMillis());
+      Date activity1Finish = new Date(getCalendarWithExactDaySet(2007, 10, 14).getTimeInMillis());
+      activity1Locator = insertActivity(PROJECT_NAME, ACTIVITY_NAME + 1, OpActivity.STANDARD, activity1Start, activity1Finish);
+      activity2Locator = insertActivity(PROJECT_NAME, ACTIVITY_NAME + 2, OpActivity.STANDARD, activity1Start, activity1Finish);
    }
 
    /**
@@ -115,161 +115,163 @@ public class OpWorkModuleCheckerTest extends OpBaseOpenTestCase {
 
       //set the progress tracking of the project plan to true
       OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
+      try {
+         OpTransaction t = broker.newTransaction();
 
-      //set the values on the assignments
-      OpAssignment assignment1 = (OpAssignment) broker.getObject(assignment1Locator);
-      assignment1.setActualCosts(5);
-      assignment1.setActualEffort(10);
-      assignment1.setActualProceeds(20d);
-      assignment1.setBaseEffort(24);
-      assignment1.setBaseCosts(48);
-      assignment1.setBaseProceeds(24d);
-      //wrong remaining effort and costs
-      assignment1.setRemainingEffort(0);
-      assignment1.setRemainingPersonnelCosts(0d);
-      assignment1.setRemainingProceeds(0d);
-      broker.updateObject(assignment1);
+         //set the values on the assignments
+         OpAssignment assignment1 = (OpAssignment) broker.getObject(assignment1Locator);
+         assignment1.setActualCosts(5);
+         assignment1.setActualEffort(10);
+         assignment1.setActualProceeds(20d);
+         assignment1.setBaseEffort(24);
+         assignment1.setBaseCosts(48);
+         assignment1.setBaseProceeds(24d);
+         //wrong remaining effort and costs
+         assignment1.setRemainingEffort(0);
+         assignment1.setRemainingPersonnelCosts(0d);
+         assignment1.setRemainingProceeds(0d);
+         broker.updateObject(assignment1);
 
-      OpAssignment assignment2 = (OpAssignment) broker.getObject(assignment2Locator);
-      assignment2.setActualCosts(3);
-      assignment2.setActualEffort(7);
-      assignment2.setActualProceeds(12d);
-      assignment2.setBaseEffort(24);
-      assignment2.setBaseCosts(12);
-      assignment2.setBaseProceeds(15d);
-      //wrong remaining effort and costs
-      assignment2.setRemainingEffort(0);
-      assignment2.setRemainingPersonnelCosts(0d);
-      assignment2.setRemainingProceeds(0d);
-      broker.updateObject(assignment2);
+         OpAssignment assignment2 = (OpAssignment) broker.getObject(assignment2Locator);
+         assignment2.setActualCosts(3);
+         assignment2.setActualEffort(7);
+         assignment2.setActualProceeds(12d);
+         assignment2.setBaseEffort(24);
+         assignment2.setBaseCosts(12);
+         assignment2.setBaseProceeds(15d);
+         //wrong remaining effort and costs
+         assignment2.setRemainingEffort(0);
+         assignment2.setRemainingPersonnelCosts(0d);
+         assignment2.setRemainingProceeds(0d);
+         broker.updateObject(assignment2);
 
-      //set the values on the activities
-      OpActivity activity1 = (OpActivity) broker.getObject(activity1Locator);
-      activity1.setSequence(0);
-      activity1.setActualEffort(10);
-      activity1.setActualExternalCosts(5);
-      activity1.setActualMaterialCosts(6);
-      activity1.setActualMiscellaneousCosts(7);
-      activity1.setActualTravelCosts(8);
-      activity1.setActualPersonnelCosts(10);
-      activity1.setActualProceeds(20d);
-      activity1.setBaseEffort(24);
-      activity1.setBaseExternalCosts(30d);
-      activity1.setBaseMaterialCosts(31d);
-      activity1.setBaseMiscellaneousCosts(32d);
-      activity1.setBaseTravelCosts(33d);
-      //wrong remaining effort and costs
-      activity1.setRemainingEffort(0);
-      activity1.setRemainingExternalCosts(0d);
-      activity1.setRemainingMaterialCosts(0d);
-      activity1.setRemainingMiscellaneousCosts(0d);
-      activity1.setRemainingTravelCosts(0d);
-      broker.updateObject(activity1);
+         //set the values on the activities
+         OpActivity activity1 = (OpActivity) broker.getObject(activity1Locator);
+         activity1.setSequence(0);
+         activity1.setActualEffort(10);
+         activity1.setActualExternalCosts(5);
+         activity1.setActualMaterialCosts(6);
+         activity1.setActualMiscellaneousCosts(7);
+         activity1.setActualTravelCosts(8);
+         activity1.setActualPersonnelCosts(10);
+         activity1.setActualProceeds(20d);
+         activity1.setBaseEffort(24);
+         activity1.setBaseExternalCosts(30d);
+         activity1.setBaseMaterialCosts(31d);
+         activity1.setBaseMiscellaneousCosts(32d);
+         activity1.setBaseTravelCosts(33d);
+         //wrong remaining effort and costs
+         activity1.setRemainingEffort(0);
+         activity1.setRemainingExternalCosts(0d);
+         activity1.setRemainingMaterialCosts(0d);
+         activity1.setRemainingMiscellaneousCosts(0d);
+         activity1.setRemainingTravelCosts(0d);
+         broker.updateObject(activity1);
 
-      OpActivity activity2 = (OpActivity) broker.getObject(activity2Locator);
-      activity2.setSequence(1);
-      activity2.setActualEffort(5);
-      activity2.setActualExternalCosts(9);
-      activity2.setActualMaterialCosts(10);
-      activity2.setActualMiscellaneousCosts(11);
-      activity2.setActualPersonnelCosts(12);
-      activity2.setActualProceeds(24d);
-      activity2.setActualTravelCosts(13);
-      activity2.setBaseEffort(24);
-      //wrong remaining effort and costs
-      activity2.setRemainingEffort(0);
-      activity2.setRemainingExternalCosts(40d);
-      activity2.setRemainingMaterialCosts(41d);
-      activity2.setRemainingMiscellaneousCosts(42d);
-      activity2.setRemainingTravelCosts(43d);
-      broker.updateObject(activity2);
+         OpActivity activity2 = (OpActivity) broker.getObject(activity2Locator);
+         activity2.setSequence(1);
+         activity2.setActualEffort(5);
+         activity2.setActualExternalCosts(9);
+         activity2.setActualMaterialCosts(10);
+         activity2.setActualMiscellaneousCosts(11);
+         activity2.setActualPersonnelCosts(12);
+         activity2.setActualProceeds(24d);
+         activity2.setActualTravelCosts(13);
+         activity2.setBaseEffort(24);
+         //wrong remaining effort and costs
+         activity2.setRemainingEffort(0);
+         activity2.setRemainingExternalCosts(40d);
+         activity2.setRemainingMaterialCosts(41d);
+         activity2.setRemainingMiscellaneousCosts(42d);
+         activity2.setRemainingTravelCosts(43d);
+         broker.updateObject(activity2);
 
-      //set the values on the work records
-      for (OpWorkRecord workRecord : assignment1.getWorkRecords()) {
-         workRecord.setRemainingEffort(14d);
-         //<FIXME author="Mihai Costin" description="This will have no effect if no cost records are created!">
-         workRecord.setExternalCosts(5d);
-         workRecord.setMaterialCosts(8d);
-         workRecord.setMiscellaneousCosts(10d);
-         workRecord.setTravelCosts(12d);
-         workRecord.setRemExternalCosts(25d);
-         workRecord.setRemMaterialCosts(23d);
-         workRecord.setRemMiscCosts(22d);
-         workRecord.setRemTravelCosts(21d);
-         broker.updateObject(workRecord);
+         //set the values on the work records
+         for (OpWorkRecord workRecord : assignment1.getWorkRecords()) {
+            workRecord.setRemainingEffort(14d);
+            //<FIXME author="Mihai Costin" description="This will have no effect if no cost records are created!">
+            workRecord.setExternalCosts(5d);
+            workRecord.setMaterialCosts(8d);
+            workRecord.setMiscellaneousCosts(10d);
+            workRecord.setTravelCosts(12d);
+            workRecord.setRemExternalCosts(25d);
+            workRecord.setRemMaterialCosts(23d);
+            workRecord.setRemMiscCosts(22d);
+            workRecord.setRemTravelCosts(21d);
+            broker.updateObject(workRecord);
+         }
+
+         for (OpWorkRecord workRecord : assignment2.getWorkRecords()) {
+            workRecord.setRemainingEffort(19d);
+            workRecord.setRemExternalCosts(-2d);
+            workRecord.setRemMaterialCosts(-3d);
+            workRecord.setRemMiscCosts(-4d);
+            workRecord.setRemTravelCosts(0d);
+            broker.updateObject(workRecord);
+         }
+
+         OpProjectPlan projectPlan = (OpProjectPlan) broker.getObject(planLocator);
+         projectPlan.setProgressTracked(true);
+         broker.updateObject(projectPlan);
+
+         t.commit();
+
+         workChecker.check(session);
+
+         //the new values on the assignments, activities and work records
+         broker.clear();
+         assignment1 = (OpAssignment) broker.getObject(assignment1Locator);
+         assertEquals(20d, assignment1.getActualCosts());
+         assertEquals(10d, assignment1.getActualEffort());
+         assertEquals(10d, assignment1.getActualProceeds());
+         assertEquals(14d, assignment1.getRemainingEffort());
+         assertEquals(28d, assignment1.getRemainingPersonnelCosts());
+         assertEquals(14d, assignment1.getRemainingProceeds());
+
+         assignment2 = (OpAssignment) broker.getObject(assignment2Locator);
+         assertEquals(20d, assignment2.getActualCosts());
+         assertEquals(5d, assignment2.getActualEffort());
+         assertEquals(15d, assignment2.getActualProceeds());
+         assertEquals(19d, assignment2.getRemainingEffort());
+         assertEquals(76d, assignment2.getRemainingPersonnelCosts());
+         assertEquals(57d, assignment2.getRemainingProceeds());
+
+         activity1 = (OpActivity) broker.getObject(activity1Locator);
+         assertEquals(14d, activity1.getRemainingEffort());
+         assertEquals(30d, activity1.getRemainingExternalCosts());
+         assertEquals(31d, activity1.getRemainingMaterialCosts());
+         assertEquals(32d, activity1.getRemainingMiscellaneousCosts());
+         assertEquals(33d, activity1.getRemainingTravelCosts());
+
+         activity2 = (OpActivity) broker.getObject(activity2Locator);
+         assertEquals(19d, activity2.getRemainingEffort());
+         //the remaining costs are 0 because the work record's remaining costs were negative
+         assertEquals(0d, activity2.getRemainingExternalCosts());
+         assertEquals(0d, activity2.getRemainingMaterialCosts());
+         assertEquals(0d, activity2.getRemainingMiscellaneousCosts());
+         assertEquals(0d, activity2.getRemainingTravelCosts());
+
+         //the values on work record 1 were not changed
+         for (OpWorkRecord workRecord : assignment1.getWorkRecords()) {
+            assertEquals(20d, workRecord.getPersonnelCosts());
+            assertEquals(30d, workRecord.getRemExternalCosts());
+            assertEquals(31d, workRecord.getRemMaterialCosts());
+            assertEquals(32d, workRecord.getRemMiscCosts());
+            assertEquals(33d, workRecord.getRemTravelCosts());
+         }
+
+         //the remaining costs on work record 2 were changed because they were negative
+         for (OpWorkRecord workRecord : assignment2.getWorkRecords()) {
+            assertEquals(20d, workRecord.getPersonnelCosts());
+            assertEquals(0d, workRecord.getRemExternalCosts());
+            assertEquals(0d, workRecord.getRemMaterialCosts());
+            assertEquals(0d, workRecord.getRemMiscCosts());
+            assertEquals(0d, workRecord.getRemTravelCosts());
+         }
       }
-
-      for (OpWorkRecord workRecord : assignment2.getWorkRecords()) {
-         workRecord.setRemainingEffort(19d);
-         workRecord.setRemExternalCosts(-2d);
-         workRecord.setRemMaterialCosts(-3d);
-         workRecord.setRemMiscCosts(-4d);
-         workRecord.setRemTravelCosts(0d);
-         broker.updateObject(workRecord);
+      finally {
+         broker.close();
       }
-
-      OpProjectPlan projectPlan = (OpProjectPlan) broker.getObject(planLocator);
-      projectPlan.setProgressTracked(true);
-      broker.updateObject(projectPlan);
-
-      t.commit();
-      broker.close();
-
-      workChecker.check(session);
-
-      //the new values on the assignments, activities and work records
-      broker = session.newBroker();
-      assignment1 = (OpAssignment) broker.getObject(assignment1Locator);
-      assertEquals(20d, assignment1.getActualCosts());
-      assertEquals(10d, assignment1.getActualEffort());
-      assertEquals(10d, assignment1.getActualProceeds());
-      assertEquals(14d, assignment1.getRemainingEffort());
-      assertEquals(28d, assignment1.getRemainingPersonnelCosts());
-      assertEquals(14d, assignment1.getRemainingProceeds());
-
-      assignment2 = (OpAssignment) broker.getObject(assignment2Locator);
-      assertEquals(20d, assignment2.getActualCosts());
-      assertEquals(5d, assignment2.getActualEffort());
-      assertEquals(15d, assignment2.getActualProceeds());
-      assertEquals(19d, assignment2.getRemainingEffort());
-      assertEquals(76d, assignment2.getRemainingPersonnelCosts());
-      assertEquals(57d, assignment2.getRemainingProceeds());
-
-      activity1 = (OpActivity) broker.getObject(activity1Locator);
-      assertEquals(14d, activity1.getRemainingEffort());
-      assertEquals(30d, activity1.getRemainingExternalCosts());
-      assertEquals(31d, activity1.getRemainingMaterialCosts());
-      assertEquals(32d, activity1.getRemainingMiscellaneousCosts());
-      assertEquals(33d, activity1.getRemainingTravelCosts());
-
-      activity2 = (OpActivity) broker.getObject(activity2Locator);
-      assertEquals(19d, activity2.getRemainingEffort());
-      //the remaining costs are 0 because the work record's remaining costs were negative
-      assertEquals(0d, activity2.getRemainingExternalCosts());
-      assertEquals(0d, activity2.getRemainingMaterialCosts());
-      assertEquals(0d, activity2.getRemainingMiscellaneousCosts());
-      assertEquals(0d, activity2.getRemainingTravelCosts());
-
-      //the values on work record 1 were not changed
-      for (OpWorkRecord workRecord : assignment1.getWorkRecords()) {
-         assertEquals(20d, workRecord.getPersonnelCosts());
-         assertEquals(30d, workRecord.getRemExternalCosts());
-         assertEquals(31d, workRecord.getRemMaterialCosts());
-         assertEquals(32d, workRecord.getRemMiscCosts());
-         assertEquals(33d, workRecord.getRemTravelCosts());
-      }
-
-      //the remaining costs on work record 2 were changed because they were negative
-      for (OpWorkRecord workRecord : assignment2.getWorkRecords()) {
-         assertEquals(20d, workRecord.getPersonnelCosts());
-         assertEquals(0d, workRecord.getRemExternalCosts());
-         assertEquals(0d, workRecord.getRemMaterialCosts());
-         assertEquals(0d, workRecord.getRemMiscCosts());
-         assertEquals(0d, workRecord.getRemTravelCosts());
-      }
-
-      broker.close();
    }
 
    /**
@@ -295,100 +297,102 @@ public class OpWorkModuleCheckerTest extends OpBaseOpenTestCase {
 
       //set the progress tracking of the project plan to true
       OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
+      try {
+         OpTransaction t = broker.newTransaction();
 
-      //set the values on the assignment
-      OpAssignment assignment1 = (OpAssignment) broker.getObject(assignment1Locator);
-      assignment1.setActualEffort(6);
-      assignment1.setBaseEffort(24);
-      assignment1.setBaseCosts(48);
-      assignment1.setBaseProceeds(24d);
-      //wrong remaining effort and costs
-      assignment1.setRemainingEffort(0);
-      assignment1.setRemainingPersonnelCosts(0d);
-      assignment1.setRemainingProceeds(0d);
-      broker.updateObject(assignment1);
+         //set the values on the assignment
+         OpAssignment assignment1 = (OpAssignment) broker.getObject(assignment1Locator);
+         assignment1.setActualEffort(6);
+         assignment1.setBaseEffort(24);
+         assignment1.setBaseCosts(48);
+         assignment1.setBaseProceeds(24d);
+         //wrong remaining effort and costs
+         assignment1.setRemainingEffort(0);
+         assignment1.setRemainingPersonnelCosts(0d);
+         assignment1.setRemainingProceeds(0d);
+         broker.updateObject(assignment1);
 
-      //set the values on activity one
-      OpActivity activity1 = (OpActivity) broker.getObject(activity1Locator);
-      activity1.setSequence(0);
-      activity1.setActualEffort(6);
-      activity1.setComplete(25);
-      activity1.setActualExternalCosts(5);
-      activity1.setActualMaterialCosts(6);
-      activity1.setActualMiscellaneousCosts(7);
-      activity1.setActualTravelCosts(8);
-      activity1.setBaseEffort(24);
-      activity1.setDuration(24);
-      activity1.setBaseExternalCosts(30d);
-      activity1.setBaseMaterialCosts(31d);
-      activity1.setBaseMiscellaneousCosts(32d);
-      activity1.setBaseTravelCosts(33d);
-      //wrong remaining effort and costs
-      activity1.setRemainingEffort(0);
-      activity1.setRemainingExternalCosts(0d);
-      activity1.setRemainingMaterialCosts(0d);
-      activity1.setRemainingMiscellaneousCosts(0d);
-      activity1.setRemainingTravelCosts(0d);
-      broker.updateObject(activity1);
+         //set the values on activity one
+         OpActivity activity1 = (OpActivity) broker.getObject(activity1Locator);
+         activity1.setSequence(0);
+         activity1.setActualEffort(6);
+         activity1.setComplete(25);
+         activity1.setActualExternalCosts(5);
+         activity1.setActualMaterialCosts(6);
+         activity1.setActualMiscellaneousCosts(7);
+         activity1.setActualTravelCosts(8);
+         activity1.setBaseEffort(24);
+         activity1.setDuration(24);
+         activity1.setBaseExternalCosts(30d);
+         activity1.setBaseMaterialCosts(31d);
+         activity1.setBaseMiscellaneousCosts(32d);
+         activity1.setBaseTravelCosts(33d);
+         //wrong remaining effort and costs
+         activity1.setRemainingEffort(0);
+         activity1.setRemainingExternalCosts(0d);
+         activity1.setRemainingMaterialCosts(0d);
+         activity1.setRemainingMiscellaneousCosts(0d);
+         activity1.setRemainingTravelCosts(0d);
+         broker.updateObject(activity1);
 
-      //delete activity two
-      OpActivity activity2 = (OpActivity) broker.getObject(activity2Locator);
-      activity2.setDeleted(true);
-      broker.updateObject(activity2);
+         //delete activity two
+         OpActivity activity2 = (OpActivity) broker.getObject(activity2Locator);
+         activity2.setDeleted(true);
+         broker.updateObject(activity2);
 
-      //set the values on the work record belonging to assignment1
-      for (OpWorkRecord workRecord : assignment1.getWorkRecords()) {
-         workRecord.setRemainingEffort(18d);
-         //<FIXME author="Mihai Costin" description="This will have no effect if no cost records are created!">
-         workRecord.setExternalCosts(5d);
-         workRecord.setMaterialCosts(8d);
-         workRecord.setMiscellaneousCosts(10d);
-         workRecord.setTravelCosts(12d);
-         workRecord.setRemExternalCosts(25d);
-         workRecord.setRemMaterialCosts(23d);
-         workRecord.setRemMiscCosts(22d);
-         workRecord.setRemTravelCosts(21d);
-         broker.updateObject(workRecord);
+         //set the values on the work record belonging to assignment1
+         for (OpWorkRecord workRecord : assignment1.getWorkRecords()) {
+            workRecord.setRemainingEffort(18d);
+            //<FIXME author="Mihai Costin" description="This will have no effect if no cost records are created!">
+            workRecord.setExternalCosts(5d);
+            workRecord.setMaterialCosts(8d);
+            workRecord.setMiscellaneousCosts(10d);
+            workRecord.setTravelCosts(12d);
+            workRecord.setRemExternalCosts(25d);
+            workRecord.setRemMaterialCosts(23d);
+            workRecord.setRemMiscCosts(22d);
+            workRecord.setRemTravelCosts(21d);
+            broker.updateObject(workRecord);
+         }
+
+         OpProjectPlan projectPlan = (OpProjectPlan) broker.getObject(planLocator);
+         projectPlan.setProgressTracked(false);
+         broker.updateObject(projectPlan);
+
+         t.commit();
+
+         workChecker.check(session);
+
+         //the new values on the assignments, activities and work records
+         broker.clear();
+         assignment1 = (OpAssignment) broker.getObject(assignment1Locator);
+         assertEquals(12d, assignment1.getActualCosts());
+         assertEquals(6d, assignment1.getActualEffort());
+         assertEquals(6d, assignment1.getActualProceeds());
+         assertEquals(18d, assignment1.getRemainingEffort());
+         assertEquals(36d, assignment1.getRemainingPersonnelCosts());
+         assertEquals(18d, assignment1.getRemainingProceeds());
+         assertEquals(25d, assignment1.getComplete());
+
+         activity1 = (OpActivity) broker.getObject(activity1Locator);
+         assertEquals(18d, activity1.getRemainingEffort());
+         assertEquals(30d, activity1.getRemainingExternalCosts());
+         assertEquals(31d, activity1.getRemainingMaterialCosts());
+         assertEquals(32d, activity1.getRemainingMiscellaneousCosts());
+         assertEquals(33d, activity1.getRemainingTravelCosts());
+
+         //the values on work record 1 were not changed
+         for (OpWorkRecord workRecord : assignment1.getWorkRecords()) {
+            assertEquals(12d, workRecord.getPersonnelCosts());
+            assertEquals(30d, workRecord.getRemExternalCosts());
+            assertEquals(31d, workRecord.getRemMaterialCosts());
+            assertEquals(32d, workRecord.getRemMiscCosts());
+            assertEquals(33d, workRecord.getRemTravelCosts());
+         }
       }
-
-      OpProjectPlan projectPlan = (OpProjectPlan) broker.getObject(planLocator);
-      projectPlan.setProgressTracked(false);
-      broker.updateObject(projectPlan);
-
-      t.commit();
-      broker.close();
-
-      workChecker.check(session);
-
-      //the new values on the assignments, activities and work records
-      broker = session.newBroker();
-      assignment1 = (OpAssignment) broker.getObject(assignment1Locator);
-      assertEquals(12d, assignment1.getActualCosts());
-      assertEquals(6d, assignment1.getActualEffort());
-      assertEquals(6d, assignment1.getActualProceeds());
-      assertEquals(18d, assignment1.getRemainingEffort());
-      assertEquals(36d, assignment1.getRemainingPersonnelCosts());
-      assertEquals(18d, assignment1.getRemainingProceeds());
-      assertEquals(25d, assignment1.getComplete());
-
-      activity1 = (OpActivity) broker.getObject(activity1Locator);
-      assertEquals(18d, activity1.getRemainingEffort());
-      assertEquals(30d, activity1.getRemainingExternalCosts());
-      assertEquals(31d, activity1.getRemainingMaterialCosts());
-      assertEquals(32d, activity1.getRemainingMiscellaneousCosts());
-      assertEquals(33d, activity1.getRemainingTravelCosts());
-
-      //the values on work record 1 were not changed
-      for (OpWorkRecord workRecord : assignment1.getWorkRecords()) {
-         assertEquals(12d, workRecord.getPersonnelCosts());
-         assertEquals(30d, workRecord.getRemExternalCosts());
-         assertEquals(31d, workRecord.getRemMaterialCosts());
-         assertEquals(32d, workRecord.getRemMiscCosts());
-         assertEquals(33d, workRecord.getRemTravelCosts());
+      finally {
+         broker.close();
       }
-
-      broker.close();
    }
 
    /**
@@ -409,68 +413,72 @@ public class OpWorkModuleCheckerTest extends OpBaseOpenTestCase {
       insertWorkMonth(assignment1Locator);
 
       OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
+      try {
+         OpTransaction t = broker.newTransaction();
 
-      //set the values on the assignment
-      OpAssignment assignment1 = (OpAssignment) broker.getObject(assignment1Locator);
-      assignment1.setActualEffort(6);
-      assignment1.setBaseEffort(24);
-      assignment1.setBaseCosts(48);
-      assignment1.setBaseProceeds(24d);
-      //wrong remaining effort and costs
-      assignment1.setRemainingEffort(0);
-      assignment1.setRemainingPersonnelCosts(0d);
-      assignment1.setRemainingProceeds(0d);
-      broker.updateObject(assignment1);
+         //set the values on the assignment
+         OpAssignment assignment1 = (OpAssignment) broker.getObject(assignment1Locator);
+         assignment1.setActualEffort(6);
+         assignment1.setBaseEffort(24);
+         assignment1.setBaseCosts(48);
+         assignment1.setBaseProceeds(24d);
+         //wrong remaining effort and costs
+         assignment1.setRemainingEffort(0);
+         assignment1.setRemainingPersonnelCosts(0d);
+         assignment1.setRemainingProceeds(0d);
+         broker.updateObject(assignment1);
 
-      //set the values on activity one
-      OpActivity activity1 = (OpActivity) broker.getObject(activity1Locator);
-      activity1.setSequence(0);
-      activity1.setActualEffort(6);
-      activity1.setComplete(25);
-      activity1.setActualExternalCosts(5);
-      activity1.setActualMaterialCosts(6);
-      activity1.setActualMiscellaneousCosts(7);
-      activity1.setActualTravelCosts(8);
-      activity1.setBaseEffort(24);
-      activity1.setDuration(24);
-      activity1.setBaseExternalCosts(30d);
-      activity1.setBaseMaterialCosts(31d);
-      activity1.setBaseMiscellaneousCosts(32d);
-      activity1.setBaseTravelCosts(33d);
-      //wrong remaining effort and costs
-      activity1.setRemainingEffort(0);
-      activity1.setRemainingExternalCosts(0d);
-      activity1.setRemainingMaterialCosts(0d);
-      activity1.setRemainingMiscellaneousCosts(0d);
-      activity1.setRemainingTravelCosts(0d);
-      broker.updateObject(activity1);
+         //set the values on activity one
+         OpActivity activity1 = (OpActivity) broker.getObject(activity1Locator);
+         activity1.setSequence(0);
+         activity1.setActualEffort(6);
+         activity1.setComplete(25);
+         activity1.setActualExternalCosts(5);
+         activity1.setActualMaterialCosts(6);
+         activity1.setActualMiscellaneousCosts(7);
+         activity1.setActualTravelCosts(8);
+         activity1.setBaseEffort(24);
+         activity1.setDuration(24);
+         activity1.setBaseExternalCosts(30d);
+         activity1.setBaseMaterialCosts(31d);
+         activity1.setBaseMiscellaneousCosts(32d);
+         activity1.setBaseTravelCosts(33d);
+         //wrong remaining effort and costs
+         activity1.setRemainingEffort(0);
+         activity1.setRemainingExternalCosts(0d);
+         activity1.setRemainingMaterialCosts(0d);
+         activity1.setRemainingMiscellaneousCosts(0d);
+         activity1.setRemainingTravelCosts(0d);
+         broker.updateObject(activity1);
 
-      //delete activity two
-      OpActivity activity2 = (OpActivity) broker.getObject(activity2Locator);
-      activity2.setDeleted(true);
-      broker.updateObject(activity2);
+         //delete activity two
+         OpActivity activity2 = (OpActivity) broker.getObject(activity2Locator);
+         activity2.setDeleted(true);
+         broker.updateObject(activity2);
 
-      //set the values on the work record belonging to assignment1
-      for (OpWorkRecord workRecord : assignment1.getWorkRecords()) {
-         workRecord.setRemainingEffort(18d);
-         workRecord.setExternalCosts(5d);
-         workRecord.setMaterialCosts(8d);
-         workRecord.setMiscellaneousCosts(10d);
-         workRecord.setTravelCosts(12d);
-         workRecord.setRemExternalCosts(25d);
-         workRecord.setRemMaterialCosts(23d);
-         workRecord.setRemMiscCosts(22d);
-         workRecord.setRemTravelCosts(21d);
-         broker.updateObject(workRecord);
+         //set the values on the work record belonging to assignment1
+         for (OpWorkRecord workRecord : assignment1.getWorkRecords()) {
+            workRecord.setRemainingEffort(18d);
+            workRecord.setExternalCosts(5d);
+            workRecord.setMaterialCosts(8d);
+            workRecord.setMiscellaneousCosts(10d);
+            workRecord.setTravelCosts(12d);
+            workRecord.setRemExternalCosts(25d);
+            workRecord.setRemMaterialCosts(23d);
+            workRecord.setRemMiscCosts(22d);
+            workRecord.setRemTravelCosts(21d);
+            broker.updateObject(workRecord);
+         }
+
+         OpProjectPlan projectPlan = (OpProjectPlan) broker.getObject(planLocator);
+         projectPlan.setProgressTracked(false);
+         broker.updateObject(projectPlan);
+
+         t.commit();
       }
-
-      OpProjectPlan projectPlan = (OpProjectPlan) broker.getObject(planLocator);
-      projectPlan.setProgressTracked(false);
-      broker.updateObject(projectPlan);
-
-      t.commit();
-      broker.close();
+      finally {
+         broker.close();
+      }
 
       workChecker.check(session);
 
@@ -479,27 +487,30 @@ public class OpWorkModuleCheckerTest extends OpBaseOpenTestCase {
       Calendar calendar = xCalendar.getCalendar();
 
       broker = session.newBroker();
-      assignment1 = (OpAssignment) broker.getObject(assignment1Locator);
-      activity1 = assignment1.getActivity();
-      for (OpWorkMonth workMonth : assignment1.getWorkMonths()) {
-         calendar.setTime(activity1.getStart());
-         assertEquals(workMonth.getYear(), calendar.get(Calendar.YEAR));
-         assertEquals(workMonth.getMonth(), calendar.get(Calendar.MONTH));
-         List activityWorkingDays = xCalendar.getWorkingDaysFromInterval(activity1.getStart(), activity1.getFinish());
-         assertEquals(activityWorkingDays.size(), workMonth.getWorkingDays());
-         assertEquals(100d, workMonth.getLatestAssigned());
-         assertEquals(24d, workMonth.getBaseEffort());
-         assertEquals(24d, workMonth.getLatestEffort());
-         assertEquals(48d, workMonth.getBasePersonnelCosts());
-         assertEquals(48d, workMonth.getLatestPersonnelCosts());
-         assertEquals(24d, workMonth.getBaseProceeds());
-         assertEquals(24d, workMonth.getLatestProceeds());
-         assertEquals(18d, workMonth.getRemainingEffort());
-         assertEquals(36d, workMonth.getRemainingPersonnel());
-         assertEquals(18d, workMonth.getRemainingProceeds());
+      try {
+         OpAssignment assignment1 = (OpAssignment) broker.getObject(assignment1Locator);
+         OpActivity activity1 = assignment1.getActivity();
+         for (OpWorkMonth workMonth : assignment1.getWorkMonths()) {
+            calendar.setTime(activity1.getStart());
+            assertEquals(workMonth.getYear(), calendar.get(Calendar.YEAR));
+            assertEquals(workMonth.getMonth(), calendar.get(Calendar.MONTH));
+            List activityWorkingDays = xCalendar.getWorkingDaysFromInterval(activity1.getStart(), activity1.getFinish());
+            assertEquals(activityWorkingDays.size(), workMonth.getWorkingDays());
+            assertEquals(100d, workMonth.getLatestAssigned());
+            assertEquals(24d, workMonth.getBaseEffort());
+            assertEquals(24d, workMonth.getLatestEffort());
+            assertEquals(48d, workMonth.getBasePersonnelCosts());
+            assertEquals(48d, workMonth.getLatestPersonnelCosts());
+            assertEquals(24d, workMonth.getBaseProceeds());
+            assertEquals(24d, workMonth.getLatestProceeds());
+            assertEquals(18d, workMonth.getRemainingEffort());
+            assertEquals(36d, workMonth.getRemainingPersonnel());
+            assertEquals(18d, workMonth.getRemainingProceeds());
+         }
       }
-
-      broker.close();
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -507,40 +518,11 @@ public class OpWorkModuleCheckerTest extends OpBaseOpenTestCase {
     *
     * @throws Exception If tearDown process can not be successfuly finished
     */
+   @Override
    protected void tearDown()
         throws Exception {
       clean();
       super.tearDown();
-   }
-
-   /**
-    * Cleans the database
-    *
-    * @throws Exception if deleting test artifacts fails
-    */
-   private void clean()
-        throws Exception {
-
-      OpBroker broker = session.newBroker();
-      OpTransaction transaction = broker.newTransaction();
-
-      deleteAllObjects(broker, OpWorkRecord.WORK_RECORD);
-      deleteAllObjects(broker, OpWorkMonth.WORK_MONTH);
-      deleteAllObjects(broker, OpAssignment.ASSIGNMENT);
-      deleteAllObjects(broker, OpActivity.ACTIVITY);
-      deleteAllObjects(broker, OpProjectPlan.PROJECT_PLAN);
-
-      for (Object aProjectList : projectFactory.getAllProjects(broker)) {
-         OpProjectNode project = (OpProjectNode) aProjectList;
-         broker.deleteObject(project);
-      }
-
-      for (OpResource resource : resourceFactory.getAllResources(broker)) {
-         broker.deleteObject(resource);
-      }
-
-      transaction.commit();
-      broker.close();
    }
 
    /**
@@ -557,7 +539,7 @@ public class OpWorkModuleCheckerTest extends OpBaseOpenTestCase {
    private String insertActivity(String projectName, String activityName, byte type, Date start, Date finish) {
       OpBroker broker = session.newBroker();
       try {
-         OpProjectNode project = projectFactory.getProjectByName(broker, projectName);
+         OpProjectNode project = projectFactory.getProjectByName(projectName);
 
          OpTransaction t = broker.newTransaction();
 

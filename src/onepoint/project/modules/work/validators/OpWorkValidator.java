@@ -164,15 +164,6 @@ public abstract class OpWorkValidator extends XValidator {
    }
 
    /**
-    * Sets the data set on the validator and creates a new instance of work filter.
-    *
-    * @param data_set new data set for this validator.
-    */
-   public void setDataSet(XComponent data_set) {
-      super.setDataSet(data_set);
-   }
-
-   /**
     * Gets the project choice set.
     *
     * @return project set.

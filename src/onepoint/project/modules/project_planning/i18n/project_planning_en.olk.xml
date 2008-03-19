@@ -5,6 +5,8 @@
    </resource-map>
 
    <resource-map id="project_planning.activities">
+      <resource id="ProjectLocked">Project plan is currently being edited by</resource>
+      <resource id="ControllingSheetsExist">Controlling sheets exist for this working version</resource>
       <resource id="EditPlan">Edit</resource>
       <resource id="Save">Save</resource>
       <resource id="CheckIn">Check-in</resource>
@@ -95,6 +97,9 @@
       <resource id="TaskExtraResourceErrorMessage">Only a single resource allowed per task</resource>
       <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>
       <resource id="InvalidPaymentErrorMessage">Entered payment value is not valid</resource>
+      <resource id="BaseEffortBelowActualErrorMessage">The planned effort should not be less than the actual effort.</resource>
+      <resource id="CannotMoveRootActivityErrorMessage">The first activity cannot be moved in.</resource>
+      <resource id="OutlineLevelInvalidErrorMessage">Move would result in invalid avtivity hierarchy.</resource>
 
       <resource id="ImportProjectTitle">Import Project Plan</resource>
       <resource id="ExportProjectTitle">Export Project Plan</resource>
@@ -155,6 +160,7 @@
 
       <resource id="Costs">Costs</resource>
       <resource id="Personnel">Personnel ({CurrencySymbol})</resource>
+      <resource id="Billable">% Billable</resource>
       <resource id="Travel">Travel ({CurrencySymbol})</resource>
       <resource id="Material">Material ({CurrencySymbol})</resource>
       <resource id="External">External ({CurrencySymbol})</resource>

@@ -7,7 +7,7 @@ package onepoint.project.forms;
 import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
 import onepoint.project.OpProjectSession;
-import onepoint.project.util.OpProjectConstants;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
@@ -59,7 +59,7 @@ public class OpLoginFormProvider implements XFormProvider {
          checkSessionExpired(parameters, localeId, form);
 
          //check license
-         checkLicense(form, session);
+         checkLicense(form, projectSession);
 
          //mark the session as valid (in case it was invalidated)
          session.validate();
@@ -72,7 +72,7 @@ public class OpLoginFormProvider implements XFormProvider {
     * @param form    a <code>XComponent(FORM)</code> representing the login form.
     * @param session a <code>XSession</code> representing the server session.
     */
-   protected void checkLicense(XComponent form, XSession session) {
+   protected void checkLicense(XComponent form, OpProjectSession session) {
    }
 
    /**
@@ -103,6 +103,6 @@ public class OpLoginFormProvider implements XFormProvider {
    }
 
    protected void setStartForm(XComponent form) {
-      form.findComponent(START_FORM).setStringValue(OpProjectConstants.OPEN_START_FORM);
+      form.findComponent(START_FORM).setStringValue(OpEnvironmentManager.getAutoLoginStartForm());
    }
 }

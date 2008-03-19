@@ -8,7 +8,6 @@ require "onepoint/project/scripts/error.jes";
 require "onepoint/project/modules/user/scripts/permissions_tab.jes";
 require "onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
 require "onepoint/project/modules/project/scripts/project_helper.jes";
-require "onepoint/project/modules/documents/scripts/documents.jes";
 
 import onepoint.express.XValidator;
 import onepoint.express.XDisplay;
@@ -48,6 +47,7 @@ function ok_edit(event) {
    project_id = form.findComponent("ProjectID").getStringValue();
    project_data.Type = 3;
    project_data.Name = form.findComponent("Name").getStringValue();
+   project_data.CustomTypeLocator = form.findComponent("SubTypeField").getStringValue();
    project_data.Description = form.findComponent("Description").getStringValue();
    project_data.Finish = form.findComponent("Finish").getDateValue();
    project_data.Budget = form.findComponent("Budget").getDoubleValue();
@@ -68,14 +68,10 @@ function ok_edit(event) {
    versions_set = XDisplay.getActiveForm().findComponent("VersionsSet");
 
    project_data.PermissionSet = form.findComponent("PermissionSet");
-   attachmentList = getAttachments();
-
-   //put the list of attachments into a XComponent so that the file can be replaced with it's path
-   attachmentListDataSet = addAttachmentListToDataSet(attachmentList);
 
    //check extended hourly rates
    if (checkExtendedHourlyRates(assigned_resource_set, project_id, project_data, goals_set,
-        versions_set, attachmentListDataSet)) {
+        versions_set)) {
       return;
    }
 
@@ -95,7 +91,6 @@ function ok_edit(event) {
       parameters.goals_set = goals_set;
       parameters.resource_set = assigned_resource_set;
       parameters.versions_set = versions_set;
-      parameters.attachment_set = attachmentListDataSet;
       parameters.changed = "resourceTab";
       dialog.open("/modules/project/forms/confirm_project_changed.oxf.xml", parameters);
       return;
@@ -108,33 +103,25 @@ function ok_edit(event) {
    request.setArgument("goals_set", goals_set);
    request.setArgument("resource_set", assigned_resource_set);
    request.setArgument("versions_set", versions_set);
-   request.setArgument("attachments_list_set", attachmentListDataSet);
    request.setArgument("modified_rates", modifiedRates);
+   addAdditionalArguments(request);
    response = XDisplay.getClient().invokeMethod(request);
 
    if (handleError(form, response, "ErrorLabel") == true) {
       XDisplay.getActiveWindow().close();
       XDisplay.findFrame("MainFrame").refreshForm();
    }
-   else {
-      //in case of an error obtain the modified attachment list from the response and put  these values on the
-      //attachment set (files were replaced by content ids)
-      responseAttachmentSet = response.getArgument("attachmentSet");
-      if (responseAttachmentSet != null) {
-         form.findComponent("AttachmentListDataSet").removeAllChildren();
-         responseAttachmentList = responseAttachmentSet.getChild(0).getChild(0).getValue();
-         updateAttachmentsSetFromList(responseAttachmentList);
-      }
-   }
+}
+
+function addAdditionalArguments(request) {
 }
 
 function cancel(event) {
-   clearContents(event);
    XDisplay.getActiveWindow().close();
 }
 
 function checkExtendedHourlyRates(assigned_resource_set, project_id, project_data, goals_set,
-                                  versions_set, attachment_set) {
+                                  versions_set) {
    return false;
 }
 
@@ -193,4 +180,7 @@ function selectionChanged(event) {
 
 function baselineSelected(event) {
   //not available in free edtions
+}
+
+function addAdditionalArguments(request) {
 }

@@ -70,7 +70,7 @@ public class OpGanttValidatorTest extends OpTestCase {
 
       //init the default calendar
       XDisplay display = new XDisplay(null);
-      display.getCalendar().configure(null, new XLocale("de", ""), null, null);
+      display.getCalendar().configure(null, new XLocale(Locale.ENGLISH.getLanguage(), "de", ""), null, null);
 
       XComponent testDataSet = getTestDataSet(TEST_DATA_FILENAME);
 

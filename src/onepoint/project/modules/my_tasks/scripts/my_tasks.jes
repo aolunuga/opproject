@@ -149,12 +149,16 @@ function refreshForm() {
 }
 
 function selectionChanged(event) {
+   handleFormContent(event);
+}
+
+function handleFormContent(event) {
    form = XDisplay.getActiveForm();
 
    infoButton = form.findComponent("InfoButton");
    infoButton.setEnabled(true);
    newCommentButton = form.findComponent("NewCommentButton");
-   newCommentButton.setEnabled(true);
+   newCommentButton.setEnabled(true);  
 
    deleteButton = form.findComponent("DeleteAdhocButton");
    // get delete permission for selected row
@@ -224,10 +228,8 @@ function activitySelected(event) {
 }
 
 function addResourceOk(event) {
-
    selectedRow = event.get(0).getStringValue();
    form = XDisplay.getActiveForm();
    resourceChooser = form.findComponent("ResourceChooser");
    resourceChooser.setStringValue(selectedRow);
-
 }

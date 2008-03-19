@@ -10,8 +10,8 @@ import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpActivity;
-import onepoint.project.modules.project.OpWorkPeriod;
 import onepoint.project.modules.project.OpProjectNode;
+import onepoint.project.modules.project.OpWorkPeriod;
 import onepoint.project.modules.project_planning.components.OpProjectComponent;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
@@ -109,15 +109,18 @@ public final class OpResourceUtilizationDataSetFactory {
     * Calculates the utilization values for the rows in the given data set (both resources and pools) and sets the
     * values on the corresponding data cells.
     *
-    * @param session     Session used to acces the db.
-    * @param dataSet     data set to calculate the utilization values for
-    * @param poolLocator ID for the pool that was expanded
+    * @param session            Session used to acces the db.
+    * @param dataSet            data set to calculate the utilization values for
+    * @param poolLocator        ID for the pool that was expanded
+    * @param projectProbability Project are filtered by probability.
+    *                           Only values from project with probability >= projectsProbability will be taken into account
     */
-   public static void fillUtilizationValues(OpProjectSession session, XComponent dataSet, String poolLocator) {
+   public static void fillUtilizationValues(OpProjectSession session, XComponent dataSet, String poolLocator, 
+         int projectProbability, long projectId) {
 
       invalidateUtilizations(session, dataSet, poolLocator);
 
-      Map utilizations = getUtilizationMap(session, dataSet);
+      Map utilizations = getUtilizationMap(session, dataSet, projectProbability, projectId);
       for (int i = 0; i < dataSet.getChildCount(); i++) {
          XComponent dataRow = (XComponent) dataSet.getChild(i);
          if (!OpProjectConstants.DUMMY_ROW_ID.equals(dataRow.getStringValue())) {
@@ -150,7 +153,7 @@ public final class OpResourceUtilizationDataSetFactory {
     * @param poolIds      The pools that should be included when calculating the utilization values.
     *                     If null, all pools in the db are included.
     * @param utilizations Map where the results will be added. key:locator - value:Map of utilization values.
-    * @see #getUtilizationMap(onepoint.project.OpProjectSession,onepoint.express.XComponent)
+    * @see #getUtilizationMap(onepoint.project.OpProjectSession,onepoint.express.XComponent,int)
     */
    private static void fillPoolsUtilizationValues(OpProjectSession session, List poolIds, Map utilizations) {
       String queryString = "select pool from OpResourcePool as pool";
@@ -159,20 +162,24 @@ public final class OpResourceUtilizationDataSetFactory {
       }
 
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery(queryString);
-      if (poolIds != null) {
-         query.setCollection("poolIds", poolIds);
-      }
+      try {
+         OpQuery query = broker.newQuery(queryString);
+         if (poolIds != null) {
+            query.setCollection("poolIds", poolIds);
+         }
 
-      Iterator result = broker.iterate(query);
-      while (result.hasNext()) {
-         OpResourcePool pool = (OpResourcePool) result.next();
-         String poolLocator = pool.locator();
-         if (utilizations.get(poolLocator) == null) {
-            calculatePoolUtilizationValues(pool, utilizations);
+         Iterator result = broker.iterate(query);
+         while (result.hasNext()) {
+            OpResourcePool pool = (OpResourcePool) result.next();
+            String poolLocator = pool.locator();
+            if (utilizations.get(poolLocator) == null) {
+               calculatePoolUtilizationValues(pool, utilizations);
+            }
          }
       }
-      broker.close();
+      finally {
+         broker.close();
+      }
    }
 
    private static void calculatePoolUtilizationValues(OpResourcePool pool, Map utilizations) {
@@ -246,7 +253,8 @@ public final class OpResourceUtilizationDataSetFactory {
    }
 
 
-   private static void fillResourcesUtilizationValues(OpProjectSession session, List resourceIds, Map utilizations) {
+   private static void fillResourcesUtilizationValues(OpProjectSession session, List resourceIds, Map utilizations, 
+         int projectProbability, long projectId) {
 
       Long resourceId;
       int i;
@@ -262,95 +270,112 @@ public final class OpResourceUtilizationDataSetFactory {
       int finishIndex;
 
       OpBroker broker = session.newBroker();
-      Map<Long, Date> minStartDates = new HashMap<Long, Date>();
-      Map<Long, Date> maxFinishDates = new HashMap<Long, Date>();
-      StringBuffer queryBuffer = new StringBuffer("select assignment.Resource.ID, min(activity.Start), max(activity.Finish) ");
-      queryBuffer.append("from OpAssignment as assignment inner join assignment.Activity as activity  inner join activity.ProjectPlan projectPlan inner join projectPlan.ProjectNode projectNode ");
-      queryBuffer.append("where activity.Deleted = false and projectNode.Archived=false ");
-      if (resourceIds != null && !resourceIds.isEmpty()) {
-         queryBuffer.append("and assignment.Resource.ID in (:resourceIds) ");
-      }
-      queryBuffer.append("group by assignment.Resource.ID");
-      OpQuery query = broker.newQuery(queryBuffer.toString());
-      if (resourceIds != null && !resourceIds.isEmpty()) {
-         query.setCollection("resourceIds", resourceIds);
-      }
-      Iterator result = broker.iterate(query);
+      try {
+         Map<Long, Date> minStartDates = new HashMap<Long, Date>();
+         Map<Long, Date> maxFinishDates = new HashMap<Long, Date>();
+         StringBuffer queryBuffer = new StringBuffer("select assignment.Resource.ID, min(activity.Start), max(activity.Finish) ");
+         queryBuffer.append("from OpAssignment as assignment inner join assignment.Activity as activity  inner join activity.ProjectPlan projectPlan inner join projectPlan.ProjectNode projectNode ");
+         queryBuffer.append("where activity.Deleted = false and projectNode.Archived=false and projectNode.Probability >= :probability ");
+         if (resourceIds != null && !resourceIds.isEmpty()) {
+            queryBuffer.append("and assignment.Resource.ID in (:resourceIds) ");
+         }
+         if (projectId >= 0) {
+            queryBuffer.append("and projectNode.ID = (:projectId) ");            
+         }
+         queryBuffer.append("group by assignment.Resource.ID");
+         OpQuery query = broker.newQuery(queryBuffer.toString());
+         if (resourceIds != null && !resourceIds.isEmpty()) {
+            query.setCollection("resourceIds", resourceIds);
+         }
+         if (projectId >= 0) {
+            query.setLong("projectId", projectId);
+         }
+         query.setInteger("probability", projectProbability);
+         Iterator result = broker.iterate(query);
 
-      while (result.hasNext()) {
-         record = (Object[]) result.next();
-         resourceId = (Long) record[0];
-         minStart = (Date) record[1];
-         maxFinish = (Date) record[2];
-         minStartDates.put(resourceId, minStart);
-         maxFinishDates.put(resourceId, maxFinish);
-      }
-
-      queryBuffer = new StringBuffer("select assignment.Resource.ID, assignment.Assigned, activity, workPeriod ");
-      queryBuffer.append("from OpAssignment as assignment inner join assignment.Activity as activity inner join activity.WorkPeriods as workPeriod inner join activity.ProjectPlan projectPlan inner join projectPlan.ProjectNode projectNode ");
-      queryBuffer.append("where activity.Deleted = false and activity.Type = :activityType and activity.Template = false and projectNode.Archived=false ");
-      if (resourceIds != null && !resourceIds.isEmpty()) {
-         queryBuffer.append("and assignment.Resource.ID in (:resourceIds) ");
-      }
-      queryBuffer.append("order by assignment.Resource.ID");
-      query = broker.newQuery(queryBuffer.toString());
-      if (resourceIds != null && !resourceIds.isEmpty()) {
-         query.setCollection("resourceIds", resourceIds);
-      }
-      query.setByte("activityType", OpActivity.STANDARD);
-      //<FIXME author="Horia Chiorean" description="Changed to broker.iterate when this works">
-      result = broker.list(query).iterator();
-      //<FIXME>
-
-      resourceId = null;
-      Utilization utilization = null;
-      while (result.hasNext()) {
-         record = (Object[]) result.next();
-         // Work phases are grouped by resource: Check for next resource ID
-         if ((resourceId == null) || !resourceId.equals(record[0])) {
+         while (result.hasNext()) {
+            record = (Object[]) result.next();
             resourceId = (Long) record[0];
-            minStart = (Date) minStartDates.get(resourceId);
-            maxFinish = (Date) maxFinishDates.get(resourceId);
-            // Initialize utilization values
-            valueCount = (int) ((maxFinish.getTime() + XCalendar.MILLIS_PER_DAY - minStart.getTime()) / XCalendar.MILLIS_PER_DAY);
-            values = new ArrayList<Double>(valueCount);
-            for (i = 0; i < valueCount; i++) {
-               values.add(zero);
-            }
-            utilization = new Utilization(minStart, maxFinish, values);
-            OpResource resource = (OpResource) broker.getObject(OpResource.class, resourceId.longValue());
-            utilization.setAvailable(resource.getAvailable());
-            utilizations.put(resource.locator(), utilization);
+            minStart = (Date) record[1];
+            maxFinish = (Date) record[2];
+            minStartDates.put(resourceId, minStart);
+            maxFinishDates.put(resourceId, maxFinish);
          }
 
-         OpActivity activity = (OpActivity) record[2];
-         OpWorkPeriod workPeriod = (OpWorkPeriod) record[3];
+         queryBuffer = new StringBuffer("select assignment.Resource.ID, assignment.Assigned, activity, workPeriod ");
+         queryBuffer.append("from OpAssignment as assignment inner join assignment.Activity as activity inner join activity.WorkPeriods as workPeriod inner join activity.ProjectPlan projectPlan inner join projectPlan.ProjectNode projectNode ");
+         queryBuffer.append("where activity.Deleted = false and activity.Type = :activityType and activity.Template = false and projectNode.Archived=false and projectNode.Probability >= :probability ");
+         if (resourceIds != null && !resourceIds.isEmpty()) {
+            queryBuffer.append("and assignment.Resource.ID in (:resourceIds) ");
+         }
+         if (projectId >= 0) {
+            queryBuffer.append("and projectNode.ID = (:projectId) ");            
+         }
+         queryBuffer.append("order by assignment.Resource.ID");
+         query = broker.newQuery(queryBuffer.toString());
+         if (resourceIds != null && !resourceIds.isEmpty()) {
+            query.setCollection("resourceIds", resourceIds);
+         }
+         if (projectId >= 0) {
+            query.setLong("projectId", projectId);
+         }
+         query.setInteger("probability", projectProbability);
+         query.setByte("activityType", OpActivity.STANDARD);
+         //<FIXME author="Horia Chiorean" description="Changed to broker.iterate when this works">
+         result = broker.list(query).iterator();
+         //<FIXME>
 
-         // Set utilization values
-         Date activityStart = activity.getStart();
-         Date activityFinish = activity.getFinish();
-         Date workPeriodStart = workPeriod.getStart();
-         Date workPeriodFinish = new Date(workPeriodStart.getTime() + (OpWorkPeriod.PERIOD_LENGTH - 1) * XCalendar.MILLIS_PER_DAY);
+         resourceId = null;
+         Utilization utilization = null;
+         while (result.hasNext()) {
+            record = (Object[]) result.next();
+            // Work phases are grouped by resource: Check for next resource ID
+            if ((resourceId == null) || !resourceId.equals(record[0])) {
+               resourceId = (Long) record[0];
+               minStart = minStartDates.get(resourceId);
+               maxFinish = maxFinishDates.get(resourceId);
+               // Initialize utilization values
+               valueCount = (int) ((maxFinish.getTime() + XCalendar.MILLIS_PER_DAY - minStart.getTime()) / XCalendar.MILLIS_PER_DAY);
+               values = new ArrayList<Double>(valueCount);
+               for (i = 0; i < valueCount; i++) {
+                  values.add(zero);
+               }
+               utilization = new Utilization(minStart, maxFinish, values);
+               OpResource resource = broker.getObject(OpResource.class, resourceId.longValue());
+               utilization.setAvailable(resource.getAvailable());
+               utilizations.put(resource.locator(), utilization);
+            }
 
-         //start = maxFinishDates (activityStart, workPeriodStart)
-         start = activityStart.before(workPeriodStart) ? workPeriodStart : activityStart;
-         startIndex = (int) ((start.getTime() - minStart.getTime()) / XCalendar.MILLIS_PER_DAY);
+            OpActivity activity = (OpActivity) record[2];
+            OpWorkPeriod workPeriod = (OpWorkPeriod) record[3];
 
-         //finish = minStartDates (activityFinish, workPeriodFinish)
-         finish = activityFinish.before(workPeriodFinish) ? activityFinish : workPeriodFinish;
-         finishIndex = (int) ((finish.getTime() - minStart.getTime()) / XCalendar.MILLIS_PER_DAY);
+            // Set utilization values
+            Date activityStart = activity.getStart();
+            Date activityFinish = activity.getFinish();
+            Date workPeriodStart = workPeriod.getStart();
+            Date workPeriodFinish = new Date(workPeriodStart.getTime() + (OpWorkPeriod.PERIOD_LENGTH - 1) * XCalendar.MILLIS_PER_DAY);
 
-         double assignmentValue = ((Double) record[1]);
-         double utilizationValue = getUtilizationValueAccordingToProject(assignmentValue, activity.getProjectPlan().getProjectNode());
+            //start = maxFinishDates (activityStart, workPeriodStart)
+            start = activityStart.before(workPeriodStart) ? workPeriodStart : activityStart;
+            startIndex = (int) ((start.getTime() - minStart.getTime()) / XCalendar.MILLIS_PER_DAY);
 
-         for (i = startIndex; i <= finishIndex; i++) {
-            if (isWorkDay(workPeriod, minStart, i)) {
-               utilization.addUtilization(i,  utilizationValue);
+            //finish = minStartDates (activityFinish, workPeriodFinish)
+            finish = activityFinish.before(workPeriodFinish) ? activityFinish : workPeriodFinish;
+            finishIndex = (int) ((finish.getTime() - minStart.getTime()) / XCalendar.MILLIS_PER_DAY);
+
+            double assignmentValue = ((Double) record[1]);
+            double utilizationValue = getUtilizationValueAccordingToProject(assignmentValue, activity.getProjectPlan().getProjectNode());
+
+            for (i = startIndex; i <= finishIndex; i++) {
+               if (isWorkDay(workPeriod, minStart, i)) {
+                  utilization.addUtilization(i, utilizationValue);
+               }
             }
          }
       }
-
-      broker.close();
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -358,10 +383,11 @@ public final class OpResourceUtilizationDataSetFactory {
     * rules from the project on which the assignment exists.
     * Rule1: Archived projects are not taken into account
     * Rule2: The value of the assignment is multiplied (%-wise) with the probability of the project.
+    *
     * @param assignmentValue a <code>double</code> the value of an <code>OpAssignment</code>.
-    * @param projectNode a <code>OpProjectNode</code> the project on which the assignment it
+    * @param projectNode     a <code>OpProjectNode</code> the project on which the assignment it
     * @return a <code>double</code> the value for the assignment from the point-of-view of
-    * the resource utilization chart.
+    *         the resource utilization chart.
     */
    private static double getUtilizationValueAccordingToProject(double assignmentValue, OpProjectNode projectNode) {
       int projectProbability = projectNode.getProbability();
@@ -425,8 +451,12 @@ public final class OpResourceUtilizationDataSetFactory {
 
             //invalidate pool and resources
             OpBroker broker = session.newBroker();
-            invalidatePool(broker, utilizations, poolLocator);
-            broker.close();
+            try {
+               invalidatePool(broker, utilizations, poolLocator);
+            }
+            finally {
+               broker.close();
+            }
          }
       }
    }
@@ -452,18 +482,20 @@ public final class OpResourceUtilizationDataSetFactory {
    }
 
    /**
-    * @param session Session to be used for bd access and for SESSION_UTILIZATION_MAP cache.
+    * @param session            Session to be used for bd access and for SESSION_UTILIZATION_MAP cache.
     * @param dataSet
+    * @param projectProbability
+    * @param projectId 
     * @return Map of utilization values. key:locator -> value:ValuesMap.
     *         The ValuesMap contains for each resource the start, end and utilization value as a List.
     *         the keys used are UTILIZATION_START_KEY, UTILIZATION_END_KEY and UTILIZATION_VALUES_KEY.
     */
-   public static Map getUtilizationMap(OpProjectSession session, XComponent dataSet) {
+   public static Map getUtilizationMap(OpProjectSession session, XComponent dataSet, int projectProbability, long projectId) {
       Map utilizations = (Map) session.getVariable(SESSION_UTILIZATION_MAP);
       if (utilizations == null) {
          //calculate utilization for all resources
          utilizations = new HashMap();
-         fillResourcesUtilizationValues(session, null, utilizations);
+         fillResourcesUtilizationValues(session, null, utilizations, projectProbability, projectId);
 
          //calculate utilization for all resource pools
          fillPoolsUtilizationValues(session, null, utilizations);
@@ -487,7 +519,7 @@ public final class OpResourceUtilizationDataSetFactory {
                }
             }
          }
-         fillResourcesUtilizationValues(session, resourceIds, utilizations);
+         fillResourcesUtilizationValues(session, resourceIds, utilizations, projectProbability, projectId);
 
          //calculate utilization for all invalidated resource pools.
          fillPoolsUtilizationValues(session, pollIds, utilizations);

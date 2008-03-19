@@ -205,7 +205,7 @@ public class OpCustomValuePage extends OpObject implements Comparable<OpCustomVa
    /* (non-Javadoc)
     * @see onepoint.project.modules.custom_attribute.OpCustomizable#getDecimal(int)
     */
-   public double getDecimal(int slot) {
+   public Double getDecimal(int slot) {
       check(slot);
       switch (slot) {
       case 0:

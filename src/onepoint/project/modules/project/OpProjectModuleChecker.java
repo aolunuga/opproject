@@ -44,17 +44,21 @@ public class OpProjectModuleChecker implements OpModuleChecker {
     */
    private void fixAssignmentsProject(OpProjectSession session, long projectId) {
       OpBroker broker = session.newBroker();
-      OpQuery assignmentsQuery = broker.newQuery("from OpAssignment assignment where assignment.ProjectPlan != assignment.Activity.ProjectPlan and assignment.ProjectPlan.ProjectNode.ID=?");
-      assignmentsQuery.setLong(0, projectId);
-      OpTransaction tx = broker.newTransaction();
-      Iterator<OpAssignment> assignmentsIt = broker.iterate(assignmentsQuery);
-      while (assignmentsIt.hasNext()) {
-         OpAssignment assignment = assignmentsIt.next();
-         assignment.setProjectPlan(assignment.getActivity().getProjectPlan());
-         broker.updateObject(assignment);
+      try {
+         OpQuery assignmentsQuery = broker.newQuery("from OpAssignment assignment where assignment.ProjectPlan != assignment.Activity.ProjectPlan and assignment.ProjectPlan.ProjectNode.ID=?");
+         assignmentsQuery.setLong(0, projectId);
+         OpTransaction tx = broker.newTransaction();
+         Iterator<OpAssignment> assignmentsIt = broker.iterate(assignmentsQuery);
+         while (assignmentsIt.hasNext()) {
+            OpAssignment assignment = assignmentsIt.next();
+            assignment.setProjectPlan(assignment.getActivity().getProjectPlan());
+            broker.updateObject(assignment);
+         }
+         tx.commit();
       }
-      tx.commit();
-      broker.closeAndEvict();
+      finally {
+         broker.closeAndEvict();
+      }
    }
 
 
@@ -66,16 +70,20 @@ public class OpProjectModuleChecker implements OpModuleChecker {
     */
    private void cleanUpAssignments(OpProjectSession session, long projectId) {
       OpBroker broker = session.newBroker();
-      OpQuery assignmentVersionQuery = broker.newQuery("from OpAssignmentVersion assignmentVersion where assignmentVersion.ActivityVersion is null and assignmentVersion.PlanVersion.ProjectPlan.ProjectNode.ID=?");
-      assignmentVersionQuery.setLong(0, projectId);
-      OpTransaction tx = broker.newTransaction();
-      Iterator<OpAssignmentVersion> assignmentsIt = broker.iterate(assignmentVersionQuery);
-      while (assignmentsIt.hasNext()) {
-         OpAssignmentVersion assignmentVersion = assignmentsIt.next();
-         broker.deleteObject(assignmentVersion);
+      try {
+         OpQuery assignmentVersionQuery = broker.newQuery("from OpAssignmentVersion assignmentVersion where assignmentVersion.ActivityVersion is null and assignmentVersion.PlanVersion.ProjectPlan.ProjectNode.ID=?");
+         assignmentVersionQuery.setLong(0, projectId);
+         OpTransaction tx = broker.newTransaction();
+         Iterator<OpAssignmentVersion> assignmentsIt = broker.iterate(assignmentVersionQuery);
+         while (assignmentsIt.hasNext()) {
+            OpAssignmentVersion assignmentVersion = assignmentsIt.next();
+            broker.deleteObject(assignmentVersion);
+         }
+         tx.commit();
       }
-      tx.commit();
-      broker.closeAndEvict();
+      finally {
+         broker.closeAndEvict();
+      }
    }
 
    /**
@@ -88,13 +96,17 @@ public class OpProjectModuleChecker implements OpModuleChecker {
    protected List<Long> getProjectsOfType(OpProjectSession session, byte projectyType) {
       List<Long> result = new ArrayList<Long>();
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery(" select project.ID from OpProjectNode project where project.Type=? ");
-      query.setByte(0, projectyType);
-      Iterator it = broker.iterate(query);
-      while (it.hasNext()) {
-         result.add((Long) it.next());
+      try {
+         OpQuery query = broker.newQuery(" select project.ID from OpProjectNode project where project.Type=? ");
+         query.setByte(0, projectyType);
+         Iterator it = broker.iterate(query);
+         while (it.hasNext()) {
+            result.add((Long) it.next());
+         }
+         return result;
       }
-      broker.closeAndEvict();
-      return result;
+      finally {
+         broker.closeAndEvict();         
+      }
    }
 }

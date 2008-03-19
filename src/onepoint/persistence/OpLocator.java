@@ -84,4 +84,16 @@ public final class OpLocator {
    public static boolean validate(String locator) {
       return !(locator == null || locator.length() == 0) && parseLocator(locator) != null;
    }
+   
+   /* (non-Javadoc)
+    * @see java.lang.Object#equals(java.lang.Object)
+    */
+   @Override
+   public boolean equals(Object obj) {
+      if (this == obj) {
+         return true;
+      }
+      OpLocator other = (OpLocator) obj;
+      return (this.id == other.id && prototype.getName().equals(other.prototype.getName()));
+   }
 }

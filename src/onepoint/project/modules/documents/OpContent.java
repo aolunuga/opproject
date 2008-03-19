@@ -5,8 +5,6 @@
 package onepoint.project.modules.documents;
 
 import onepoint.persistence.OpObject;
-import onepoint.persistence.OpPrototype;
-import onepoint.persistence.OpTypeManager;
 import onepoint.project.modules.project.OpAttachment;
 import onepoint.project.modules.project.OpAttachmentVersion;
 import onepoint.service.XSizeInputStream;
@@ -21,6 +19,7 @@ public class OpContent extends OpObject {
    public final static String MEDIA_TYPE = "MediaType";
    public final static String ATTACHMENTS = "Attachments";
    public final static String ATTACHMENT_VERSIONS = "AttachmentVersions";
+   public final static String DOCUMENT_NODES = "DocumentNodes";
    public final static String DOCUMENTS = "Documents";
    public final static String SIZE = "Size";
    public final static String STREAM = "Stream";
@@ -31,6 +30,7 @@ public class OpContent extends OpObject {
    private XSizeInputStream stream;
    private Set<OpAttachment> attachments = new HashSet<OpAttachment>();
    private Set<OpAttachmentVersion> attachmentVersions = new HashSet<OpAttachmentVersion>();
+   private Set<OpDocumentNode> documentNodes = new HashSet<OpDocumentNode>();
    private Set<OpDocument> documents = new HashSet<OpDocument>();
 
    /**
@@ -54,8 +54,8 @@ public class OpContent extends OpObject {
    /**
     * Create a new instance of <code>OpContent</code> based on the specified stream and the specified size
     *
-    * @param stream   the <code>InputStream</code> instance that contains the data
-    * @param size the number of bytes from the provided stream. [0..Long.MAX_VALUE]
+    * @param stream the <code>InputStream</code> instance that contains the data
+    * @param size   the number of bytes from the provided stream. [0..Long.MAX_VALUE]
     */
    public OpContent(InputStream stream, long size) {
       this.stream = new XSizeInputStream(stream, size);
@@ -131,7 +131,7 @@ public class OpContent extends OpObject {
     */
    @Deprecated
    public void setBytes(XSizeInputStream stream) {
-     setStream(stream);
+      setStream(stream);
    }
 
    //
@@ -141,6 +141,14 @@ public class OpContent extends OpObject {
 
    public Set<OpAttachment> getAttachments() {
       return attachments;
+   }
+
+   public Set<OpDocumentNode> getDocumentNodes() {
+      return documentNodes;
+   }
+
+   public void setDocumentNodes(Set<OpDocumentNode> documentNodes) {
+      this.documentNodes = documentNodes;
    }
 
    public Set<OpDocument> getDocuments() {
@@ -157,27 +165,5 @@ public class OpContent extends OpObject {
 
    public void setAttachmentVersions(Set<OpAttachmentVersion> attachmentVersions) {
       this.attachmentVersions = attachmentVersions;
-   }
-
-   /**
-    * Sets the stream member of the <code>OpContent</code> object to be loaded lazy or not depending on the parameter.
-    *
-    * @param lazy - a <code>boolean</code> value indicating whether the stream membet of the <code>OpContent</code>
-    *    object will be loaded lazy or not.
-    */
-   public static void setStreamLazy(boolean lazy) {
-      OpPrototype prototype = OpTypeManager.getPrototypeByClassName(OpContent.class.getName());
-      prototype.getMember(STREAM).setLazy(lazy ? "true" : "false");
-   }
-
-   /**
-    * Determines if the stream member of the <code>OpContent</code> object is to be loaded lazy or not.
-    *
-    * @return <code>true</code> if the stream member of the <code>OpContent</code> object is to be loaded lazy or
-    *    <code>false</code> otherwise.
-    */
-   public static boolean isStreamLazy() {
-      OpPrototype prototype = OpTypeManager.getPrototypeByClassName(OpContent.class.getName());
-      return prototype.getMember(STREAM).getLazy().equals("true");
    }
 }

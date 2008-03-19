@@ -25,6 +25,7 @@ import onepoint.resource.XLocaleManager;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
 import onepoint.service.server.XServiceException;
+import onepoint.service.server.XServiceManager;
 
 import java.util.*;
 
@@ -93,9 +94,13 @@ public class OpUserService extends OpProjectService {
       String login = (String) (request.getArgument(LOGIN));
       XMessage reply = new XMessage();
       OpBroker broker = session.newBroker();
-      String algo = serviceIfcImpl.getHashAlgorithm(session, broker, login);
-      reply.setVariable("algorithm", algo);
-      broker.close();
+      try {
+         String algo = serviceIfcImpl.getHashAlgorithm(session, broker, login);
+         reply.setVariable("algorithm", algo);
+      }
+      finally {
+         broker.close();
+      }
       return reply;
    }
 
@@ -168,22 +173,22 @@ public class OpUserService extends OpProjectService {
       user.setLevel(userLevelId);
 
       OpBroker broker = session.newBroker();
-
-      reply = aditionalCheck(session, broker, user);
-      if (reply.getError() != null) {
-         broker.close();
-         return reply;
-      }
-
-      // NOTE: do not remove local broker reference!! (ThreadLocal)
-      OpTransaction t = broker.newTransaction();
-
+      OpTransaction t = null;
       try {
+         reply = aditionalCheck(session, broker, user);
+         if (reply.getError() != null) {
+            broker.close();
+            return reply;
+         }
+
+         // NOTE: do not remove local broker reference!! (ThreadLocal)
+         t = broker.newTransaction();
+
          serviceIfcImpl.insertUser(session, broker, user);
 
          // set language preference
-         String language = (String) user_data.get(LANGUAGE);
-         OpUserLanguageManager.updateUserLanguagePreference(broker, user, language);
+         String xLocaleId = (String) user_data.get(LANGUAGE);
+         OpUserLanguageManager.updateUserLanguagePreference(broker, user, xLocaleId);
 
          // set assignments
          List assigned_groups = (List) (user_data.get(ASSIGNED_GROUPS));
@@ -201,7 +206,7 @@ public class OpUserService extends OpProjectService {
          // do this using OpPreferencesAPI
 
          //create a preference regarding the show hours option, using the default value from the system settings
-         String showHours = OpSettingsService.getService().get(OpSettings.SHOW_RESOURCES_IN_HOURS);
+         String showHours = OpSettingsService.getService().get(session, OpSettings.SHOW_RESOURCES_IN_HOURS);
          OpPreference pref = new OpPreference();
          pref.setUser(user);
          pref.setName(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
@@ -211,10 +216,14 @@ public class OpUserService extends OpProjectService {
          logger.debug("make-persistent");
       }
       catch (XServiceException exc) {
-         t.rollback();
+         if (t != null) {
+            t.rollback();
+         }
          reply.setError(exc.getError());
       }
-      broker.close();
+      finally {
+         broker.close();
+      }
       return reply;
    }
 
@@ -240,40 +249,41 @@ public class OpUserService extends OpProjectService {
       group.setDescription((String) (group_data.get(OpSubject.DESCRIPTION)));
 
       OpBroker broker = session.newBroker();
-      List assigned_group_id_strings = (List) group_data.get(ASSIGNED_GROUPS);
-      Vector<OpGroup> super_groups = new Vector<OpGroup>();
-      if (assigned_group_id_strings != null) {
-         String choice;
-         Iterator iter = assigned_group_id_strings.iterator();
-         OpGroup assigned_group;
-         while (iter.hasNext()) {
-            choice = (String) iter.next();
-            assigned_group = (OpGroup) (broker.getObject(XValidator.choiceID(choice)));
-            if (assigned_group == null) {
-               // super group not found
-               reply.setError(session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.SUPER_GROUP_NOT_FOUND));
-               broker.close();
-               return reply;
-            }
-            super_groups.add(assigned_group);
-         }
-      }
-      // super_groups now contains all super groups!
-      if (!serviceIfcImpl.isAssignable(session, broker, group, super_groups.iterator())) {
-         reply.setError(session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.LOOP_ASSIGNMENT));
-         broker.close();
-         return reply;
-      }
-
-      // validation successfully completed
-      OpTransaction t = broker.newTransaction();
+      OpTransaction t = null;
       try {
+         List assigned_group_id_strings = (List) group_data.get(ASSIGNED_GROUPS);
+         Vector<OpGroup> super_groups = new Vector<OpGroup>();
+         if (assigned_group_id_strings != null) {
+            String choice;
+            Iterator iter = assigned_group_id_strings.iterator();
+            OpGroup assigned_group;
+            while (iter.hasNext()) {
+               choice = (String) iter.next();
+               assigned_group = (OpGroup) (broker.getObject(XValidator.choiceID(choice)));
+               if (assigned_group == null) {
+                  // super group not found
+                  reply.setError(session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.SUPER_GROUP_NOT_FOUND));
+                  return reply;
+               }
+               super_groups.add(assigned_group);
+            }
+         }
+         // super_groups now contains all super groups!
+         if (!serviceIfcImpl.isAssignable(session, broker, group, super_groups.iterator())) {
+            reply.setError(session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.LOOP_ASSIGNMENT));
+            return reply;
+         }
+
+         // validation successfully completed
+         t = broker.newTransaction();
          serviceIfcImpl.insertGroup(session, broker, group);
          serviceIfcImpl.assign(session, broker, group, super_groups.iterator());
          t.commit();
       }
       catch (XServiceException exc) {
-         t.rollback();
+         if (t != null) {
+            t.rollback();
+         }
          reply.setError(exc.getError());
          return reply;
       }
@@ -299,6 +309,7 @@ public class OpUserService extends OpProjectService {
             return reply;
          }
 
+         Byte originalLevel = user.getLevel();
          user.setName((String) (user_data.get(OpUser.NAME)));
 
          OpContact contact = user.getContact();
@@ -352,9 +363,11 @@ public class OpUserService extends OpProjectService {
          // Create display name (note: This could be made configurable in the future)
          user.setDisplayName(contact.calculateDisplayName(user.getName()));
 
-         reply = aditionalCheck(session, broker, user);
-         if (reply.getError() != null) {
-            return reply;
+         if (originalLevel.byteValue() != user.getLevel().byteValue()) {
+            reply = aditionalCheck(session, broker, user);
+            if (reply.getError() != null) {
+               return reply;
+            }
          }
 
          // validation successfully completed
@@ -362,11 +375,11 @@ public class OpUserService extends OpProjectService {
          serviceIfcImpl.updateUser(session, broker, user);
 
          //set the language
-         String language = (String) user_data.get(LANGUAGE);
-         boolean languageUpdated = OpUserLanguageManager.updateUserLanguagePreference(broker, user, language);
+         String xLocaleId = (String) user_data.get(LANGUAGE);
+         boolean languageUpdated = OpUserLanguageManager.updateUserLanguagePreference(broker, user, xLocaleId);
          if (languageUpdated && user.getID() == session.getUserID()) {
             //refresh forms
-            XLocale newLocale = XLocaleManager.findLocale(language);
+            XLocale newLocale = XLocaleManager.findLocale(xLocaleId);
             session.setLocale(newLocale);
             reply.setArgument(OpProjectConstants.REFRESH_PARAM, Boolean.TRUE);
          }
@@ -614,8 +627,6 @@ public class OpUserService extends OpProjectService {
          return null;
       }
 
-      OpBroker broker = session.newBroker();
-
       List<Long> subjectIds = new ArrayList<Long>();
       for (int i = 0; i < subjectLocators.size(); i++) {
 
@@ -629,6 +640,7 @@ public class OpUserService extends OpProjectService {
          // *** Note: This can be checked in the ConfirmDelete form provider (no script code necessary)!
       }
 
+      OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
       try {
          /*
@@ -830,15 +842,19 @@ public class OpUserService extends OpProjectService {
 
    private XComponent expandGroupStructure(OpProjectSession session, XMessage request, boolean simpleStructure, List filteredSubjectIds) {
       OpBroker broker = session.newBroker();
-      XComponent resultSet = new XComponent(XComponent.DATA_SET);
-      String targetGroupLocator = (String) (request.getArgument(SOURCE_GROUP_LOCATOR));
-      Integer outline = (Integer) (request.getArgument(OUTLINE_LEVEL));
-      if (targetGroupLocator != null && outline != null) {
-         OpLocator locator = OpLocator.parseLocator(targetGroupLocator);
-         OpSubjectDataSetFactory.retrieveSubjectHierarchy(session, resultSet, filteredSubjectIds, locator.getID(), outline.intValue() + 1, simpleStructure);
+      try {
+         XComponent resultSet = new XComponent(XComponent.DATA_SET);
+         String targetGroupLocator = (String) (request.getArgument(SOURCE_GROUP_LOCATOR));
+         Integer outline = (Integer) (request.getArgument(OUTLINE_LEVEL));
+         if (targetGroupLocator != null && outline != null) {
+            OpLocator locator = OpLocator.parseLocator(targetGroupLocator);
+            OpSubjectDataSetFactory.retrieveSubjectHierarchy(session, resultSet, filteredSubjectIds, locator.getID(), outline.intValue() + 1, simpleStructure);
+         }
+         return resultSet;
       }
-      broker.close();
-      return resultSet;
+      finally {
+         broker.close();
+      }
    }
 
    public static void createAdministrator(OpBroker broker) {
@@ -887,28 +903,34 @@ public class OpUserService extends OpProjectService {
       XMessage reply = new XMessage();
       List subjectLocators = (List) (request.getArgument(SUBJECT_IDS));
       //get Everyone Group
-      OpGroup everyone = session.everyone(session.newBroker());
-      //everyone group should always exists
-      long everyoneID = -1;
-      if (everyone != null) {
-         everyoneID = everyone.getID();
-      }
+      OpBroker broker = session.newBroker();
+      try {
+         OpGroup everyone = session.everyone(broker);
+         //everyone group should always exists
+         long everyoneID = -1;
+         if (everyone != null) {
+            everyoneID = everyone.getID();
+         }
 
-      //check if one of the selected subjects is the session user or is Everyone Group
-      for (int i = 0; i < subjectLocators.size(); i++) {
-         long subjectId = OpLocator.parseLocator((String) (subjectLocators.get(i))).getID();
-         if (subjectId == session.getUserID()) {
-            XError error = session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.SESSION_USER);
-            reply.setError(error);
-            break;
+         //check if one of the selected subjects is the session user or is Everyone Group
+         for (int i = 0; i < subjectLocators.size(); i++) {
+            long subjectId = OpLocator.parseLocator((String) (subjectLocators.get(i))).getID();
+            if (subjectId == session.getUserID()) {
+               XError error = session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.SESSION_USER);
+               reply.setError(error);
+               break;
+            }
+            if (subjectId == everyoneID) {
+               XError error = session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.EVERYONE_GROUP);
+               reply.setError(error);
+               break;
+            }
          }
-         if (subjectId == everyoneID) {
-            XError error = session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.EVERYONE_GROUP);
-            reply.setError(error);
-            break;
-         }
+         return reply;
       }
-      return reply;
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -943,5 +965,12 @@ public class OpUserService extends OpProjectService {
       return users;
    }
 
-
+   /**
+    * Returns the instance of the user service which was registered with the service manager.
+    * @return a <code>OpUserService</code> if the service was registered with the
+    * service manager, <code>null</code> otherwise.
+    */
+   public static OpUserService getService() {
+      return (OpUserService) XServiceManager.getService(OpUserServiceImpl.SERVICE_NAME);
+   }
 }

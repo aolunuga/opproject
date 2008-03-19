@@ -23,7 +23,6 @@ public class OpConfirmChangeProjectFormProvider implements XFormProvider {
    private final static String GOALS_SET = "goals_set";
    private final static String RESOURCE_SET = "resource_set";
    private final static String VERSIONS_SET = "versions_set";
-   private final static String ATTACHMENT_SET = "attachment_set";
    protected final static String CHANGE_LABEL = "ConfirmChangeLabel";
    protected final static String CONFIRM_HR = "ConfirmChangeHR";
    protected final static String RESOURCE_MAP = "project.change";
@@ -61,13 +60,6 @@ public class OpConfirmChangeProjectFormProvider implements XFormProvider {
       for (int i = 0; i < versionSet.getChildCount(); i++) {
          dataRow = (XComponent) versionSet.getChild(i);
          formVersionsSet.addChild(dataRow.copyData());
-      }
-
-      XComponent attachmentSet = (XComponent) (parameters.get(ATTACHMENT_SET));
-      XComponent formAttachmentSet = form.findComponent(ATTACHMENT_SET);
-      for (int i = 0; i < attachmentSet.getChildCount(); i++) {
-         dataRow = (XComponent) attachmentSet.getChild(i);
-         formAttachmentSet.addChild(dataRow.copyData());
       }
 
       //set confirm message (available/hr)

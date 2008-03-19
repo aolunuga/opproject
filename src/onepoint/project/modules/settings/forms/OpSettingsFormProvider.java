@@ -7,11 +7,11 @@ package onepoint.project.modules.settings.forms;
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
-import onepoint.express.util.XLanguageHelper;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsDataSetFactory;
 import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendar;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendarManager;
@@ -74,9 +74,9 @@ public class OpSettingsFormProvider implements XFormProvider {
       XComponent fw = form.findComponent(FIRST_WORK_DAY);
       XComponent lw = form.findComponent(LAST_WORK_DAY);
       XComponent holidays = form.findComponent(HOLYDAYS);
-      String firstWorkday = OpSettingsService.getService().get(OpSettings.CALENDAR_FIRST_WORKDAY);
-      String lastWorkday = OpSettingsService.getService().get(OpSettings.CALENDAR_LAST_WORKDAY);
-      String lastLocation = OpSettingsService.getService().get(OpSettings.CALENDAR_HOLIDAYS_LOCATION);
+      String firstWorkday = OpSettingsService.getService().get(session, OpSettings.CALENDAR_FIRST_WORKDAY);
+      String lastWorkday = OpSettingsService.getService().get(session, OpSettings.CALENDAR_LAST_WORKDAY);
+      String lastLocation = OpSettingsService.getService().get(session, OpSettings.CALENDAR_HOLIDAYS_LOCATION);
       form.findComponent(ORIGINAL_HOLIDAY_CALENDAR).setStringValue(lastLocation);
 
       //fill weekdays data set
@@ -91,9 +91,9 @@ public class OpSettingsFormProvider implements XFormProvider {
       localizer.setResourceMap(resourceMap);
       fillHolidaysDataSet(holidaysDataSet, holidays, lastLocation, localizer);
 
-      fillWorkTime(form);
+      fillWorkTime(form, session);
 
-      String resourceMaxAvailability = OpSettingsService.getService().get(OpSettings.RESOURCE_MAX_AVAILABYLITY);
+      String resourceMaxAvailability = OpSettingsService.getService().get(session, OpSettings.RESOURCE_MAX_AVAILABYLITY);
       XComponent resourceMaxAvailabilityTextField = form.findComponent(RESOURCE_MAX_AVAILABILITY);
       double available = 0;
       try {
@@ -104,35 +104,35 @@ public class OpSettingsFormProvider implements XFormProvider {
       }
       resourceMaxAvailabilityTextField.setDoubleValue(available);
 
-      fillMilestoneSettings(form);
+      fillMilestoneSettings(session, form);
 
-      String emptyPasswordValue = OpSettingsService.getService().get(OpSettings.ALLOW_EMPTY_PASSWORD);
+      String emptyPasswordValue = OpSettingsService.getService().get(session, OpSettings.ALLOW_EMPTY_PASSWORD);
       XComponent emptyPasswordCheckBox = form.findComponent(ALLOW_EMPTY_PASSWORD);
       emptyPasswordCheckBox.setBooleanValue(Boolean.valueOf(emptyPasswordValue));
 
-      String showHours = OpSettingsService.getService().get(OpSettings.SHOW_RESOURCES_IN_HOURS);
+      String showHours = OpSettingsService.getService().get(session, OpSettings.SHOW_RESOURCES_IN_HOURS);
       XComponent showHoursCheckBox = form.findComponent(SHOW_RESOURCES_IN_HOURS);
       showHoursCheckBox.setBooleanValue(Boolean.valueOf(showHours));
 
-      String emailFromAddress = OpSettingsService.getService().get(OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS);
+      String emailFromAddress = OpSettingsService.getService().get(session, OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS);
       XComponent mailMessageTextField = form.findComponent(EMAIL_NOTIFICATION_FROM_ADDRESS);
       mailMessageTextField.setStringValue(emailFromAddress);
 
       // Fill user locale data set
       XComponent dataSet = form.findComponent(USER_LOCALE_DATA_SET);
       XComponent userLocaleChoiceField = form.findComponent(USER_LOCALE);
-      String userLocaleId = OpSettingsService.getService().get(OpSettings.USER_LOCALE);
-      XLanguageHelper.fillLanguageDataSet(dataSet, userLocaleChoiceField, userLocaleId);
-      logger.info("***CURRRENT LOCALE '" + userLocaleId + "'");
+      String userXLocaleId = OpSettingsService.getService().get(session, OpSettings.USER_LOCALE_ID);
+      OpSettingsDataSetFactory.fillLanguageDataSet(dataSet, userLocaleChoiceField, userXLocaleId);
+      logger.info("***CURRRENT LOCALE '" + userXLocaleId + "'");
 
       //enable time tracking
       XComponent enableTimeTrackingField = form.findComponent(ENABLE_TIME_TRACKING);
-      enableTimeTrackingField.setBooleanValue(Boolean.valueOf(OpSettingsService.getService().get(OpSettings.ENABLE_TIME_TRACKING)));
+      enableTimeTrackingField.setBooleanValue(Boolean.valueOf(OpSettingsService.getService().get(session, OpSettings.ENABLE_TIME_TRACKING)));
 
       //pulsing
       XComponent enablePulsingField = form.findComponent(ENABLE_PULSING);
       XComponent pulsingField = form.findComponent(PULSING);
-      String pulsingValue = OpSettingsService.getService().get(OpSettings.PULSING);
+      String pulsingValue = OpSettingsService.getService().get(session, OpSettings.PULSING);
       if (pulsingValue == null) {
          enablePulsingField.setBooleanValue(false);
          pulsingField.setEnabled(false);
@@ -148,11 +148,11 @@ public class OpSettingsFormProvider implements XFormProvider {
          hideManagerfeaturesField.setVisible(false);
       }
       else {
-         hideManagerfeaturesField.setBooleanValue(Boolean.valueOf(OpSettingsService.getService().get(OpSettings.HIDE_MANAGER_FEATURES)));
+         hideManagerfeaturesField.setBooleanValue(Boolean.valueOf(OpSettingsService.getService().get(session, OpSettings.HIDE_MANAGER_FEATURES)));
       }
 
       //currency
-      fillCurency(form);
+      fillCurency(form, session);
 
       // hide multi-user fields
       if (!OpEnvironmentManager.isMultiUser()) {
@@ -167,12 +167,12 @@ public class OpSettingsFormProvider implements XFormProvider {
       }
    }
 
-   protected void fillMilestoneSettings(XComponent form) {
+   protected void fillMilestoneSettings(OpProjectSession session, XComponent form) {
    }
 
-   private void fillWorkTime(XComponent form) {
+   private void fillWorkTime(XComponent form, OpProjectSession session) {
       XComponent dayWorkTimeField = form.findComponent(DAY_WORK_TIME);
-      String dayWorkTimeString = OpSettingsService.getService().get(OpSettings.CALENDAR_DAY_WORK_TIME);
+      String dayWorkTimeString = OpSettingsService.getService().get(session, OpSettings.CALENDAR_DAY_WORK_TIME);
       double dayWorkTime;
       try {
          dayWorkTime = Double.valueOf(dayWorkTimeString);
@@ -184,7 +184,7 @@ public class OpSettingsFormProvider implements XFormProvider {
       logger.debug("   dwt " + dayWorkTimeString);
 
       XComponent weekWorkTimeField = form.findComponent(WEEK_WORK_TIME);
-      String weekWorkTimeString = OpSettingsService.getService().get(OpSettings.CALENDAR_WEEK_WORK_TIME);
+      String weekWorkTimeString = OpSettingsService.getService().get(session, OpSettings.CALENDAR_WEEK_WORK_TIME);
       double weekWorkTime;
       try {
          weekWorkTime = Double.valueOf(weekWorkTimeString);
@@ -195,8 +195,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       weekWorkTimeField.setDoubleValue(weekWorkTime);
    }
 
-   private void fillCurency(XComponent form) {
-      String currencyShortName = OpSettingsService.getService().get(OpSettings.CURRENCY_SHORT_NAME);
+   private void fillCurency(XComponent form, OpProjectSession session) {
+      String currencyShortName = OpSettingsService.getService().get(session, OpSettings.CURRENCY_SHORT_NAME);
       XComponent currencyChoice = form.findComponent(CURRENCY_CHOICE_ID);
       String currencySeparator = form.findComponent(CURRENCY_NAME_SYMBOL_SEPARATOR_ID).getStringValue();
       XComponent currencyDataSet = form.findComponent(CURRENCY_DATASET_ID);

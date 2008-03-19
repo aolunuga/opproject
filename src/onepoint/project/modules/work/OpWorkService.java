@@ -5,6 +5,7 @@
 package onepoint.project.modules.work;
 
 import onepoint.express.XComponent;
+import onepoint.express.XValidator;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
@@ -13,11 +14,12 @@ import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
+import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.project.OpAttachment;
 import onepoint.project.modules.project.OpProjectNodeAssignment;
-import onepoint.project.modules.work.forms.OpWorkSlipsFormProvider;
+import onepoint.project.modules.work.validators.OpWorkCostValidator;
 import onepoint.service.XMessage;
 import onepoint.service.server.XServiceException;
 
@@ -49,7 +51,7 @@ public class OpWorkService extends OpProjectService {
    public final static OpWorkErrorMap ERROR_MAP = new OpWorkErrorMap();
 
    private OpWorkServiceImpl serviceImpl = new OpWorkServiceImpl();
-   private static final String GET_ATTACHMENTS_FROM_WORK_SLIP = "select attachment from OpWorkSlip workSlip inner join workSlip.Records workRecord inner join workRecord.CostRecords costRecord inner join costRecord.Attachments attachment where workSlip.ID = ? and attachment.Linked = false";
+   private static final String GET_ATTACHMENTS_FROM_WORK_SLIP = "select attachment from OpWorkSlip workSlip inner join workSlip.Records workRecord inner join workRecord.CostRecords costRecord inner join costRecord.Attachments attachment where workSlip.ID = ?";
 
 
    public XMessage insertWorkSlip(OpProjectSession session, XMessage request) {
@@ -70,7 +72,7 @@ public class OpWorkService extends OpProjectService {
       OpTransaction t = null;
       try {
          t = broker.newTransaction();
-         int errorCode = createWorkRecords(broker, effortSet, timeSet, costSet, workRecordsToAdd, start);
+         int errorCode = createWorkRecords(broker, effortSet, timeSet, costSet, workRecordsToAdd, start, null);
 
          // if no works records are valid throw an exception
          if (workRecordsToAdd.isEmpty() && errorCode != 0) {
@@ -113,11 +115,15 @@ public class OpWorkService extends OpProjectService {
     * @param workSlipDate    the date needed in the calculation of the actual costs @return the first error message returned by the work record validation method
     * @return error code
     */
-   private int createWorkRecords(OpBroker broker, XComponent effortRecordSet, XComponent timeRecordSet, XComponent costRecordSet, Set<OpWorkRecord> workRecords, Date workSlipDate) {
+   private int createWorkRecords(OpBroker broker, XComponent effortRecordSet, XComponent timeRecordSet,
+        XComponent costRecordSet, Set<OpWorkRecord> workRecords, Date workSlipDate, Map<XComponent,
+        List<OpAttachment>> unmodifiedAttachmentsMap) {
       OpAssignment assignment;
       int errorCode = 0;
 
-      List<OpWorkRecord> workRecordList = OpWorkSlipDataSetFactory.formWorkRecordsFromDataSets(broker, effortRecordSet, timeRecordSet, costRecordSet);
+      List<OpWorkRecord> workRecordList = OpWorkSlipDataSetFactory
+            .formWorkRecordsFromDataSets(broker, effortRecordSet,
+           timeRecordSet, costRecordSet, unmodifiedAttachmentsMap);
       for (OpWorkRecord workRecord : workRecordList) {
          assignment = workRecord.getAssignment();
 
@@ -199,20 +205,67 @@ public class OpWorkService extends OpProjectService {
 
          t = broker.newTransaction();
 
+         //obtain the attachments that were not modified during the edit operation
+         List<List> attachmentList;
+         //the list containing the locators of the unmodified attachments
+         List<String> unmodifiedAttachmentLocators;
+         //map Key: cost record data row; Value: a list of Strings containing the locators of the unmodified attachments
+         //for the cost record represented by the data row.
+         Map<XComponent, List<String>> unmodifiedLocatorsMap = new HashMap<XComponent, List<String>>();
+         for(int i = 0; i < costsRecordSet.getChildCount(); i++) {
+            XComponent costRow = (XComponent) costsRecordSet.getChild(i);
+            attachmentList = (List<List>) ((XComponent)costRow.getChild(OpWorkCostValidator.ATTACHMENT_INDEX)).getValue();
+            unmodifiedAttachmentLocators = new ArrayList<String>();
+
+            Iterator<List> iterator = attachmentList.iterator();
+            while (iterator.hasNext()) {
+               List attachmentElement = iterator.next();
+               String attachmentChoice = (String) attachmentElement.get(1);
+               String attachmentLocator = XValidator.choiceID(attachmentChoice);
+               //if the attachment locator is 0 then the attachment is a newly inserted one, else it is an unmodified attachment
+               if (!attachmentLocator.equals("0")) {
+                  unmodifiedAttachmentLocators.add(attachmentLocator);
+                  //if the attachment was unmodified remove the it's corresponding attachment element from the list so that
+                  // it is not inserted again
+                  iterator.remove();
+               }
+            }
+            if (!unmodifiedAttachmentLocators.isEmpty()) {
+               //add a new entry in the map for this cost row, namely all its unmodified attachment locators
+               unmodifiedLocatorsMap.put(costRow, unmodifiedAttachmentLocators);
+            }
+         }
+
          //update the contents for all the attachments that belong to the work record
+         //map Key: cost record data row; Value: a list of OpAttachment containing the unmodified attachments
+         //for the cost record represented by the data row.
+         Map<XComponent, List<OpAttachment>> unmodifiedAttachmentsMap = new HashMap<XComponent, List<OpAttachment>>();
+         List<OpContent> contents = new ArrayList<OpContent>();
          OpQuery query = broker.newQuery(GET_ATTACHMENTS_FROM_WORK_SLIP);
          query.setLong(0, workSlip.getID());
          List<OpAttachment> result = broker.list(query);
          for (OpAttachment attachment : result) {
-            OpContentManager.updateContent(attachment.getContent(), broker, false, false);
-            attachment.setContent(null);
+            //if the attachment was not modified by the edit operation, break it's link to the cost record and add it
+            //to the list of unmodified attachments for the cost row to which it belongs
+            if(checkUnmodifiedAttachment(attachment, unmodifiedLocatorsMap, unmodifiedAttachmentsMap)) {
+               OpCostRecord costRecord = attachment.getCostRecord();
+               costRecord.getAttachments().remove(attachment);
+               attachment.setCostRecord(null);
+            }
+            else {
+               if (!attachment.getLinked()) {
+                  contents.add(attachment.getContent());
+                  attachment.setContent(null);
+               }
+            }
          }
 
          //remove all work records from the work slip
          serviceImpl.deleteWorkRecords(broker, workSlip, session.getCalendar());
 
          //insert all the new work records
-         int errorCode = createWorkRecords(broker, effortRecordSet, timeRecordSet, costsRecordSet, workRecordsToAdd, workSlip.getDate());
+         int errorCode = createWorkRecords(broker, effortRecordSet, timeRecordSet, costsRecordSet, workRecordsToAdd,
+              workSlip.getDate(), unmodifiedAttachmentsMap);
          if (workRecordsToAdd.isEmpty() && errorCode != 0) {
             XMessage reply = new XMessage();
             reply.setError(session.newError(ERROR_MAP, errorCode));
@@ -233,11 +286,10 @@ public class OpWorkService extends OpProjectService {
             return reply;
          }
 
-         t.commit();
-
-         t = broker.newTransaction();
          //delete all contents with reference count = 0
-         OpContentManager.deleteZeroRefContents(broker);
+         for(OpContent content : contents) {
+            OpContentManager.updateContent(content, broker, false, true);
+         }
          t.commit();
 
          logger.info("/OpWorkService.editWorkSlip()");
@@ -259,17 +311,15 @@ public class OpWorkService extends OpProjectService {
 
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
-
-      LinkedList<OpWorkSlip> to_delete = new LinkedList<OpWorkSlip>();
-      for (Object id_string : id_strings) {
-         OpWorkSlip ws = serviceImpl.getMyWorkSlipByIdString(session, broker, (String) id_string);
-         // TODO: change this to return an error???
-         if (ws != null && ws.getState() == OpWorkSlip.STATE_EDITABLE) {
-            to_delete.add(serviceImpl.getMyWorkSlipByIdString(session, broker, (String) id_string));
-         }
-      }
-
       try {
+         LinkedList<OpWorkSlip> to_delete = new LinkedList<OpWorkSlip>();
+         for (Object id_string : id_strings) {
+            OpWorkSlip ws = serviceImpl.getMyWorkSlipByIdString(session, broker, (String) id_string);
+            // TODO: change this to return an error???
+            if (ws != null && ws.getState() == OpWorkSlip.STATE_EDITABLE) {
+               to_delete.add(serviceImpl.getMyWorkSlipByIdString(session, broker, (String) id_string));
+            }
+         }
 
          serviceImpl.deleteMyWorkSlips(session, broker, to_delete.iterator());
          t.commit();
@@ -287,59 +337,6 @@ public class OpWorkService extends OpProjectService {
       return null;
    }
 
-   public XMessage changeWorkSlipState(OpProjectSession session, XMessage request)
-         throws XServiceException {
-      List workSlipSet= (List) request.getArgument(WORK_SLIPS_ARGUMENT);
-      String newState = (String) request.getArgument(WORK_SLIP_STATE_ARGUMENT);
-      logger.debug("OpWorkService.changeWorkSlipState() " + workSlipSet.size() + " -> " + newState);
-
-      int newStateNum = (Integer) OpWorkSlipsFormProvider.workSlipStatesReversed
-            .get(newState);
-      
-      OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
-      try {
-         int numWorkSlipsControlled = 0;
-         for (int i = 0; i < workSlipSet.size(); i++) {
-            // TODO: use in-query to improve performance...
-            String wsLocator = ((XComponent) workSlipSet.get(i))
-                  .getStringValue();
-
-            OpWorkSlip slip = (OpWorkSlip) broker.getObject(wsLocator);
-            boolean crExists = false;
-            if (newStateNum == OpWorkSlip.STATE_EDITABLE) {
-               for (OpWorkRecord wr: slip.getRecords()) {
-                  if (wr.getControllingRecord() != null) {
-                     crExists = true;
-                     break;
-                  }
-               }
-            }
-            if (crExists) {
-               numWorkSlipsControlled++;
-            }
-            else {
-               if (newStateNum != slip.getState()) {
-                  slip.setState(newStateNum);
-               }
-            }
-         }
-         
-         // look, if we should issue any errors...
-         if (numWorkSlipsControlled > 0) {
-            XMessage reply = new XMessage();
-            reply.setError(session.newError(ERROR_MAP, OpWorkError.WORK_SLIP_IS_CONTROLLED));
-            return reply;
-         }
-         
-         t.commit();
-      }
-      finally {
-         finalizeSession(t, broker);
-      }
-      return null;
-   }
-
    /* (non-Javadoc)
     * @see onepoint.project.OpProjectService#getServiceImpl()
     */
@@ -348,4 +345,37 @@ public class OpWorkService extends OpProjectService {
       return serviceImpl;
    }
 
+   /**
+    * Checks if the <code>OpAttachment</code> passed as parameter has its locator in the
+    *    <code>Map<XComponent, List<String>></code> unmodifiedLocatorsMap and if this is the case it adds the locator in
+    *    the <code>Map<XComponent, List<OpAttachment>></code> unmodifiedAttachmentsMap at the same key as in
+    *    the unmodifiedLocatorsMap.
+    *
+    * @param attachment - the <code>OpAttachment</code> who is checked.
+    * @param unmodifiedLocatorsMap - the <code>Map<XComponent, List<String>></code> containing the locators of the
+    *    unmodified attachments.
+    * @param unmodifiedAttachmentsMap - the <code>Map<XComponent, List<OpAttachment>></code> containing the unmodified
+    *    attachments.
+    * @return <code>true</code> if the <code>OpAttachment</code> passed as parameter has its locator in the
+    *    <code>Map<XComponent, List<String>></code> unmodifiedLocatorsMap and <code>false</code> otherwise.
+    */
+   private boolean checkUnmodifiedAttachment(OpAttachment attachment, Map<XComponent, List<String>> unmodifiedLocatorsMap,
+        Map<XComponent, List<OpAttachment>> unmodifiedAttachmentsMap) {
+      for(XComponent dataRow : unmodifiedLocatorsMap.keySet()) {
+         //if the attachment locator is in the list of unmodified attachment locator of a certain key
+         if(unmodifiedLocatorsMap.get(dataRow).contains(attachment.locator())) {
+            //add the attachment to the list of attachment for the key
+            if(!unmodifiedAttachmentsMap.keySet().contains(dataRow)) {
+               List<OpAttachment> attachmentList = new ArrayList<OpAttachment>();
+               attachmentList.add(attachment);
+               unmodifiedAttachmentsMap.put(dataRow, attachmentList);
+            }
+            else {
+               unmodifiedAttachmentsMap.get(dataRow).add(attachment);
+            }
+            return true;
+         }
+      }
+      return false;
+   }
 }
