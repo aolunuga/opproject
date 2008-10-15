@@ -1,4 +1,0 @@
-<service name="ContentService" class="onepoint.project.modules.documents.OpContentService" interceptor="onepoint.project.OpServiceInterceptor">
-   <method name="deleteZeroRefContents">
-   </method>
-</service>

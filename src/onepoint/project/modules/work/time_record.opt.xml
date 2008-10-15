@@ -1,6 +1,0 @@
-<prototype name="OpTimeRecord" instance-class="onepoint.project.modules.work.OpTimeRecord" super-type="OpObject">
-   <field name="Start" type="Integer" />
-   <field name="Finish" type="Integer" />
-   <field name="Duration" type="Integer" />
-   <relationship name="WorkRecord" type="OpWorkRecord" back-relationship="TimeRecords"/>
-</prototype>

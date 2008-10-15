@@ -1,7 +1,0 @@
-<prototype name="OpWorkPeriod" instance-class="onepoint.project.modules.project.OpWorkPeriod" super-type="OpObject">
-   <field name="Start" type="Date" indexed="true"/>
-   <field name="BaseEffort" type="Double"/>
-   <field name="WorkingDays" type="Long"/>
-   <relationship name="ProjectPlan" type="OpProjectPlan" back-relationship="WorkPeriods"/>
-   <relationship name="Activity" type="OpActivity" back-relationship="WorkPeriods"/>
-</prototype>

@@ -1,6 +1,0 @@
-<module name="skills" caption="Skills" version="1.0" class="onepoint.project.modules.skills.OpSkillsModule">
-   <prototype-files>
-      <prototype-file file-name="/modules/skills/skill.opt.xml"/>
-      <prototype-file file-name="/modules/skills/skill_rating.opt.xml"/>
-   </prototype-files>
-</module>
