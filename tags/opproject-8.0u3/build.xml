@@ -1,0 +1,275 @@
+<project name="OPProject 8.0 - Production" basedir="." default="build.distribution.team">
+
+   <!-- Sets property references that are used throught the build file -->
+   <property file="build.properties"/>
+
+   <path id="op.classpath">
+      <fileset dir="${express4j.dir}/${lib.dir}" includes="*.jar"/>
+      <fileset dir="${express4j.dir}/${classes.dir}"/>
+      <fileset dir="${opproject.dir}/${lib.dir}" includes="*.jar"/>
+      <fileset dir="${opproject.dir}/${classes.dir}"/>
+      <fileset dir="${opproject.closed.dir}/${lib.dir}" includes="*.jar"/>
+      <fileset dir="${opproject.closed.dir}/${classes.dir}"/>
+   </path>
+
+   <!-- Pattern set for the license generator tool jar-->
+   <patternset id="license.jar.pathid">
+      <include name="${rootpackage.dir}/log/**/*.class"/>
+      <include name="${rootpackage.dir}/license/**/*.class"/>
+      <include name="${rootpackage.dir}/project/util/*.class"/>
+      <exclude name="${rootpackage.dir}/license/generator/test/**"/>
+      <exclude name="${rootpackage.dir}/license/generator/XKeyGenerator.*"/>
+   </patternset>
+
+   <!--Compiles the component of the license generator-->
+   <patternset id="license.compile.pathid">
+      <include name="generator/**/*.java"/>
+      <include name="${rootpackage.dir}/license/**/*.java"/>
+      <exclude name="${rootpackage.dir}/license/generator/test/*.java"/>
+      <exclude name="${rootpackage.dir}/license/generator/XKeyGenerator.*"/>
+   </patternset>
+
+   <!-- Pattern set for optoolkit.jar -->
+   <patternset id="toolkit.pathid">
+      <include name="${rootpackage.dir}/error/**/*.class"/>
+      <include name="${rootpackage.dir}/log/**/*.class"/>
+      <include name="${rootpackage.dir}/resource/**/*.class"/>
+      <include name="${rootpackage.dir}/service/**/*.class"/>
+      <include name="${rootpackage.dir}/util/**/*.class"/>
+      <include name="${rootpackage.dir}/xml/**/*.class"/>
+      <exclude name="${rootpackage.dir}/**/test/*.class"/>
+   </patternset>
+
+
+   <!-- Executable Distributions -->
+
+
+   <!-- Windows -->
+   <!--Generates Windows executable file using cross-platform Java Application Wrapper- Launch4j-->
+
+   <!--Professional-->
+   <target name="generate.Windows.distribution.professional" depends="clean.all"
+           description="Generates Windows executable file - Professional ">
+      <ant target="generate.Windows.distribution.professional" antfile="${opproject.closed.dir}/build.xml" inheritall="false"/>
+      <copy file="${opproject.closed.dir}/${dist.dir}/${professional.name}-win.zip" todir="${dist.dir}"/>
+   </target>
+
+   <!--Standard-->
+   <target name="generate.Windows.distribution.standard" depends="clean.all"
+           description="Generates Windows executable file - Standard">
+      <ant target="generate.Windows.distribution.standard" antfile="${opproject.closed.dir}/build.xml" inheritall="false"/>
+      <copy file="${opproject.closed.dir}/${dist.dir}/${standard.name}-win.zip" todir="${dist.dir}"/>
+   </target>
+
+   <!--Generates Windows executable file using cross-platform Java Application Wrapper- Launch4j-->
+   <target name="generate.Windows.distribution.basic" depends="clean.all"
+           description="Generates Windows executable file">
+      <ant target="generate.Windows.distribution.basic" antfile="${opproject.dir}/build.xml" inheritall="false"/>
+      <copy file="${opproject.dir}/${dist.dir}/${basic.name}-win.zip" todir="${dist.dir}"/>
+   </target>
+
+
+   <!--Generates Mac Os executable file using JarBundler. Execute it only on Mac OS platform-->
+   <!-- Professional -->
+   <target name="generate.MacOs.distribution.professional" depends="clean.all"
+           description="Generates Mac Os professional executable file">
+      <ant target="generate.MacOs.distribution.professional" antfile="${opproject.closed.dir}/build.xml"
+           inheritall="false"/>
+   </target>
+
+   <!-- Standard -->
+   <target name="generate.MacOs.distribution.standard" depends="clean.all"
+           description="Generates Mac Os standard executable file">
+      <ant target="generate.MacOs.distribution.standard"
+           antfile="${opproject.closed.dir}/build.xml"
+           inheritall="false"/>
+   </target>
+
+   <!-- Basic -->
+   <target name="generate.MacOs.distribution.basic" depends="clean.all"
+           description="Generates Mac Os basic executable file">
+      <ant target="generate.MacOs.distribution.basic" antfile="${opproject.dir}/build.xml" inheritall="false"/>
+   </target>
+
+   <!-- Linux -->
+   <!-- Professional -->
+   <target name="generate.Linux.distribution.professional" depends="clean.all"
+           description="Generates professional linux distribution">
+      <ant target="generate.Linux.distribution.professional" antfile="${opproject.closed.dir}/build.xml" inheritall="false"/>
+      <copy file="${opproject.closed.dir}/${dist.dir}/${professional.name}-linux.tgz" todir="${dist.dir}"/>
+   </target>
+
+   <!-- Standard -->
+   <target name="generate.Linux.distribution.standard" depends="clean.all"
+           description="Generates standard linux distribution">
+      <ant target="generate.Linux.distribution.standard" antfile="${opproject.closed.dir}/build.xml" inheritall="false"/>
+      <copy file="${opproject.closed.dir}/${dist.dir}/${standard.name}-linux.tgz" todir="${dist.dir}"/>
+   </target>
+
+   <!-- Basic -->
+   <target name="generate.Linux.distribution.basic" depends="clean.all"
+           description="Generates basic linux distribution">
+      <ant target="generate.Linux.distribution.basic" antfile="${opproject.dir}/build.xml" inheritall="false"/>
+      <copy file="${opproject.dir}/${dist.dir}/${basic.name}-linux.tgz" todir="${dist.dir}"/>
+   </target>
+
+
+   <!-- Build Distribution -->
+
+   <!--Standalone, closed version distribution-->
+   <target name="build.distribution.professional" depends="clean.all" description="Builds the professional distribution for OpProject">
+      <ant target="dist.standalone.pro" antfile="${opproject.closed.dir}/build.xml" inheritall="false"/>
+      <!--copy distribution-->
+      <delete dir="${dist.professional.dir}" failonerror="false"/>
+      <mkdir dir="${dist.professional.dir}"/>
+      <copy todir="${dist.professional.dir}">
+         <fileset dir="${opproject.closed.dir}/${dist.professional.dir}"/>
+      </copy>
+   </target>
+
+   <!-- Remote, closed distribution -->
+   <target name="build.distribution.team" depends="clean.all, build.distribution.team.no.clean" description="Performs the initialization, build and war tasks">
+   </target>
+
+   <target name="build.distribution.team.no.clean" description="Performs the initialization, build and war tasks without cleaning the build dirs">
+      <ant target="dist.war" antfile="${opproject.closed.dir}/build.xml" inheritall="false"/>
+      <!--copy distribution-->
+      <delete dir="${dist.team.dir}" failonerror="false"/>
+      <mkdir dir="${dist.team.dir}"/>
+      <copy todir="${dist.team.dir}">
+         <fileset dir="${opproject.closed.dir}/${dist.team.dir}"/>
+      </copy>
+      <zip file="${dist.dir}/${team.name}.zip">
+         <zipfileset dir="${dist.dir}/${team.name}" prefix="${team.name}"/>
+      </zip>
+   </target>
+
+   <!-- Remote, closed distribution -->
+   <target name="build.distribution.network" depends="clean.all, build.distribution.network.no.clean" description="Performs the initialization, build and war tasks">
+   </target>
+
+   <target name="build.distribution.network.no.clean" description="Performs the initialization, build and war tasks without cleaning the build dirs">
+      <ant target="dist.war.network" antfile="${opproject.closed.dir}/build.xml" inheritall="false"/>
+      <!--copy distribution-->
+      <delete dir="${dist.network.dir}" failonerror="false"/>
+      <mkdir dir="${dist.network.dir}"/>
+      <copy todir="${dist.network.dir}">
+         <fileset dir="${opproject.closed.dir}/${dist.team.dir}"/>
+      </copy>
+      <zip file="${dist.dir}/${network.name}.zip">
+         <zipfileset dir="${dist.dir}/${network.name}" prefix="${network.name}"/>
+      </zip>
+   </target>
+
+   <target name="build.distribution.ondemand" depends="clean.all" description="Build OnDemand distribution">
+      <ant antfile="${opproject.od.dir}/build.xml" inheritall="false"/>
+
+      <!--copy distribution-->
+      <delete dir="${dist.od.dir}" failonerror="false"/>
+      <mkdir dir="${dist.od.dir}"/>
+      <copy todir="${dist.od.dir}">
+         <fileset dir="${opproject.od.dir}/${dist.od.dir}"/>
+      </copy>
+
+      <zip file="${dist.dir}/${od.name}.zip">
+         <zipfileset dir="${dist.dir}/${od.name}" prefix="${od.name}"/>
+      </zip>
+
+   </target>
+
+   <!--Standalone, open version distribution-->
+   <target name="build.distribution.basic" depends="clean.all" description="Builds the basic distribution for OpProject">
+      <ant target="dist.standalone" antfile="${opproject.dir}/build.xml" inheritall="false"/>
+      <!--copy distribution-->
+      <delete dir="${dist.basic.dir}" failonerror="false"/>
+      <mkdir dir="${dist.basic.dir}"/>
+      <copy todir="${dist.basic.dir}">
+         <fileset dir="${opproject.dir}/${dist.basic.dir}"/>
+      </copy>
+   </target>
+
+   <!-- Remote, open distribution -->
+   <target name="build.distribution.open" depends="clean.all" description="Performs the initialization, build and war tasks">
+      <ant target="dist.war" antfile="${opproject.dir}/build.xml" inheritall="false"/>
+      <!--copy distribution-->
+      <delete dir="${dist.open.dir}" failonerror="false"/>
+      <mkdir dir="${dist.open.dir}"/>
+      <copy todir="${dist.open.dir}">
+         <fileset dir="${opproject.dir}/${dist.open.dir}"/>
+      </copy>
+      <zip file="${dist.dir}/${open.name}.zip">
+         <zipfileset dir="${dist.dir}/${open.name}" prefix="${open.name}"/>
+      </zip>
+   </target>
+
+
+   <!-- Utils -->
+
+
+   <!--Build the license generator jar and the distribution jars-->
+   <target name="build.license.generator" description="Build the jar containing the license generator tool">
+      <ant target="build" antfile="${opproject.closed.dir}/build.xml" inheritall="false"/>
+      <mkdir dir="${classes.dir}"/>
+      <javac srcdir="${opproject.closed.dir}/${src.dir}" destdir="${classes.dir}"
+             classpathref="op.classpath" debug="true"
+             target="${op.jdk.target}" deprecation="on" verbose="true"
+           >
+         <patternset refid="license.compile.pathid"/>
+      </javac>
+      <javac srcdir="${license.dir}/${src.dir}" destdir="${classes.dir}"
+             classpathref="op.classpath" debug="true"
+             target="${op.jdk.target}" deprecation="on" verbose="true"
+           >
+         <classpath path="${classes.dir}"/>
+         <patternset refid="license.compile.pathid"/>
+      </javac>
+      <jar destfile="${dist.dir}/${license.generator.jarname}">
+         <fileset dir="${classes.dir}">
+            <patternset refid="license.jar.pathid"/>
+         </fileset>
+      </jar>
+      <delete dir="${classes.dir}"/>
+   </target>
+
+   <!-- Creates the optoolkit jar -->
+   <target name="build.optoolkit.jar" description="Creates the optoolkit jar in dist dir">
+      <ant target="build" antfile="${opproject.closed.dir}/build.xml" inheritall="false"/>
+      <!-- optoolkit.jar -->
+      <jar destfile="${dist.dir}/${toolkit.jarname}">
+         <fileset dir="${express4j.dir}/${classes.dir}">
+            <patternset refid="toolkit.pathid"/>
+            <include name="*.properties"/>
+         </fileset>
+         <fileset dir="${opproject.dir}/${classes.dir}">
+            <patternset refid="toolkit.pathid"/>
+            <include name="*.properties"/>
+         </fileset>
+         <fileset dir="${opproject.closed.dir}/${classes.dir}">
+            <patternset refid="toolkit.pathid"/>
+            <include name="*.properties"/>
+         </fileset>
+      </jar>
+   </target>
+
+   <!-- Cleans all the modules -->
+   <target name="clean.all" description="Cleans all the modules">
+      <ant target="clean" antfile="build.xml" inheritall="false" dir="${express4j.dir}"/>
+      <ant target="clean" antfile="build.xml" inheritall="false" dir="${opproject.dir}"/>
+      <ant target="clean" antfile="build.xml" inheritall="false" dir="${opproject.closed.dir}"/>
+      <ant target="clean" antfile="build.xml" inheritall="false" dir="${opproject.od.dir}"/>
+      <ant target="clean" antfile="build.xml" inheritall="false" dir="${events.recorder.dir}"/>
+
+      <delete dir="${build.dir}" failonerror="false"/>
+      <delete dir="${tests.dir}" failonerror="false"/>
+      <delete dir="${lib.dir}" failonerror="false"/>
+      <delete dir="${dist.dir}" failonerror="false"/>
+
+      <!-- Clean possible garbage remaining after tests execution -->
+      <delete dir="${express4j.dir}/testFailed" failonerror="false"/>
+      <delete dir="${opproject.dir}/testFailed" failonerror="false"/>
+      <delete dir="${opproject.closed.dir}/testFailed" failonerror="false"/>
+      <delete dir="${opproject.od.dir}/testFailed" failonerror="false"/>
+   </target>
+
+
+</project>
