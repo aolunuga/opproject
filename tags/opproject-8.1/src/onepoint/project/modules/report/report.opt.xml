@@ -1,0 +1,4 @@
+<prototype name="OpReport" instance-class="onepoint.project.modules.report.OpReport" super-type="OpDocument" implements="OpPermissionable">
+   <relationship name="Type" type="OpReportType" back-relationship="Reports"/>
+   <relationship name="Project" type="OpProjectNode" back-relationship="Reports"/>
+</prototype>

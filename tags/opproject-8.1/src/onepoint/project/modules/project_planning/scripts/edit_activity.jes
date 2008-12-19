@@ -1,0 +1,652 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+// Controller script for edit_activity.oxf.xml
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/modules/project_planning/scripts/attachments.jes";
+require "onepoint/project/modules/project_planning/scripts/comments.jes";
+require "onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
+require "onepoint/project/modules/documents/scripts/content.jes";
+require "onepoint/project/modules/project_planning/scripts/add_resource.jes";
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XValidator;
+import onepoint.util.XCalendar;
+
+import onepoint.project.modules.project.components.OpGanttValidator;
+import java.util.TreeMap;
+
+function addURLAttachment(event) {
+  addURL(event);
+}
+
+function addDocumentAttachment(event) {
+   addDocument(event);
+}
+
+function removeAttachments(event) {
+   remove(event);
+}
+
+function viewAttachment(event) {
+  view(event);
+}
+
+function editAttachment(event) {
+  edit(event);
+}
+
+function addAssignment(event) {
+   cur_form = XDisplay.getActiveForm();
+   assignment_data_set = cur_form.findComponent("AssignmentSet");
+
+   dialog = XComponent.newDialog();
+   form = dialog.loadForm("/modules/project_planning/forms/add_resource.oxf.xml");
+   new_resource_set = form.findComponent("ResourceDataSet");
+   resourceAvailabilityMap = cur_form.findComponent("ResourceAvailability");
+   dialogAvailabilityMap = form.findComponent("ResourceAvailability");
+   dialogAvailabilityMap.setValue(resourceAvailabilityMap.getValue());
+   hoursLeft = form.findComponent("HoursLeft");
+
+   hoursLeft.setDoubleValue(cur_form.findComponent("BaseEffortSum").getDoubleValue() - cur_form.findComponent("AssignmentSet[2]").getDoubleValue());
+   Console.println("Hours Left: " + hoursLeft.getDoubleValue());
+
+   resource_set = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("AssignmentSet");
+   // Console.println(resource_set);
+
+   i = 0;
+   while(i < resource_set.getChildCount()) {
+      data_row = resource_set.getChild(i);
+      resource_name = data_row.getStringValue();
+
+      res = XValidator.choiceID(resource_name);
+      nrChildren = assignment_data_set.getChildCount();
+      j = 0;
+      found = false;
+      while (j<nrChildren){
+         assigned_resource_row = assignment_data_set.getChild(j);
+         assigned_resource = assigned_resource_row.getChild(0);
+         assigned_name = assigned_resource.getStringValue();
+         assigned_res = XValidator.choiceID(assigned_name);
+         if (assigned_res == res){
+            found = true;
+            break;
+         }
+         j++;
+      }
+
+      if (!found){
+         p_row = new_resource_set.newDataRow();
+         p_row.setStringValue(resource_name);
+         new_resource_set.addDataRow(p_row);
+      }
+      i++;
+   }
+
+   nrChoice = new_resource_set.getChildCount();
+   if (nrChoice > 0){
+      dialog.open();
+   }
+}
+
+function removeAssignments(event) {
+   activeForm = XDisplay.getActiveForm();
+
+   activity_set = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("ActivitySet");
+   activity_row_index = activeForm.findComponent("ActivityRowIndex").getIntValue();
+   activity_row = activity_set.getChild(activity_row_index);
+   workRecordsMap = activity_row.getChild(24).getValue();
+
+   data_set = activeForm.findComponent("AssignmentSet");
+   selected_rows = data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      i = 0;
+      while (i < selected_rows.size()) {
+         selectedResource = selected_rows[i].getChild(0).getStringValue();
+         resourceLocator = XValidator.choiceID(selectedResource);
+         if (workRecordsMap.get(resourceLocator) == true) {
+            hasWorkRecords = workRecordsMap.get(resourceLocator);
+            errorText = activeForm.findComponent("WorkRecordsExistException").getText();
+            errorLabel = activeForm.findComponent("ValidationErrorLabel");
+            showError(errorText, errorLabel);
+            return;
+         }
+         i++;
+      }
+      data_set.removeDataRows(selected_rows);
+      //get activity type
+      type_data_cell = activity_row.getChild(1);
+      activity_type = type_data_cell.getByteValue().toInt();
+      if (activity_type == 3) { // OpActivity.TASK
+         activeForm.findComponent("ResourceAddIcon").setEnabled(true);
+      }
+      
+      activeForm.findComponent("AssignmentTable").update();
+      updateAssignment(activeForm, false);
+   }
+}
+
+function showError(errorText, errorLabel) {
+   activeForm = XDisplay.getActiveForm();
+   errorLabel.setText(errorText);
+   errorLabel.setVisible(true);
+   activeForm.doLayout();
+   activeForm.repaint();
+}
+
+function addPredecessor(event) {
+   cur_form = XDisplay.getActiveForm();
+
+   dialog = XComponent.newDialog();
+   form = dialog.loadForm("/modules/project_planning/forms/add_predecessor.oxf.xml");
+   predecessor_set = form.findComponent("ActivityDataSet");
+   activity_set = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("ActivitySet");
+   activity_predecessor_set = cur_form.findComponent("PredecessorSet");
+
+   i = 0;
+   row_index = cur_form.findComponent("ActivityRowIndex").getValue();
+   row_index_int = Integer.parseInt(row_index.toString());
+
+   while(i < activity_set.getChildCount()) {
+      if (i != row_index_int) {
+         data_row = activity_set.getChild(i);
+         activityId = data_row.getStringValue();
+         data_cell = data_row.getChild(1);
+         activity_type = data_cell.getByteValue().toInt();
+         if (activity_type != 3 && activity_type != 4) {
+            exists = existsPredecessor(activityId);
+            if (!exists) {
+               activity_name = data_row.getChild(0).getStringValue();
+               p_choice = XValidator.choice(i.toString(), activity_name);
+               p_row = predecessor_set.newDataRow();
+               p_row.setStringValue(p_choice);
+               predecessor_set.addDataRow(p_row);
+            }
+         }
+      }
+      i++;
+   }
+
+   dialog.open();
+}
+
+function existsPredecessor(activityId){
+   i = 0;
+   exists = false;
+   form = XDisplay.getActiveForm();
+   predecessorSet = XDisplay.getActiveForm().findComponent("PredecessorSet");
+   activity_set = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("ActivitySet");
+   while (i < predecessorSet.getChildCount()){
+      predecessorRow = predecessorSet.getChild(i);
+      predecessorPos = Integer.parseInt(XValidator.choiceID(predecessorRow.getChild(0).getStringValue()));
+      predecessorId = activity_set.getChild(predecessorPos).getStringValue();
+      if (activityId.equals(predecessorId)){
+         exists = true;
+         return exists;
+      }
+      i++;
+   }
+   return exists;
+}
+
+function removePredecessors(event) {
+   data_set = XDisplay.getActiveForm().findComponent("PredecessorSet");
+   selected_rows = data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      data_set.removeDataRows(selected_rows);
+      XDisplay.getActiveForm().findComponent("PredecessorTable").update();
+   }
+}
+
+   // *** ATTENTION: You have to use OpGanttValidator.setDataCellValue(...)
+   // ==> Otherwise revalidation will not work
+   // *** Change data-set row according to values set
+   // ==> Problem: Do we need to know which fields have been changed? (No; validator)
+   // *** Other possibility: Fill data *here* -- in this script file
+   // ==> We could then change data directly and revalidate and reload changed data
+   // *** Advantage: We could use a similar event-handler for all relevant fields
+   // ==> Set value in data-set; revalidate on-demand; call data-refresh helper
+   // *** Although note: We would not have to refresh all fields; only some changed
+   // ==> Typical fields: BaseEffort, Duration, Start, End (are these all affected?)
+   // *** Therefore, it is better if only these fields are being refreshed
+   // ==> Leave the "fill-it-all" code in activities.jes
+
+// prepare resources for data_cell id 26:
+function prepareResourcesList(ass, resources_tab, ass_array, readHours) {
+  if (!resources_tab.isHidden()) {
+     ass_project = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("AssignmentSet");
+     i = 0;
+     while (i < ass.getChildCount()) {
+        data_row = ass.getChild(i);
+        val = data_row.getChild(0).getStringValue();
+
+        id = XValidator.choiceID(val);
+        caption = XValidator.choiceCaption(val);
+        if (readHours) {
+            asigned = data_row.getChild(2).getDoubleValue();
+        }
+        else {
+            asigned = data_row.getChild(1).getDoubleValue();
+        }
+        available = 0;
+        j = 0;
+        while (j < ass_project.getChildCount()) {
+           res_data_row = ass_project.getChild(j);
+           available_data_cell = res_data_row.getChild(0);
+           available_res = available_data_cell.getDoubleValue();
+           idRes = XValidator.choiceID(res_data_row.getStringValue());
+           if (id == idRes) {
+              available = available_res;
+           }
+           j++;
+        }
+
+        available_s = XCalendar.localizedDoubleToString(available);
+        asigned_s = XCalendar.localizedDoubleToString(asigned);
+        if (available_s != asigned_s || readHours) {
+           caption = caption.concat(" ");
+           caption = caption.concat(asigned_s);
+           if (readHours) {
+               caption = caption.concat("h");
+           }
+           else {
+               caption = caption.concat("%");
+           }
+        }
+
+        ass_array.add(XValidator.choice(id, caption));
+        i++;
+     }
+  }
+}
+
+
+// FIXME OPP-456, OPP459
+// if something goes wrong during OK (little boost in ugliness... ;-)
+function prepareBailOut(activity_set) {
+   validator = activity_set.validator();
+   activity_set.dataSetUndo();  // must be BEFORE setCont'Action call (see OpGanttValidator.undo, why)
+   validator.setContinuousAction(false);
+   XDisplay.findFrame("ProjectContentFrame").doLayout();
+   XDisplay.findFrame("ProjectContentFrame").repaint();
+}
+// /FIXME OPP-456, OPP459...
+
+function ok(event) {
+   MANDATORY_MASK = 1;
+   START_FIXED_MASK = 16;
+   FINISH_FIXED_MASK = 32;
+   EXPORTED_TO_SUPERPROJECT = 64;
+
+   ALL_BITS = 2147483647; // 31 bits set (may the lord be with us)
+
+   form = XDisplay.getActiveForm();
+   responsibleResource = form.findComponent("ResponsibleResource");
+   responsibleSet = form.findComponent("ResponsibleResourceSet");
+   stringValue = responsibleResource.getStringValue();
+
+   if (stringValue == null) {
+      noResponsible = responsibleSet.getChild(0).getStringValue();
+      responsibleResource.setStringValue(noResponsible);
+   }
+
+   subjectId = form.findComponent("SubjectIDField");
+   if (subjectId != null) {
+      error = updateActions(form, subjectId);
+      if (error != null) {
+         displayError(form, error, "ValidationErrorLabel");
+         return;
+      }
+   }
+
+   //the project edit mode
+   edit_mode = form.findComponent("EditModeField").getBooleanValue();
+   if (edit_mode){
+
+      fieldNames = new HashMap;
+      fieldNames.put(0, "Name");
+      // fieldNames.put(2, "Category");
+      fieldNames.put(3, "Complete");
+      fieldNames.put(4, "Start");
+      fieldNames.put(5, "End");
+      fieldNames.put(34, "LeadTime");
+      fieldNames.put(35, "FollowUpTime");
+      fieldNames.put(6, "Duration");
+      fieldNames.put(7, "BaseEffort");
+      fieldNames.put(8, "PredecessorAddIcon");
+      fieldNames.put(11, "PersonnelCosts");
+      fieldNames.put(12, "TravelCosts");
+      fieldNames.put(13, "MaterialCosts");
+      fieldNames.put(14, "ExternalCosts");
+      fieldNames.put(15, "MiscellaneousCosts");
+      fieldNames.put(16, "Description");
+      fieldNames.put(23, "Priority");
+      fieldNames.put(26, "ResourcesTab");
+      fieldNames.put(27, "ResponsibleResource");
+      fieldNames.put(29, "Payment");
+      fieldNames.put(31, "EffortBillable");
+      fieldNames.put(38, "WorkBreakAddIcon");
+
+      // several preparations:
+      activity_row_index = form.findComponent("ActivityRowIndex").getIntValue();
+      activity_set = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("ActivitySet");
+      activity_row = activity_set.getChild(activity_row_index);
+
+      validator = activity_set.validator();
+      validator.setContinuousAction(true);
+      // overlay those special values...
+      fieldOverlay = new HashMap;
+
+      // Predecessors
+      pre = form.findComponent("PredecessorSet");
+      preMap = new TreeMap;
+      i = 0;
+      while (i < pre.getChildCount()) {
+         data_row = pre.getChild(i);
+
+         indexCell = data_row.getChild(0);
+         typeCell = data_row.getChild(1);
+
+         id = XValidator.choiceID(indexCell.getStringValue());
+         type = XValidator.choiceID(typeCell.getStringValue());
+
+         dataMap = new HashMap;
+         dataMap.put("type", Integer.parseInt(type));
+         preMap.put(Integer.parseInt(id), dataMap);
+         i++;
+      }
+      fieldOverlay.put(8, preMap);
+
+      // Work Breaks
+      wbs = form.findComponent("WorkBreaksSet");
+      wbsMap = new TreeMap;
+      if (wbs != null) {
+	      i = 0;
+	      while (i < wbs.getChildCount()) {
+	         data_row = wbs.getChild(i);
+	         rowContent = new HashMap;
+	         OpGanttValidator.readDataRowIntoMap(data_row, form.findComponent("WorkBreaksSetDescription"), rowContent);
+	         // Console.println("XXXXXXXXXX: "+rowContent);
+	         wbsMap = OpGanttValidator.addWorkBreak(wbsMap, rowContent);
+	         i++;
+	      }
+      }
+      Console.println("Work Break Map: " + wbsMap);
+      fieldOverlay.put(38, wbsMap);
+
+      // Resources
+      resources_tab = form.findComponent("ResourcesTab");
+      ass_array = new ArrayList;
+      ass = form.findComponent("AssignmentSet");
+      prepareResourcesList(ass, resources_tab, ass_array, false);
+      fieldOverlay.put(26, ass_array);
+      // Duration
+      duration = form.findComponent("Duration").getDoubleValue();
+      durationColumn = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("Duration");
+      durationUnit = durationColumn.getDisplayUnit();
+      Console.println("duration: "+duration);
+      Console.println("durationUnit: "+durationUnit);
+      fieldOverlay.put(6, XCalendar.convertDurationFromUnit(duration, durationUnit, activity_row));
+
+      // Mandatory
+      mandatory_field = form.findComponent("Mandatory");
+      if (mandatory_field.getEnabled()) {
+         OpGanttValidator.setAttribute(activity_row, MANDATORY_MASK, mandatory_field.getBooleanValue());
+      }
+
+      fixedField = form.findComponent("StartFixed");
+      if (fixedField != null) {
+    	  if (fixedField.getEnabled()) {
+    		  OpGanttValidator.setAttribute(activity_row, START_FIXED_MASK, fixedField.getBooleanValue());
+    	  }
+      }
+      fixedField = form.findComponent("FinishFixed");
+      if (fixedField != null) {
+    	  if (fixedField.getEnabled()) {
+    		  OpGanttValidator.setAttribute(activity_row, FINISH_FIXED_MASK, fixedField.getBooleanValue());
+    	  }
+      }
+
+      exportedField = form.findComponent("Exported");
+      if (exportedField != null) {
+    	  if (exportedField.getEnabled()) {
+    		  OpGanttValidator.setAttribute(activity_row, EXPORTED_TO_SUPERPROJECT, exportedField.getBooleanValue());
+    	  }
+      }
+
+      // remember those changes:
+      fieldsToChange = new ArrayList;
+      valuesToSet = new ArrayList;
+      // setup row with changed values...
+      deltaDataRow = new ArrayList;
+      i = 0;
+      while (i < activity_row.getChildCount()) {
+        fieldName = fieldNames.get(i);
+        if (fieldName != null) {
+          field = form.findComponent(fieldName);
+          // check whether we are enabled:
+          if (field != null) {
+        	  if (field.getEnabled() && field.getVisible()) {
+        		  // do we have pre-calculated overlays?
+        		  value = fieldOverlay.get(i);
+        		  if (value == null) {
+        			  value = field.getValue();
+        		  }
+        		  // only changed Values
+        		  if (value != activity_row.getChild(i).getValue()) {
+        			  fieldsToChange.add(i);
+        			  valuesToSet.add(value);
+        		  }
+        	  }
+          }
+        }
+        i++;
+      }
+
+      i = 0;
+      while (i < fieldsToChange.size()) {
+         if (!activity_set.setDataCellValue(activity_row, fieldsToChange[i], valuesToSet[i], form)) {
+            prepareBailOut(activity_set); // FIXME OPP-456, OPP459
+            return;
+         }
+         i++;
+      }
+
+      // Update category
+      comp = form.findComponent("Category");
+      if (comp != null) {
+    	  category = comp.getStringValue();
+    	  if (category != null) { //all activities except TASK and COLLECTION_TASK
+    		  if (!activity_set.setDataCellValue(activity_row, 2, category, form)) {
+    			  prepareBailOut(activity_set); // FIXME OPP-456, OPP459
+    			  return;
+    		  }
+    	  }
+      }
+      // update custom attributes
+      customValues = getCustomValues(form);
+      activity_row.getChild(32).setValue(customValues);
+
+      //delete the list of viewed contents because they need not be deleted on unload
+      viewedContents = form.findComponent("ViewedNewContents");
+      if (viewedContents != null) {
+         viewedContents.setValue(null);
+      }
+
+      // Update attachments
+      att_array = getAttachments();
+      if (!activity_set.setDataCellValue(activity_row, 17, att_array, form)) {
+         prepareBailOut(activity_set); // FIXME OPP-456, OPP459
+         return;
+      }
+
+      validator.setContinuousAction(false);
+      XDisplay.getActiveWindow().close();
+      XDisplay.findFrame("ProjectContentFrame").doLayout();
+      XDisplay.findFrame("ProjectContentFrame").repaint();
+   }
+   else {
+      XDisplay.getActiveWindow().close();
+   }
+}
+
+function getCustomValues(form) {
+   return null;
+}
+
+function getActions(form) {
+   return null;
+}
+
+function addComment(event) {
+   // Open add-comment dialog w/activity-locator as parameter
+   activityLocator = XDisplay.getActiveForm().findComponent("ActivityIDField").getStringValue();
+   addActivityComment(activityLocator);
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+function addResponsibleResource(event) {
+   responsibleResourceSet = XDisplay.getActiveForm().findComponent("ExcludedResources").getValue();
+
+   i = 0;
+   resourceIds = new HashSet;
+   while (i < responsibleResourceSet.getChildCount()) {
+      resourceIds.add(XValidator.choiceID(responsibleResourceSet.getChild(i).getStringValue()));
+      i++;
+   }
+
+   openResourceChooser("ProjectContentFrame", "addResponsableResourceOk", resourceIds, false, false, true, null);
+}
+
+function hoursAssignedChanged(event) {
+   form = XDisplay.getActiveForm();
+   updateAssignment(form, true);
+}
+
+function updateAssignment(form, hours) {
+   if (hours < 0) {
+      hours = 0;
+   }
+   Console.println("updateAssignment: " + form + " hours:" + hours);
+   recursion = form.findComponent("recursionMarker").getBooleanValue();
+   if (recursion) {
+      return;
+   }
+
+   form.findComponent("recursionMarker").setBooleanValue(true);
+   assignmentSet = form.findComponent("AssignmentSet");
+   resAvail = form.findComponent("ResourceAvailability").getValue();
+   activitySet = form.findComponent("ActivitySet").getValue();
+   effortBased = form.findComponent("EffortBasedPlanning").getBooleanValue();
+   editMode = form.findComponent("EditModeField").getBooleanValue();
+   
+   duration = form.findComponent("Duration").getDoubleValue();
+   effort = form.findComponent("BaseEffort").getDoubleValue();
+
+   resList = new ArrayList;
+   resources_tab = form.findComponent("ResourcesTab");
+   prepareResourcesList(assignmentSet, resources_tab, resList, hours);
+   resList = OpGanttValidator.setupResources(duration, effort, resList,
+        OpGanttValidator.getResourceAssignmentRule(OpGanttValidator.STANDARD, effortBased),
+        false, true, activitySet.validator().getProjectCalendar(),
+        activitySet.validator().getResourceCalendarMap(), activitySet.validator().getAssignmentSet());
+   Console.println("D:" + duration + " E:" + effort + " Res:" +  resList);
+   updateResourceDataSet(activitySet, effort, duration, assignmentSet, resList, editMode);
+   form.findComponent("recursionMarker").setBooleanValue(false);
+   
+}
+
+function percentageAssignedChanged(event) {
+   form = XDisplay.getActiveForm();
+   updateAssignment(form, false);
+}
+
+function baseEffortChanged(event) {
+   Console.println("baseEffortChanged");
+   form = XDisplay.getActiveForm();
+   updateAssignment(form, false);
+   effortSum = XDisplay.getActiveForm().findComponent("BaseEffortSum");
+   effortSum.setValue(event.event_source.getValue());
+}
+
+function actionStatusChanged(event) {
+}
+
+function updateActions(form, row) {
+}
+
+function updateCostSum(event) {
+	form = XDisplay.getActiveForm();
+	sum = 0.0;
+	sum = sum + form.findComponent("PersonnelCosts").getDoubleValue();
+	sum = sum + form.findComponent("TravelCosts").getDoubleValue();
+	sum = sum + form.findComponent("MaterialCosts").getDoubleValue();
+	sum = sum + form.findComponent("ExternalCosts").getDoubleValue();
+	sum = sum + form.findComponent("MiscellaneousCosts").getDoubleValue();
+	form.findComponent("CostsSum").setDoubleValue(sum);
+	form.findComponent("CostsSum").update();
+}
+
+function updateResourceDataSet(activity_data_set, effort, duration, assignment_set, resources, edit_mode) {
+   duration = activity_data_set.validator().getCalendar().getWorkHoursPerDay() * duration;
+   Console.println("updateResourceDataSet");
+   noResourceId = "-1";
+   i = 0;
+   while (i < resources.size()) {
+      id = XValidator.choiceID(resources[i]);
+      if (!id.equals(noResourceId)) {
+         caption = XValidator.choiceCaption(resources[i]);
+         name = OpGanttValidator.getResourceName(caption, "h");
+         //default assignment is resource availability
+         assignment = getResourceAvailability(id);
+         if (name.length() != caption.length()) {
+            resCal = activity_data_set.validator().getCalendar(id);
+            Console.println("Calendar for " + resources[i] + ": " + resCal);
+            hours = OpGanttValidator.hoursAssigned(resources[i]);
+            assignment = hours / resCal.getWorkHoursPerDay() * 100;
+            Console.println("Assignment for " + id + ": " + assignment);
+         }
+         assignment_row = assignment_set.getChild(i);
+         assignment_cell = assignment_row.getChild(0);
+         assignment_cell.setStringValue(XValidator.choice(id, name));
+
+         assignment_cell = assignment_row.getChild(1);
+         assignment_cell.setDoubleValue(assignment);
+         assignment_cell.setEditMode(edit_mode);
+         assignment_cell.setEnabled(edit_mode);
+
+         assignment_h_cell = assignment_row.getChild(2);
+         assignmentH = null;
+         //if there is no duration (e.g tasks, use the effort)
+         if (duration == -1) {
+            if (effort != 0) {
+               assignmentH = effort;
+            }
+         }
+         else {
+            if (effort == 0) {
+               assignmentH = effort;
+            }
+            else {
+               assignmentH = assignment * duration / 100.0;
+            }
+         }
+
+         assignment_h_cell.setDoubleValue(assignmentH);
+         assignment_h_cell.setEditMode(edit_mode);
+         assignment_h_cell.setEnabled(edit_mode);
+      }
+      i++;
+      
+   }
+   while (i < assignment_set.getChildCount()) {
+      assignmentSet.removeChild(i);
+      i++;
+   }
+   Console.println("/updateResourceDataSet");
+}

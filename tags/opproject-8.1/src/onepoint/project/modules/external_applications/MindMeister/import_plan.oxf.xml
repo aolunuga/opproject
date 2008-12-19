@@ -1,0 +1,42 @@
+<form width="400" height="240" layout="border" resource-map-ref="import_plan.oxf.xml" text="${SelectMap}"
+      provider-class="onepoint.project.modules.external_applications.MindMeister.OpImportPlanFormProvider"
+      script="/modules/external_applications/MindMeister/import_plan.jes" on-show="onShow" error-label-ref="ErrorLabel" >
+
+   <data-field id="ProjectId"/>
+   <data-field id="EditMode"/>
+   <data-field id="MindMeisterToken"/>
+   <data-field id="MindMeisterMapId"/>
+   
+   <data-field id="MindMeisterError" text="${MindMeisterError}"/>
+   
+   <data-set id="DialogMap">
+      <data-row string-value="MindMeisterToken"><data-cell string-value="MindMeisterToken"/></data-row>
+      <data-row string-value="MindMeisterMapId"><data-cell string-value="MindMeisterMapId"/></data-row>
+      <data-row string-value="ProjectId"><data-cell string-value="ProjectId"/></data-row>
+      <data-row string-value="EditMode"><data-cell string-value="EditMode"/></data-row>
+   </data-set>
+
+   <panel y="0" layout="border">
+      <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+      <data-set id="MapsRowMap">
+         <data-row string-value="map.id"><data-cell int-value="0"/></data-row>
+         <data-row string-value="map.title"><data-cell int-value="1"/></data-row>
+      </data-set>
+   
+      <data-set id="MapsDataSet"/>
+   
+      <table-box x="0" y="0" id="ProjectsTable" data-set-ref="MapsDataSet"
+                 flexible="true" enabled="true" on-row-select="selectionChanged">
+         <!-- The list of columns to show could be editable and dynamic (form-provider) -->
+         <!-- column with index '0' is hidded: Denotes whether customer/group -->
+         <table-column width="100" text="${MapTitel}" sortable="true" data-column-index="1" value-type="String"/>
+      </table-box>
+      <panel y="1" layout="flow" direction="west">
+         <panel layout="border">
+            <button x="0" id="OkButton" text="${OK}" on-button-pressed="ok" enabled="false"/>
+            <button x="1" id="CancelButton" text="${Cancel}" on-button-pressed="cancel"/>
+   	   </panel>
+      </panel>
+	   
+   </panel>
+</form>

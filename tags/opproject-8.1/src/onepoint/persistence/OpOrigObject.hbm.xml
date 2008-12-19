@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+	"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+	"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+   <class name="onepoint.persistence.OpOrigObject" table="op_object">
+      <cache usage="read-write" />
+      <id name="id" column="op_id" type="long">
+         <generator class="hilo">
+            <param name="table">hibernate_unique_key</param>
+            <param name="column">next_hi</param>
+         </generator>
+      </id>
+      <property name="Created" type="timestamp" not-null="true">
+         <column name="Created" not-null="true" index="object_created_i" />
+      </property>
+      <property name="Modified" type="timestamp">
+         <column name="Modified" />
+      </property>
+      <!-- 
+         <set name="Permissions" inverse="true" lazy="true" cascade="delete">
+         <key column="op_object" />
+         <one-to-many class="onepoint.project.modules.user.OpPermission" />
+      </set>
+      <set name="Locks" inverse="true" lazy="true" cascade="delete">
+         <key column="op_target" />
+         <one-to-many class="onepoint.project.modules.user.OpLock" />
+      </set>
+      <set name="DynamicResources" inverse="true" lazy="true" cascade="delete">
+         <key column="op_object" />
+         <one-to-many class="onepoint.project.modules.documents.OpDynamicResource" />
+      </set>
+      -->
+      <many-to-one name="CustomValuePage" column="op_customvaluepage"
+         class="onepoint.project.modules.custom_attribute.OpCustomValuePage" /> <!-- fetch="join" /> -->
+      <!-- <set name="CustomValuePages" inverse="true" lazy="true" cascade="delete">
+         <key column="op_object" />
+         <one-to-many class="onepoint.project.modules.custom_attribute.OpCustomValuePage" />
+      </set>
+      -->
+   </class>
+</hibernate-mapping>

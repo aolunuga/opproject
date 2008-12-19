@@ -1,0 +1,80 @@
+<holiday-calendars location="ca" label="Canada">
+   <holiday-calendar year="2006">
+      <holiday date="01-01" name="New Year's Day"/>
+      <holiday date="04-14" name="Good Friday"/>
+      <holiday date="05-22" name="Victoria Day"/>
+      <holiday date="07-03" name="National Day"/>
+      <holiday date="09-04" name="Labour Day"/>
+      <holiday date="10-09" name="Thanksgiving Day"/>
+      <holiday date="11-13" name="Remembrance Day"/>
+      <holiday date="12-25" name="Christmas Day"/>
+      <holiday date="12-26" name="Boxing Day"/>
+   </holiday-calendar>
+   <holiday-calendar year="2007">
+      <holiday date="01-01" name="New Year's Day"/>
+      <holiday date="04-06" name="Good Friday"/>
+      <holiday date="05-21" name="Victoria Day"/>
+      <holiday date="07-02" name="National Day"/>
+      <holiday date="09-03" name="Labour Day"/>
+      <holiday date="10-08" name="Thanksgiving Day"/>
+      <holiday date="11-12" name="Remembrance Day"/>
+      <holiday date="12-25" name="Christmas Day"/>
+      <holiday date="12-26" name="Boxing Day"/>
+   </holiday-calendar>
+   <holiday-calendar year="2008">
+      <holiday date="01-01" name="New Year's Day"/>
+      <holiday date="03-21" name="Good Friday"/>
+      <holiday date="05-19" name="Victoria Day"/>
+      <holiday date="07-01" name="National Day"/>
+      <holiday date="09-01" name="Labour Day"/>
+      <holiday date="10-13" name="Thanksgiving Day"/>
+      <holiday date="11-11" name="Remembrance Day"/>
+      <holiday date="12-25" name="Christmas Day"/>
+      <holiday date="12-26" name="Boxing Day"/>
+   </holiday-calendar>
+   <holiday-calendar year="2009">
+      <holiday date="01-01" name="New Year's Day"/>
+      <holiday date="04-10" name="Good Friday"/>
+      <holiday date="05-18" name="Victoria Day"/>
+      <holiday date="07-01" name="National Day"/>
+      <holiday date="09-07" name="Labour Day"/>
+      <holiday date="10-12" name="Thanksgiving Day"/>
+      <holiday date="11-11" name="Remembrance Day"/>
+      <holiday date="12-25" name="Christmas Day"/>
+      <holiday date="12-26" name="Boxing Day"/>
+   </holiday-calendar>
+   <holiday-calendar year="2010">
+      <holiday date="01-01" name="New Year's Day"/>
+      <holiday date="04-02" name="Good Friday"/>
+      <holiday date="05-24" name="Victoria Day"/>
+      <holiday date="07-01" name="National Day"/>
+      <holiday date="09-06" name="Labour Day"/>
+      <holiday date="10-11" name="Thanksgiving Day"/>
+      <holiday date="11-11" name="Remembrance Day"/>
+      <holiday date="12-25" name="Christmas Day"/>
+      <holiday date="12-26" name="Boxing Day"/>
+   </holiday-calendar>
+   <holiday-calendar year="2011">
+      <holiday date="01-01" name="New Year's Day"/>
+      <holiday date="04-22" name="Good Friday"/>
+      <holiday date="05-23" name="Victoria Day"/>
+      <holiday date="07-01" name="National Day"/>
+      <holiday date="09-05" name="Labour Day"/>
+      <holiday date="10-10" name="Thanksgiving Day"/>
+      <holiday date="11-11" name="Remembrance Day"/>
+      <holiday date="12-25" name="Christmas Day"/>
+      <holiday date="12-26" name="Boxing Day"/>
+   </holiday-calendar>
+   <holiday-calendar year="2012">
+      <holiday date="01-01" name="New Year's Day"/>
+      <holiday date="04-06" name="Good Friday"/>
+      <holiday date="05-21" name="Victoria Day"/>
+      <holiday date="07-01" name="National Day"/>
+      <holiday date="09-03" name="Labour Day"/>
+      <holiday date="10-08" name="Thanksgiving Day"/>
+      <holiday date="11-11" name="Remembrance Day"/>
+      <holiday date="12-25" name="Christmas Day"/>
+      <holiday date="12-26" name="Boxing Day"/>
+   </holiday-calendar>
+
+</holiday-calendars>

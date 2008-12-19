@@ -1,0 +1,82 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+   <xsd:element name="application">
+      <xsd:complexType>
+         <xsd:sequence>
+            <xsd:element
+               name="main-class"
+               minOccurs="0"
+               maxOccurs="1">
+               <xsd:complexType>
+                  <xsd:attribute
+                     name="name"
+                     type="xsd:string"
+                     use="required" />
+               </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element
+               name="project-plan-import"
+               minOccurs="0"
+               maxOccurs="1">
+               <xsd:complexType>
+                  <xsd:attribute
+                     name="form"
+                     type="xsd:string" />
+                  <xsd:attribute
+                     name="script"
+                     type="xsd:string" />
+                  <xsd:attribute
+                     name="default"
+                     type="xsd:boolean" />
+               </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element
+               name="service-file"
+               minOccurs="0"
+               maxOccurs="1">
+               <xsd:complexType>
+                  <xsd:attribute
+                     name="file-name"
+                     type="xsd:string" />
+               </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element
+               name="language-kit-path"
+               minOccurs="0"
+               maxOccurs="1">
+               <xsd:complexType>
+                  <xsd:attribute
+                     name="path"
+                     type="xsd:string" />
+               </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element
+               name="parameter"
+               minOccurs="0"
+               maxOccurs="unbounded">
+               <xsd:complexType>
+                  <xsd:attribute
+                     name="name"
+                     type="xsd:string"
+                     use="required" />
+                  <xsd:attribute
+                     name="value"
+                     type="xsd:string"
+                     use="required" />
+               </xsd:complexType>
+            </xsd:element>
+         </xsd:sequence>
+
+         <xsd:attribute
+            name="type"
+            type="xsd:string"
+            use="required" />
+
+      </xsd:complexType>
+   </xsd:element>
+
+</xsd:schema>

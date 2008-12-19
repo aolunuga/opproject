@@ -1,0 +1,6 @@
+<prototype name="OpExtAppUserParam" instance-class="onepoint.project.modules.external_applications.OpExternalApplicationUserParameter">
+   <field name="Name" type="String"/>
+   <field name="Value" type="String"/>
+   
+   <relationship name="User" type="OpExtAppUser" back-relationship="Parameters"/>
+</prototype>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="ru">
+    <resource-map id="preferences.module">
+        <resource id="PreferencesTool">Опции</resource>
+    </resource-map>
+    <resource-map id="preferences.preferences">
+        <resource id="Preferences">Опции</resource>
+        <resource id="UserLanguage">Язык</resource>
+        <resource id="Password">Пароль</resource>
+        <resource id="PasswordRetyped">Повтор пароля</resource>
+        <resource id="Save">Сохранить опции</resource>
+        <resource id="SaveTooltip">Сохранить изменения опций пользователя</resource>
+        <resource id="ShowResourceHours">Показать назначенные ресурсы в часах</resource>
+        <resource id="SavedImageFormat">Формат заданного по умолчанию изображения</resource>
+        <resource id="ImportExportLanguage">Язык проекта MS</resource>
+    </resource-map>
+    <resource-map id="preferences.error">
+        <resource id="EmptyPassword">Пожалуйста, введите пароль</resource>
+        <resource id="PasswordMissmatch">Пароль неправильный</resource>
+    </resource-map>
+</language-kit>

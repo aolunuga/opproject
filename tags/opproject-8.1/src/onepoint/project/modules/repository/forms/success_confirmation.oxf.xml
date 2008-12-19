@@ -1,0 +1,16 @@
+<form width="400" height="60"
+      layout="border" resource-map-ref="repository.success_confirmation"
+      text="${SuccessConfirmation}"
+      provider-class="onepoint.project.modules.repository.forms.OpSuccessConfirmationFormProvider"
+      script="/modules/repository/scripts/success_confirmation.jes">
+   <data-field id="MultiUser"/>
+   <data-field id="DefaultUserName"/>
+   <data-field id="DefaultPassword"/>
+   <data-field id="ApplicationStartForm"/>
+   <panel y="0" layout="border">
+      <label y="0" id="SuccessConfirmationMessage"/>
+      <panel y="1" width="3" layout="table">
+         <button x = "1" id="OKButton" text="${OK}" on-button-pressed="ok"/>
+      </panel>
+   </panel>
+</form>

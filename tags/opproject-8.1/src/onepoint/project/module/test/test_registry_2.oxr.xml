@@ -1,0 +1,4 @@
+<module-registry>
+   <module-file file-name="/module/test/test_module_2.oxm.xml"/>
+   <module-file file-name="/module/test/test_module_3.oxm.xml"/>
+</module-registry>

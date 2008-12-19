@@ -1,0 +1,12 @@
+<prototype name="OpCustomType" instance-class="onepoint.project.modules.custom_attribute.OpCustomType">
+   <!-- note that all fields represent differences, i.e., changes to the assignment values -->
+   <field name="PrototypeName" type="String" mandatory="true" indexed="true" />
+   <field name="SubType" type="Byte" indexed="true" />
+   <field name="CustomTypeName" type="String" indexed="true" />
+   <field name="Description" type="String" />
+   <field name="Label" type="String" />
+   <field name="Deleted" type="Boolean" indexed="true" />
+   <field name="TabLabel" type="String" />
+   <relationship name="CustomAttributes" type="OpCustomAttribute" collection-type="Set" back-relationship="CustomType" inverse="true" order-by="Sequence asc" />
+   <relationship name="ActionTypes" type="OpActionType" collection-type="Set" back-relationship="CustomType" inverse="true" cascade="delete" order-by="ID asc" />
+</prototype>

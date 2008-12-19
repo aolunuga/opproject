@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="it">
+    <resource-map id="my_projects.module">
+        <resource id="ProjectsTool">Progetti</resource>
+        <resource id="MyToolGroup">MIO LAVORO</resource>
+    </resource-map>
+    <resource-map id="my_projects.my_projects">
+        <resource id="Print">Stampa</resource>
+        <resource id="PrintTooltip">Stampa questa vista</resource>
+        <resource id="ContribM">Contributor &amp; Manager</resource>
+        <resource id="Manager">Manager</resource>
+        <resource id="Contrib">Contributor</resource>
+        <resource id="Observer">Osservatore</resource>
+        <resource id="All">Tutto</resource>
+        <resource id="ProjectList">Lista progetti</resource>
+        <resource id="Role">Ruolo</resource>
+        <resource id="Project">Progetto</resource>
+        <resource id="Status">Stato</resource>
+        <resource id="Priority">Priorità</resource>
+        <resource id="Complete">% Completato</resource>
+        <resource id="Resources">Risorse</resource>
+        <resource id="Costs">Costi</resource>
+        <resource id="Start">Inizio</resource>
+        <resource id="End">Fine</resource>
+        <resource id="ProjectResources">Risorse progetti</resource>
+        <resource id="BaseEffort">Base (h)</resource>
+        <resource id="ActualEffort">Attuale (h)</resource>
+        <resource id="RemainingEffort">Rim. (h)</resource>
+        <resource id="ProjectedEffort">Previsto (h)</resource>
+        <resource id="DeviationEffort">Deviazione (h)</resource>
+        <resource id="PercentageDeviationEffort">Deviazione (%)</resource>
+        <resource id="ProjectCosts">Costi progetti</resource>
+        <resource id="BaseCosts">Base ({CurrencySymbol})</resource>
+        <resource id="ActualCosts">Attuale ({CurrencySymbol})</resource>
+        <resource id="RemainingCosts">Rim. ({CurrencySymbol})</resource>
+        <resource id="ProjectedCosts">Previsto ({CurrencySymbol})</resource>
+        <resource id="DeviationCosts">Deviazione ({CurrencySymbol})</resource>
+        <resource id="PercentageDeviationCosts">Deviazione (%)</resource>
+        <resource id="GanttDiagram">Date</resource>
+        <resource id="ChangeTimeUnit">Unità di tempo</resource>
+        <resource id="Days">Giorni</resource>
+        <resource id="Weeks">Settimane</resource>
+        <resource id="Months">Mesi</resource>
+        <resource id="SaveCSV">Salva come tabella...</resource>
+        <resource id="SaveImage">Salva come immagine...</resource>
+        <resource id="Sum">Totale</resource>
+    </resource-map>
+</language-kit>

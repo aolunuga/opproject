@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="ru">
+    <resource-map id="user.module">
+        <resource id="UserTool">Пользователи</resource>
+    </resource-map>
+    <resource-map id="user.add_group">
+        <resource id="AddGroup">Добавить группу</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Отменить</resource>
+    </resource-map>
+    <resource-map id="user.edit_group">
+        <resource id="EditGroup">Изменить группу</resource>
+        <resource id="General">Основные</resource>
+        <resource id="Name">Название</resource>
+        <resource id="Description">Описание</resource>
+        <resource id="GroupAffiliation">Входит в группу</resource>
+        <resource id="OK">Подтвердить</resource>
+        <resource id="Cancel">Отменить</resource>
+    </resource-map>
+    <resource-map id="user.edit_user">
+        <resource id="EditUser">Изменить пользователя</resource>
+        <resource id="General">Основные</resource>
+        <resource id="Firstname">Имя</resource>
+        <resource id="Lastname">Фамилия</resource>
+        <resource id="Login">Логин</resource>
+        <resource id="Password">Пароль</resource>
+        <resource id="PasswordRetyped">Повтор пароля</resource>
+        <resource id="Description">Описание</resource>
+        <resource id="UserLanguage">Язык</resource>
+        <resource id="Contact">Контакт</resource>
+        <resource id="EMail">Электронный адрес</resource>
+        <resource id="Phone">Телефон</resource>
+        <resource id="Mobile">Мобильный телефон</resource>
+        <resource id="Fax">Факс</resource>
+        <resource id="Groups">Группы</resource>
+        <resource id="OK">Подтвердить</resource>
+        <resource id="Cancel">Отменить</resource>
+        <resource id="UserLevel">Уровень доступа</resource>
+        <resource id="ManagerLevel">Менеджер</resource>
+        <resource id="ObserverCustomerLevel">Наблюдатель (пользователь)</resource>
+        <resource id="ObserverLevel">Наблюдатель</resource>
+        <resource id="ContributorLevel">Ассистент</resource>
+    </resource-map>
+    <resource-map id="user.delete">
+        <resource id="ConfirmDelete">Удалить пользователей или группы</resource>
+        <resource id="NoSelectionMessage">Пожалуйста, укажите одного или нескольких пользователей или групп, которые вы хотите удалить</resource>
+        <resource id="ConfirmDeleteOneMessage">Вы действительно хотите удалить данного пользователя или группу?</resource>
+        <resource id="ConfirmDeleteMultipleMessage">Вы действительно хотите удалить данных пользователей или группы?</resource>
+        <resource id="OK">Подтвердить</resource>
+        <resource id="Cancel">Отменить</resource>
+    </resource-map>
+    <resource-map id="user.new_group">
+        <resource id="NewGroup">Новая группа</resource>
+        <resource id="General">Основные</resource>
+        <resource id="Name">Наименование</resource>
+        <resource id="Description">Описание</resource>
+        <resource id="GroupAffiliation">Супер группы</resource>
+        <resource id="OK">Подтвердить</resource>
+        <resource id="Cancel">Отменить</resource>
+    </resource-map>
+    <resource-map id="user.Info">
+        <resource id="InfoUser">Свойства пользователя</resource>
+        <resource id="InfoGroup">Свойства группы</resource>
+    </resource-map>
+    <resource-map id="user.new_user">
+        <resource id="NewUser">Новый пользователь</resource>
+        <resource id="General">Основные</resource>
+        <resource id="Firstname">Имя</resource>
+        <resource id="Lastname">Фамилия</resource>
+        <resource id="Login">Логин</resource>
+        <resource id="Password">Пароль</resource>
+        <resource id="PasswordRetyped">Повтор пароля</resource>
+        <resource id="Description">Описание</resource>
+        <resource id="Contact">Контакт</resource>
+        <resource id="EMail">Электронный адрес</resource>
+        <resource id="Phone">Телефон</resource>
+        <resource id="Mobile">Мобильный телефон</resource>
+        <resource id="Fax">Факс</resource>
+        <resource id="UserLanguage">Язык</resource>
+        <resource id="GroupAffiliation">Группы</resource>
+        <resource id="OK">Подтвердить</resource>
+        <resource id="Cancel">Отменить</resource>
+        <resource id="UserLevel">Уровень доступа</resource>
+        <resource id="ManagerLevel">Менеджер</resource>
+        <resource id="ObserverCustomerLevel">Наблюдатель (Пользователь)</resource>
+        <resource id="ObserverLevel">Наблюдатель</resource>
+        <resource id="ContributorLevel">Ассистент</resource>
+    </resource-map>
+    <resource-map id="user.users">
+        <resource id="NewGroup">Добавить группу</resource>
+        <resource id="NewUser">Новый пользователь</resource>
+        <resource id="Properties">Свойства</resource>
+        <resource id="Delete">Удалить</resource>
+        <resource id="AssignToGroup">Добавить в группу</resource>
+        <resource id="Search">Поиск</resource>
+        <resource id="Name">Имя</resource>
+        <resource id="Description">Описание</resource>
+        <resource id="UserLevel">Уровень доступа</resource>
+        <resource id="Login">Логин</resource>
+        <resource id="NewGroupTooltip">Создать новую группу пользователей</resource>
+        <resource id="NewUserTooltip">Создать нового пользователя</resource>
+        <resource id="InfoTooltip">Показать мета-данные для указанного пользователя или группы</resource>
+        <resource id="DeleteTooltip">Удалить указанного пользователя или группу</resource>
+        <resource id="AssignToGroupTooltip">Добавить указанного пользователя или группу в другую группу</resource>
+    </resource-map>
+    <resource-map id="user.SubjectChooser">
+        <resource id="SelectSubject">Укажите пользователя или группу</resource>
+        <resource id="OK">Подтвердить</resource>
+        <resource id="Cancel">Отменить</resource>
+    </resource-map>
+    <resource-map id="user.permissions_tab">
+        <resource id="Administrators">Администраторы</resource>
+        <resource id="Managers">Менеджеры</resource>
+        <resource id="Contributors">Работники</resource>
+        <resource id="Observers">Наблюдатели</resource>
+    </resource-map>
+    <resource-map id="user.objects">
+        <resource id="AdministratorDisplayName">Администратор</resource>
+        <resource id="AdministratorDescription">Администратор обладает всеми правами</resource>
+        <resource id="EveryoneDisplayName">Все</resource>
+        <resource id="EveryoneDescription">Каждый пользователь, как правило, входит в данную группу</resource>
+        <resource id="ManagerLevel">Менеджер</resource>
+        <resource id="ObserverCustomerLevel">Наблюдатель (Пользователь)</resource>
+        <resource id="ObserverLevel">Наблюдатель</resource>
+        <resource id="ContributorLevel">Ассистент</resource>
+    </resource-map>
+    <resource-map id="user.error">
+        <resource id="PasswordMismatch">Пароль не введен или не верный</resource>
+        <resource id="UserUnknown">Неизвестное имя пользователя</resource>
+        <resource id="FirstNameMissing">Не указано Имя</resource>
+        <resource id="LastNameMissing">Не указана фамилия</resource>
+        <resource id="LoginNameMissing">Не указан логин</resource>
+        <resource id="PasswordMissing">Не указан пароль</resource>
+        <resource id="LoginAlreadyUsed">Даный логин занят другим пользователем</resource>
+        <resource id="GroupNameMissing">Пожалуйста, укажите наименование группы</resource>
+        <resource id="GroupNameAlreadyUsed">Данное наименование группы уже существует</resource>
+        <resource id="UserNotFound">Пользователь не существует</resource>
+        <resource id="GroupNotFound">Группа не существует</resource>
+        <resource id="GroupNotEmpty">Группа содержит пользователей.</resource>
+        <resource id="EmailIncorrect">Электронный адресс, который вы ввели, неверен</resource>
+        <resource id="InsufficientPrivileges">У вас нет достаточных прав для данной операции</resource>
+        <resource id="SessionUser">Нельзя удалить запись о пользователе, под которой вы находитесь в системе</resource>
+        <resource id="EveryoneGroup">Группа «Все» является системной и не может быть удалена</resource>
+        <resource id="LoopAssignment">Данное назначение может вызвать замыкание в цикл</resource>
+        <resource id="InvalidUserLevel">Неверный уровень доступа</resource>
+        <resource id="UserDemoteError">Вы не можете понизить данного пользователя до стандартного уровня: существует уровень разрешения менеджера, который хранится для этого пользователя в базе</resource>
+        <resource id="PermissionLevelError">Уровень пользователя не имеет соответствуещего разрешения</resource>
+        <resource id="AdminPermissionError">Вы не можете изменить администраторские права</resource>
+        <resource id="OutOfMemory">Клиент HTTP не поддерживает функцию потоковой передачи данных. Вы не можете выгрузить файл по размеру больший, чем размер HEAP.</resource>
+        <resource id="FileNotFound">Один или несколько файлов, выбранные для выгрузки, не могут быть найдены или открыты.</resource>
+        <resource id="InvalidSiteError">База данных узла недоступна на данный момент. Пожалуйста, повторите попытку позже.</resource>
+        <resource id="UserLinkedError">Пользователи или группы, которых вы пытаетесь удалить, прилинкованы к ресурсам или проектам, или внесены в таблицы</resource>
+        <resource id="ControllingSheetsExist">Для выбранных пользователей существуют контрольные листы</resource>
+        <resource id="LocksExist">Выбранные пользователи ещё проверяют проектные планы</resource>
+        <resource id="WorkslipsExist">Рабочие листы представлены для выбранных пользователей</resource>
+    </resource-map>
+</language-kit>

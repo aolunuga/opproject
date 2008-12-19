@@ -1,0 +1,4 @@
+<application type="Microsoft Project File">
+   <main-class name="onepoint.project.modules.external_applications.MSProject.OpMSProjectApplication"/>
+   <project-plan-import form="/modules/project_planning/forms/confirm_import_project.oxf.xml" default="true"/>
+</application>

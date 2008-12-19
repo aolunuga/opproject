@@ -1,0 +1,9 @@
+<prototype name="OpCountry" instance-class="onepoint.project.modules.customers.OpCountry">
+
+   <field name="Code" type="String"/>
+   <field name="Name" type="String"/>
+   <field name="Locale" type="String"/>
+
+   <relationship name="Clients" type="OpClient" collection-type="Set" back-relationship="Country" inverse="true"/>
+   
+</prototype>

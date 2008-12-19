@@ -1,0 +1,16 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+import onepoint.express.XDisplay;
+
+function subNavigate(selectComp, selectNaviComp) {
+	dockForm = XDisplay.findFrame("DockFrame").currentForm();
+    dockForm.findComponent("NavigationBox").deselectNavigationItems();
+    dockForm.select(selectNaviComp);
+    parameters = new HashMap;
+    parameters.put("restore", false);
+    parameters.put("select", selectComp);
+//    parameters.put("project_id", selectComp);
+	XDisplay.findFrame("MainFrame").showForm(selectNaviComp.getValue(), parameters);
+}

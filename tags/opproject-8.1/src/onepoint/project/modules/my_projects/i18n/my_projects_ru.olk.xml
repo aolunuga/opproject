@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="ru">
+    <resource-map id="my_projects.module">
+        <resource id="ProjectsTool">Проекты</resource>
+        <resource id="MyToolGroup">МОЯ РАБОТА</resource>
+    </resource-map>
+    <resource-map id="my_projects.my_projects">
+        <resource id="Print">Распечатать</resource>
+        <resource id="PrintTooltip">Распечатать этот вид</resource>
+        <resource id="ContribM">Ассистент &amp; Менеджер</resource>
+        <resource id="Manager">Менеджер</resource>
+        <resource id="Contrib">Ассистент</resource>
+        <resource id="Observer">Наблюдатель</resource>
+        <resource id="All">Все</resource>
+        <resource id="ProjectList">Проектный лист</resource>
+        <resource id="Role">Роль</resource>
+        <resource id="Project">Проект</resource>
+        <resource id="Status">Статус</resource>
+        <resource id="Priority">Приоритет</resource>
+        <resource id="Complete">% Завершен </resource>
+        <resource id="Resources">Ресурсы</resource>
+        <resource id="Costs">Стоимость</resource>
+        <resource id="Start">Начало</resource>
+        <resource id="End">Окончание</resource>
+        <resource id="ProjectResources">Ресурсы проекта</resource>
+        <resource id="BaseEffort">Основа (ч)</resource>
+        <resource id="ActualEffort">Фактический (ч)</resource>
+        <resource id="RemainingEffort">Остав. (ч)</resource>
+        <resource id="ProjectedEffort">Ожидаемый (ч)</resource>
+        <resource id="DeviationEffort">Отклонение (ч)</resource>
+        <resource id="PercentageDeviationEffort">Отклонение (%)</resource>
+        <resource id="ProjectCosts">Стоимость проекта</resource>
+        <resource id="BaseCosts">Основа ({CurrencySymbol})</resource>
+        <resource id="ActualCosts">Фактическая ({CurrencySymbol})</resource>
+        <resource id="RemainingCosts">Остав. ({CurrencySymbol})</resource>
+        <resource id="ProjectedCosts">Ожидаемый ({CurrencySymbol})</resource>
+        <resource id="DeviationCosts">Отклонение ({CurrencySymbol})</resource>
+        <resource id="PercentageDeviationCosts">Отклонение (%)</resource>
+        <resource id="GanttDiagram">Даты</resource>
+        <resource id="ChangeTimeUnit">Единица времени</resource>
+        <resource id="Days">Дни</resource>
+        <resource id="Weeks">Недели</resource>
+        <resource id="Months">Месяцы</resource>
+        <resource id="SaveCSV">Сохранить как таблицу...</resource>
+        <resource id="SaveImage">Сохранить как изображение...</resource>
+        <resource id="Sum">Итог</resource>
+    </resource-map>
+</language-kit>

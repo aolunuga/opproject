@@ -1,0 +1,36 @@
+<form width="480" height="80" layout="border" resource-map-ref="login_wizard.oxf.xml" text="${LoginToMindMeister}"
+      provider-class="onepoint.project.modules.external_applications.MindMeister.OpLoginWizardFormProvider"
+      script="/modules/external_applications/MindMeister/login_wizard.jes" error-label-ref="ErrorLabel" on-show="openAuthURL">
+
+   <data-field id="ProjectId"/>
+   <data-field id="MindMeisterFrob"/>
+   <data-field id="CallingFrame"/>
+   <data-field id="SuccessMethod"/>
+   <data-field id="FailureMethod"/>
+   <data-field id="CancelMethod"/>
+
+   <data-field id="AuthURL"/>
+
+   <data-field id="ConnectionFailed" text="${ConnectionFailed}"/>
+   
+   <data-set id="DialogMap">
+      <data-row string-value="MindMeisterFrob"><data-cell string-value="MindMeisterFrob"/></data-row>
+      <data-row string-value="ProjectId"><data-cell string-value="ProjectId"/></data-row>
+      <data-row string-value="CallingFrame"><data-cell string-value="CallingFrame"/></data-row>
+      <data-row string-value="SuccessMethod"><data-cell string-value="SuccessMethod"/></data-row>
+      <data-row string-value="FailureMethod"><data-cell string-value="FailureMethod"/></data-row>
+      <data-row string-value="CancelMethod"><data-cell string-value="CancelMethod"/></data-row>
+   </data-set>
+
+   <panel y="0" layout="border">
+      <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+      <label y="0" text="${PleaseLogin}"/>
+      <panel y="1" layout="flow" direction="west">
+         <panel layout="border">
+            <button x="0" id="OkButton" text="${OK}" on-button-pressed="ok"/>
+            <button x="1" id="CancelButton" text="${Cancel}" on-button-pressed="cancel"/>
+   	   </panel>
+      </panel>
+	   
+   </panel>
+</form>

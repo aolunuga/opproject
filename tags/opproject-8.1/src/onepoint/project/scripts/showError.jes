@@ -1,0 +1,22 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+//error dialog control
+import onepoint.express.XDisplay;
+
+function ok(event) {
+   form = XDisplay.getActiveForm();
+   frameName = form.findComponent("FrameName").getValue();
+   action = form.findComponent("CallbackName").getStringValue();
+   params = form.findComponent("CallbackParameters").getValue();
+   XDisplay.getActiveWindow().close();
+   frame = XDisplay.findFrame(frameName);
+   if (frame != null) {
+      form = frame.currentForm();
+      if (form != null) {
+         form.invokeFunction(action, params);
+      }
+   }
+}
+ 

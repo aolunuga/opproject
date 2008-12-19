@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="ru">
+    <resource-map id="report.resource_allocation">
+        <resource id="Project">Проект</resource>
+        <resource id="Select">Выбрать</resource>
+        <resource id="Resource">Ресурс</resource>
+        <resource id="Effort">Попытка</resource>
+        <resource id="TotalEffort">Суммарная попытка</resource>
+        <resource id="InvalidProject">Пожалуйста выбирете проект</resource>
+        <resource id="QuickQueryNotAvailable">(Нет быстрого запроса, доступного для этого рапорта)</resource>
+    </resource-map>
+</language-kit>

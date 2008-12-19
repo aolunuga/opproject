@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="ru">
+    <resource-map id="resource_utilization.module">
+        <resource id="UtilizationTool">Использование ресурсов</resource>
+    </resource-map>
+    <resource-map id="resource_utilization.overview">
+        <resource id="FrameTitle">Использование ресурсов</resource>
+        <resource id="Print">Печать</resource>
+        <resource id="PrintTooltip">Распечатать данное представление</resource>
+        <resource id="ChangeTimeUnit">Ед. времени</resource>
+        <resource id="Days">Дни</resource>
+        <resource id="Weeks">Недели</resource>
+        <resource id="Months">Месяцы</resource>
+        <resource id="Project">Проект</resource>
+        <resource id="Probability">Вероятность</resource>
+        <resource id="All">Все</resource>
+        <resource id="Decided">Определенный (100%)</resource>
+        <resource id="Forecast">Прогнозирование (99%)</resource>
+        <resource id="Pipeline">Канал поступлений (75%)</resource>
+        <resource id="Upside">Верхняя часть (50%)</resource>
+        <resource id="SaveImage">Сохранить как изображение...</resource>
+        <resource id="PrintTitle">Использование ресурсов</resource>
+        <resource id="HighlyUnderused">Очень низкая недогруженность (&lt; 0.5)</resource>
+        <resource id="Underused">Низкая недогруженность (&lt; 0.8)</resource>
+        <resource id="Normalused">Нормальная нагрузка (0.8 - 1.0)</resource>
+        <resource id="Overused">Перегрузка (&gt; 1.0)</resource>
+        <resource id="HighlyOverused">Высокая перегрузка (&gt; 1.2)</resource>
+        <resource id="Absence">Периоды  недоступности</resource>
+    </resource-map>
+    <resource-map id="resource_utilization.details">
+        <resource id="ProjectName">Проект</resource>
+        <resource id="ActivityName">Действие</resource>
+        <resource id="ActivitySequence">Номер</resource>
+        <resource id="Start">Начало</resource>
+        <resource id="Finish">Конец</resource>
+        <resource id="Assigned">Присв. (%)</resource>
+        <resource id="Probability">Вероят. (%)</resource>
+        <resource id="Effort">Объём работ (ч)</resource>
+        <resource id="Total">ИТОГО</resource>
+    </resource-map>
+    <resource-map id="pool_utilization.details">
+        <resource id="ResourceName">Ресурс</resource>
+        <resource id="Assigned">% задаваемый</resource>
+        <resource id="Effort">Попытка (ч)</resource>
+        <resource id="Total">ИТОГО</resource>
+    </resource-map>
+</language-kit>

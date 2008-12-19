@@ -1,0 +1,39 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+import onepoint.service.XMessage;
+import onepoint.util.XCalendar;
+import onepoint.project.util.OpHashProvider;
+import onepoint.express.XDisplay;
+
+/**
+ * Sends a request to the user service to perform user authentication and returns the server response.
+ */
+function authenticate(login, password, remember) {
+   request = new XMessage;
+   
+   request.setAction("UserService.getHashAlgorithm");
+   request.setArgument("login", login);
+   client = XDisplay.getClient();
+	 
+   response = client.invokeMethod(request);
+   algorithm = client.getVariable("algorithm");
+
+//   request = new XMessage;
+   request.setAction("UserService.signOn");
+   request.setArgument("login", login);
+   request.setVariable("clientTimeZone", XCalendar.getClientTimeZone());
+   if (password != null) {
+      hash = OpHashProvider.calculateHash(password, algorithm);
+      request.setArgument("password", hash);
+   }
+   request.setArgument("remember", remember);
+   response = client.invokeMethod(request);
+
+   calendar = client.getVariable("calendar");
+//   Console.println(calendar);
+   XDisplay.setCalendar(calendar);
+
+   return response;
+}

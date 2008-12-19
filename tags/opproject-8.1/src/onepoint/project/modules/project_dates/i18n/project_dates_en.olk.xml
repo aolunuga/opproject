@@ -1,0 +1,25 @@
+<language-kit locale="en">
+   <resource-map id="project_dates.module">
+      <resource id="ProjectDatesTool">Dates</resource>
+   </resource-map>
+   <resource-map id="project_dates.project_dates">
+      <resource id="ProjectHistory">Schedule History</resource>
+	   
+      <resource id="ResourceFilter">Resources</resource>
+      <resource id="AllResources">All</resource>
+      <resource id="VersionFilter">Versions</resource>
+      <resource id="CurrentPlan">Current</resource>
+      <resource id="PreviousVersion">Previous</resource>
+      <resource id="Last5Versions">Last 5</resource>
+      <resource id="AllVersions">All</resource>
+      <resource id="BaselineVersion">Baseline</resource>
+
+      <resource id="Print">Print</resource>
+      <resource id="PrintTooltip">Print this view</resource>
+      <resource id="ChangeTimeUnit">Time unit</resource>
+      <resource id="Days">Days</resource>
+      <resource id="Weeks">Weeks</resource>
+      <resource id="Months">Months</resource>
+      <resource id="SaveImage">Save as Image...</resource>
+   </resource-map>
+</language-kit>

@@ -1,0 +1,196 @@
+<!--
+    Validation1 test data. The data represents the following structure:
+
+    Collection
+         Activity1
+         Activity2 (depends on Activity1)
+     Milestone (depends on Collection)
+-->
+<!--
+Activity Structure [property_index, property_type]:
+
+####### General ########
+1) Name - String
+2) Type - byte
+3) Category - String
+4) %Complete - double
+5) Start - Date
+6) End - Date
+7) Duration - double
+8) Base Effort - double
+9) Predecessors - List
+10) Successors - List
+11) Resources - List
+
+####### Costs ########
+12) Base personnel costs - double
+13) Base travel costs - double
+14) Base material costs - double
+15) Base external costs - double
+16) Base misc costs - double
+
+####### Other ########
+17) Description - String
+18) Attachments - List
+19) Mode - byte
+20) Work Phase begin - List (Date)
+21) Work Phase end - List (Date)
+22) Work Phase base efforts List (double)
+23) Resource based efforts  List (double)
+24) Priority (only for tasks)
+25) Work records map - HashMap
+26) Actual effort - double
+27) Visual resouces column index - List (String)
+28) Responsible resource
+29) Project
+30) Payment - double
+30) Proceeeds - double
+31) % billable
+Structure:
+
+0 -> 1 -> 2(c)
+          3 -> 4(m) -> 5
+          |            6 -> 7(c)
+          |===============> 8
+
+-->
+<form>
+   <data-set>
+      <data-row outline-level="0">
+         <data-cell enabled="true" string-value="Collection"/>
+         <data-cell enabled="true" byte-value="1"/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" date-value="11.06.2007"/>
+         <data-cell enabled="true" date-value="22.06.2007"/>
+         <data-cell enabled="true" double-value="80.0"/>
+         <data-cell enabled="true" double-value="80.0"/>
+         <data-cell enabled="true" int-list-value=""/>
+         <data-cell enabled="true" int-list-value="3"/>
+         <data-cell enabled="true" choice-list-value=""/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" int-value="0"/>
+         <data-cell enabled="true" date-list-value=""/>
+         <data-cell enabled="true" date-list-value=""/>
+         <data-cell enabled="true" double-list-value=""/>
+         <data-cell enabled="true" double-list-value=""/>
+         <data-cell enabled="true"/>
+         <data-cell enabled="true"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="100.0"/>
+      </data-row>
+      <data-row outline-level="1">
+         <data-cell enabled="true" string-value="Activity1"/>
+         <data-cell enabled="true" byte-value="0"/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" date-value="11.06.2007"/>
+         <data-cell enabled="true" date-value="15.06.2007"/>
+         <data-cell enabled="true" double-value="40.0"/>
+         <data-cell enabled="true" double-value="40.0"/>
+         <data-cell enabled="true" int-list-value=""/>
+         <data-cell enabled="true" int-list-value="2"/>
+         <data-cell enabled="true" choice-list-value=""/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" int-value="0"/>
+         <data-cell enabled="true" date-list-value=""/>
+         <data-cell enabled="true" date-list-value=""/>
+         <data-cell enabled="true" double-list-value=""/>
+         <data-cell enabled="true" double-list-value=""/>
+         <data-cell enabled="true"/>
+         <data-cell enabled="true"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="100.0"/>
+      </data-row>
+      <data-row outline-level="1">
+         <data-cell enabled="true" string-value="Activity2"/>
+         <data-cell enabled="true" byte-value="0"/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" date-value="18.06.2007"/>
+         <data-cell enabled="true" date-value="22.06.2007"/>
+         <data-cell enabled="true" double-value="40.0"/>
+         <data-cell enabled="true" double-value="40.0"/>
+         <data-cell enabled="true" int-list-value="1"/>
+         <data-cell enabled="true" int-list-value=""/>
+         <data-cell enabled="true" choice-list-value=""/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" int-value="0"/>
+         <data-cell enabled="true" date-list-value=""/>
+         <data-cell enabled="true" date-list-value=""/>
+         <data-cell enabled="true" double-list-value=""/>
+         <data-cell enabled="true" double-list-value=""/>
+         <data-cell enabled="true"/>
+         <data-cell enabled="true"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="100.0"/>
+      </data-row>
+      <data-row outline-level="0">
+         <data-cell enabled="true" string-value="Milestone"/>
+         <data-cell enabled="true" byte-value="2"/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" date-value="22.06.2007"/>
+         <data-cell enabled="true" date-value="22.06.2007"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" int-list-value="0"/>
+         <data-cell enabled="true" int-list-value=""/>
+         <data-cell enabled="true" choice-list-value=""/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" int-value="0"/>
+         <data-cell enabled="true" date-list-value=""/>
+         <data-cell enabled="true" date-list-value=""/>
+         <data-cell enabled="true" double-list-value=""/>
+         <data-cell enabled="true" double-list-value=""/>
+         <data-cell enabled="true"/>
+         <data-cell enabled="true"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="100.0"/>
+      </data-row>
+   </data-set>
+</form>

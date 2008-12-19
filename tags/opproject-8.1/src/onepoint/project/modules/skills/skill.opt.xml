@@ -1,0 +1,9 @@
+<prototype name="OpSkill" instance-class="onepoint.project.modules.skills.OpSkill">
+   <field name="Type" type="Byte" mandatory="true" />
+   <field name="Name" type="String" mandatory="true" />
+   <field name="Description" type="Text"/>
+   <field name="Active" type="Boolean"/>
+   <relationship name="SuperCategory" type="OpSkill" back-relationship="SubSkills" recursive="true"/>
+   <relationship name="SubSkills" type="OpSkill" collection-type="Set" back-relationship="SuperCategory" inverse="true" cascade="delete"/>
+   <relationship name="Ratings" type="OpSkillRating" collection-type="Set" back-relationship="Skill" inverse="true" cascade="delete"/>
+</prototype>

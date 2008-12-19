@@ -1,0 +1,33 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+require "onepoint/project/scripts/error.jes";
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XExtendedComponent;
+
+function ok(event) {
+
+   form = XDisplay.getActiveForm();
+   pool_id = form.findComponent("pool_id").getValue();
+   pool_data = form.findComponent("pool_data").getValue();
+   request = new XMessage;
+   request.setAction("ResourceService.updatePool");
+   request.setArgument("pool_id", pool_id);
+   request.setArgument("pool_data", pool_data);
+   response = XDisplay.getClient().invokeMethod(request);
+
+   XDisplay.getActiveWindow().close();
+   form = XDisplay.getActiveForm();
+   if (handleError(form, response, "ErrorLabel") == true) {
+      XDisplay.getActiveWindow().close();
+      XDisplay.findFrame("MainFrame").refreshForm();
+   }
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}

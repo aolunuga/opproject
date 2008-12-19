@@ -1,0 +1,31 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+require "onepoint/project/scripts/showConfirmation.jes";
+require "onepoint/project/scripts/error.jes";
+
+import onepoint.express.XDisplay;
+import onepoint.service.XMessage;
+
+function action(event) {
+   form = XDisplay.getActiveForm();
+
+   buttonId = event.event_source.getID();
+   pressed = getButtonAction(buttonId);
+   request = new XMessage;
+   request.setAction("SetupService.lockFileExists");
+   request.setArgument("action", pressed);
+   response = XDisplay.getClient().invokeMethod(request);
+//   if (handleError(form, response, "ErrorLabel") == true) {
+//	   Console.println("error");
+   params = response.getArgument("initParams");
+   
+   if (params == null) {
+	   XDisplay.getClient().quit();
+   }
+   else {
+	   XDisplay.showStartForm(params);
+   }
+}
+ 

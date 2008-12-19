@@ -1,0 +1,107 @@
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/scripts/commonDialog.jes";
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XValidator;
+
+function onShow(event) {
+   Console.println("importing Plan from MindMeister..");
+   form = XDisplay.getActiveForm();
+   mindMeisterToken = form.findComponent("MindMeisterToken").getStringValue();
+   if (mindMeisterToken == null) {
+      launchLoginWizard();
+   }
+}
+
+function launchLoginWizard() {
+   Console.println("Authenticating with MindMeister...");
+   parameters.CallingFrame = XDisplay.getActiveWindow().getID();
+   parameters.SuccessMethod = "loginSuccessful";
+   parameters.FailureMethod = "loginFailed";
+   parameters.CancelMethod = "loginCanceled";
+   XDisplay.setWaitingCursor();
+   dialog = XComponent.newDialog();
+   dialog.open("/modules/external_applications/MindMeister/login_wizard.oxf.xml", parameters);
+}
+
+function loginSuccessful(token) {
+   Console.println("Login Successful: " + token);
+   form = XDisplay.getActiveForm();
+
+   tokenField = form.findComponent("MindMeisterToken");
+   tokenField.setStringValue(token);
+
+   parameters = new HashMap;
+   readDialogFields(form, form.findComponent("DialogMap"), parameters);
+   XDisplay.setWaitingCursor();
+   XDisplay.getActiveWindow().refreshDialog(parameters);
+}
+
+function loginFailed() {
+   Console.println("Login Failed...");
+   // write error, deactivate ok button...
+   XDisplay.getActiveWindow().close();
+   XDisplay.resetCursor();
+}
+
+function loginCanceled() {
+   Console.println("Login Canceled...");
+   XDisplay.getActiveWindow().close();
+   XDisplay.resetCursor();
+}
+
+function ok(event) {
+   form = XDisplay.getActiveForm();
+   dataSet = form.findComponent("MapsDataSet");
+   
+   if (dataSet != null) {
+      selectedRows = dataSet.selectedRows();
+      if (selectedRows.size() > 0) {
+         XDisplay.setWaitingCursor();
+         rowContent = new HashMap;
+         readRowContent(selectedRows[0], form.findComponent("MapsRowMap"), rowContent);
+         Console.println("Importing Map ID: " + rowContent.get("map.id"));
+         form.findComponent("MindMeisterMapId").setValue(rowContent.get("map.id"));
+         
+         dialogContent = new HashMap;
+         readDialogContent(form, form.findComponent("DialogMap"), dialogContent);
+         
+		   request = new XMessage;
+		   request.setAction("MindMeisterService.importMap");
+		   request.setArgument("dialogContent", dialogContent);
+		   client = XDisplay.getClient();
+		   response = client.invokeMethod(request);
+         XDisplay.resetCursor();
+		   if (handleError(form, response, "ErrorLabel")) {
+            XDisplay.getActiveWindow().close();
+            parameters = new HashMap;
+            readDialogFields(form, form.findComponent("DialogMap"), parameters);
+            XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
+         }
+      }
+   }
+}
+
+function selectionChanged(event) {
+   form = XDisplay.getActiveForm();
+   dataSet = form.findComponent("MapsDataSet");
+   
+   if (dataSet != null) {
+      selectedRows = dataSet.selectedRows();
+      if (selectedRows.size() > 0) {
+         form.findComponent("OkButton").setEnabled(true);
+      }
+      else {
+         form.findComponent("OkButton").setEnabled(false);
+      }
+   }
+   form.update();
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+   XDisplay.findFrame("MainFrame").repaint();
+}
+

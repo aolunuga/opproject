@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="it">
+    <resource-map id="preferences.module">
+        <resource id="PreferencesTool">Preferenze</resource>
+    </resource-map>
+    <resource-map id="preferences.preferences">
+        <resource id="Preferences">Preferenze</resource>
+        <resource id="UserLanguage">Lingua</resource>
+        <resource id="Password">Password</resource>
+        <resource id="PasswordRetyped">Inserisci di nuovo password</resource>
+        <resource id="Save">Salva preferenze</resource>
+        <resource id="SaveTooltip">Salva preferenze utente</resource>
+        <resource id="ShowResourceHours">Mostra gli assegnamenti risorse espressi in ore</resource>
+        <resource id="SavedImageFormat">Formato immagine salvato</resource>
+        <resource id="ImportExportLanguage">Importa/Esporta MPP Localmente</resource>
+    </resource-map>
+    <resource-map id="preferences.error">
+        <resource id="EmptyPassword">Inserire una password</resource>
+        <resource id="PasswordMissmatch">Password non corretta</resource>
+    </resource-map>
+</language-kit>

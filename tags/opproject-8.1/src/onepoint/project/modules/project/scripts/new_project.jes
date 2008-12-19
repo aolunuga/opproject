@@ -1,0 +1,82 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+// Controller script for new_project.oxf.xml
+
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/modules/user/scripts/permissions_tab.jes";
+require "onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
+require "onepoint/project/modules/project/scripts/project_helper.jes";
+
+import onepoint.express.XValidator;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.service.XMessage;
+
+function ok(event) {
+   // Gather project-data
+   form = XDisplay.getActiveForm();
+   project_data.Type = 3;
+   project_data.PortfolioID = form.findComponent("PortfolioID").getStringValue();
+   project_data.Name = form.findComponent("Name").getStringValue();
+   project_data.CustomTypeLocator = form.findComponent("SubTypeField").getStringValue();
+   project_data.TemplateNode = form.findComponent("TemplateField").getStringValue();
+   project_data.Description = form.findComponent("Description").getStringValue();
+   project_data.Start = form.findComponent("Start").getValue();
+   project_data.Finish = form.findComponent("Finish").getValue();
+   project_data.Budget = form.findComponent("Budget").getDoubleValue();
+   project_data.Priority = form.findComponent("Priority").getIntValue();
+   project_data.Probability = form.findComponent("Probability").getIntValue();
+   project_data.Archived = form.findComponent("Archived").getBooleanValue();
+   project_data.CalculationMode = form.findComponent("CalculationMode").getBooleanValue();
+   project_data.ProgressTracked = form.findComponent("ProgressTracked").getBooleanValue();
+   choice = form.findComponent("StatusChoice").getStringValue();
+   if (choice != null) {
+      project_data.Status = XValidator.choiceID(choice);
+   }
+
+   goals_set = XDisplay.getActiveForm().findComponent("GoalsSet");
+
+   assigned_resource_set = XDisplay.getActiveForm().findComponent("AssignedResourceDataSet");
+
+   project_data.PermissionSet = form.findComponent("PermissionSet");
+   
+   request = new XMessage;
+   request.setAction("ProjectService.insertProject");
+   request.setArgument("project_data", project_data);
+   request.setArgument("goals_set", goals_set);
+   request.setArgument("resource_set", assigned_resource_set);
+   addAdditionalArguments(request);
+   addAdvancedProjectProperties(request);
+
+   response = XDisplay.getClient().invokeMethod(request);
+
+   if (handleError(form, response, "ErrorLabel") == true) {
+      // Expand portfolio row
+      mainFrame = XDisplay.findFrame("MainFrame");
+      portfolioIndex = form.findComponent("PortfolioIndexField").getIntValue();
+      if (portfolioIndex != -1) {
+         portfolioRow = mainFrame.currentForm().findComponent("ProjectDataSet").getChild(portfolioIndex);
+         if (portfolioRow != null) {
+            portfolioRow.setExpanded(true);
+         }
+      }
+      XDisplay.getActiveWindow().close();
+      XDisplay.findFrame("MainFrame").refreshForm();
+      // Refresh project navigation frame
+   }
+}
+
+function addAdditionalArguments(request) {
+}
+
+function addAdvancedProjectProperties(request) {
+}
+
+function subTypeChanged(event) {
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}

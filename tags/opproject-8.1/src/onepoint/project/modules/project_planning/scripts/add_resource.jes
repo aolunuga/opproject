@@ -1,0 +1,307 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+// Controller script for add_resource.oxf.xml
+
+import
+onepoint.express.XDisplay;
+import
+onepoint.express.XComponent;
+import
+onepoint.service.XMessage;
+import
+onepoint.express.XValidator;
+import
+onepoint.util.XCalendar;
+
+function ok(event) {
+   dialog = XDisplay.getActiveWindow();
+   previous_dialog = XDisplay.getDefaultDisplay().previousLayer(dialog);
+
+   //duration
+   durationField = previous_dialog.getChild(1).findComponent("ActivityDuration");
+   if (durationField == null) {
+      duration = 0;
+   }
+   else {
+      if (durationField.getValue() != null) {
+         duration = durationField.getDoubleValue();
+      }
+      else {
+         duration = 0;
+      }
+   }
+
+   //effort
+   effort = previous_dialog.getChild(1).findComponent("BaseEffort");
+   if (effort == null) {
+      effort = 0;
+   }
+   else {
+      effort = effort.getDoubleValue();
+   }
+
+   assignment_data_set = previous_dialog.getChild(1).findComponent("AssignmentSet");
+   shouldCheckAvailability = previous_dialog.getChild(1).findComponent("CheckAvailability").getBooleanValue();
+   if (shouldCheckAvailability == null) {
+      shouldCheckAvailability = false;
+   }
+
+   form = XDisplay.getActiveForm();
+   resource_data_set = form.findComponent("ResourceDataSet");
+   selected_rows = resource_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      resource = form.findComponent("ResourceList").getStringValue();
+      assignment = form.findComponent("Assigned").getDoubleValue();
+      availability = getResourceAvailability(XValidator.choiceID(resource));
+
+      if (shouldCheckAvailability && (assignment < 0 || assignment > availability)) {
+         //make visible the error label
+         errorLabel = form.findComponent("ErrorLabel");
+         errorLabel.setVisible(true);
+         form.doLayout();
+         form.repaint();
+      }
+      else {
+         data_row = assignment_data_set.newDataRow();
+         data_cell = XComponent.newDataCell();
+         data_cell.setStringValue(resource);
+         data_cell.setEnabled(false);
+         data_row.addChild(data_cell);
+         data_cell = XComponent.newDataCell();
+         data_cell.setDoubleValue(assignment - assignment);
+         data_cell.setEnabled(true);
+         data_row.addChild(data_cell);
+
+         if (duration != 0) {
+            assignmentH = assignment * duration / 100.0;
+         }
+         else {
+            if (effort != 0) {
+               assignmentH = effort;
+            }
+            else {
+               assignmentH = null;
+            }
+         }
+         data_cell = XComponent.newDataCell();
+         data_cell.setDoubleValue(assignmentH);
+         data_cell.setEnabled(true);
+         data_row.addChild(data_cell);
+
+         assignment_data_set.addDataRow(data_row);
+
+         assignment_data_set.setDataCellValue(data_row, 1, assignment, previous_dialog);
+         
+         //update responsible resource if it is the case
+         resourceChooser = previous_dialog.getChild(1).findComponent("ResponsibleResource");
+         chooserValue = resourceChooser.getValue();
+         noResponsible = previous_dialog.getChild(1).findComponent("ResponsibleResourceSet").getChild(0).getStringValue();
+         firstRow = assignment_data_set.getChild(0);
+         responsibleResource = firstRow.getChild(0).getStringValue();
+         if (chooserValue == noResponsible) {
+            resourceChooser.setStringValue(responsibleResource);
+         }
+
+         // Update assigned user list
+         assignment_table_box = previous_dialog.getChild(1).findComponent("AssignmentTable");
+         assignment_table_box.update();
+         //Disable add resource button if activity is TASK
+         activity_set = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("ActivitySet");
+         activity_row_index = previous_dialog.getChild(1).findComponent("ActivityRowIndex").getIntValue();
+         activity_row = activity_set.getChild(activity_row_index);
+         //get activity type
+         type_data_cell = activity_row.getChild(1);
+         activity_type = type_data_cell.getByteValue().toInt();
+         if (activity_type == 3) { // OpActivity.TASK
+            previous_dialog.getChild(1).findComponent("ResourceAddIcon").setEnabled(false);
+         }
+         dialog.close();
+      }
+   }
+}
+
+/* Finds resource availability.Search is performed in project resource availability map */
+function getResourceAvailability(resource_id) {
+   availability = null;
+   resourceAvailability = XDisplay.getActiveForm().findComponent("ResourceAvailability");
+   if (resourceAvailability != null) {
+      // Added support for null data-set in order to be reusable from my-tasks view
+      availabilityMap = resourceAvailability.getValue();
+      keyList = availabilityMap.keyList();
+      i = 0;
+      while (i < keyList.size()) {
+         resourceId = keyList.get(i);
+         if (resource_id.equals(resourceId)) {
+            availability = availabilityMap.get(resourceId);
+            return availability;
+         }
+         i++;
+      }
+   }
+   if (availability == null) {
+      Console.println("Something went wrong with the resource availability ...");
+   }
+   return availability;
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+
+
+function hoursChanged(event) {
+   form = XDisplay.getActiveForm();
+   hoursField = form.findComponent("Hours");
+   percentField = form.findComponent("Assigned");
+   hours = hoursField.getDoubleValue();
+   if (hours < 0) {
+      hours = 0;
+      hoursField.setDoubleValue(hours);
+   }
+   if (form.findComponent("HoursLeft").getValue() == null) {
+      return;
+   }
+   maxHours = form.findComponent("HoursLeft").getDoubleValue();
+   form.findComponent("HoursLeft").setValue(null);
+
+   dialog = XDisplay.getActiveWindow();
+   previous_dialog = XDisplay.getDefaultDisplay().previousLayer(dialog);
+   durationField = previous_dialog.getChild(1).findComponent("ActivityDuration");
+
+   activtiySet = previous_dialog.getChild(1).findComponent("ActivitySet").getValue();
+   resourceField = form.findComponent("ResourceList");
+   hoursPerDay = activtiySet.validator().getCalendar(XValidator.choiceID(resourceField.getStringValue())).getWorkHoursPerDay();
+
+   if (durationField.getValue() != null) {
+      duration = durationField.getDoubleValue() / activtiySet.validator().getCalendar().getWorkHoursPerDay();
+      percent = hours * 100 / duration / hoursPerDay;
+      Console.println("H/D:" + hoursPerDay + " DUR:" + duration + " %:" + percent + " MAX:" + maxHours);
+      if (hours > maxHours) {
+         factor = hours / maxHours;
+         percent = percent / factor;
+         Console.println("FACT:" + factor);
+         hours = maxHours;
+         hoursField.setDoubleValue(hours);
+         hoursField.update();
+      }
+      Console.println(" DUR:" + duration + " %:" + percent + " H:" + hours);
+      percentField.setValue(percent);
+      percentField.update();
+   }
+   form.findComponent("HoursLeft").setDoubleValue(maxHours);
+}
+
+function percentChanged(event) {
+
+   form = XDisplay.getActiveForm();
+   hoursField = form.findComponent("Hours");
+   percentField = form.findComponent("Assigned");
+   percent = percentField.getDoubleValue();
+   if (percent < 0) {
+      percent = 0;
+      percentField.setDoubleValue(percent);
+   }
+   if (form.findComponent("HoursLeft").getValue() == null) {
+      return;
+   }
+   maxHours = form.findComponent("HoursLeft").getDoubleValue();
+   form.findComponent("HoursLeft").setValue(null);
+
+   dialog = XDisplay.getActiveWindow();
+   previous_dialog = XDisplay.getDefaultDisplay().previousLayer(dialog);
+   durationField = previous_dialog.getChild(1).findComponent("ActivityDuration");
+
+   activtiySet = previous_dialog.getChild(1).findComponent("ActivitySet").getValue();;
+   resourceField = form.findComponent("ResourceList");
+   hoursPerDay = activtiySet.validator().getCalendar(XValidator.choiceID(resourceField.getStringValue())).getWorkHoursPerDay();
+
+   if (durationField.getValue() != null) {
+      duration = durationField.getDoubleValue() / activtiySet.validator().getCalendar().getWorkHoursPerDay();
+      Console.println("H/D:" + hoursPerDay + " DUR:" + duration + " %:" + percent);
+      hours = percent * hoursPerDay * duration / 100;
+      if (hours > maxHours) {
+         factor = hours / maxHours;
+         percent = percent / factor;
+         Console.println("FACT:" + factor);
+         hours = maxHours;
+	      percentField.setValue(percent);
+	      percentField.update();
+      }
+      Console.println("H/D:" + hoursPerDay + " DUR:" + duration + " %:" + percent + " H:" + hours);
+      hoursField.setValue(hours);
+      hoursField.update();
+   }
+   form.findComponent("HoursLeft").setDoubleValue(maxHours);
+}
+
+
+function resourceChanged(event) {
+   Console.println("resourceChanged");
+   form = XDisplay.getActiveForm();
+   resourceField = form.findComponent("ResourceList");
+   
+   resourceAvailability = form.findComponent("ResourceAvailability").getValue().get(XValidator.choiceID(resourceField.getStringValue()));
+   Console.println("avail: " + resourceAvailability);
+   
+   hoursField = form.findComponent("Hours");
+   percentField = form.findComponent("Assigned");
+   
+   percentField.setValue(resourceAvailability);
+   percentChanged(event);
+}
+
+function setupResourceDataSet(activity_data_set, effort, duration, assignment_set, resources, edit_mode) {
+   noResourceId = "-1";
+   i = 0;
+   while (i < resources.size()) {
+      id = XValidator.choiceID(resources[i]);
+      if (!id.equals(noResourceId)) {
+         caption = XValidator.choiceCaption(resources[i]);
+         name = OpGanttValidator.getResourceName(caption, "h");
+         //default assignment is resource availability
+         assignment = getResourceAvailability(id);
+         if (name.length() != caption.length()) {
+            resCal = activity_data_set.validator().getCalendar(id);
+            Console.println("Calendar for " + resources[i] + ": " + resCal);
+            hours = OpGanttValidator.hoursAssigned(resources[i]);
+            assignment = hours / resCal.getWorkHoursPerDay() * 100;
+            Console.println("Assignment for " + id + ": " + assignment);
+         }
+         assignment_row = assignment_set.newDataRow();
+         assignment_cell = XComponent.newDataCell();
+         assignment_cell.setStringValue(XValidator.choice(id, name));
+         assignment_row.addChild(assignment_cell);
+         assignment_cell = XComponent.newDataCell();
+         assignment_cell.setDoubleValue(assignment);
+         assignment_cell.setEditMode(edit_mode);
+         assignment_cell.setEnabled(edit_mode);
+         assignment_row.addChild(assignment_cell);
+
+         assignment_h_cell = XComponent.newDataCell();
+         assignmentH = null;
+         //if there is no duration (e.g tasks, use the effort)
+         if (duration == -1) {
+            if (effort != 0) {
+               assignmentH = effort;
+            }
+         }
+         else {
+            if (effort == 0) {
+               assignmentH = effort;
+            }
+            else {
+               assignmentH = assignment * duration / 100.0;
+            }
+         }
+
+         assignment_h_cell.setDoubleValue(assignmentH);
+         assignment_h_cell.setEditMode(edit_mode);
+         assignment_h_cell.setEnabled(edit_mode);
+         assignment_row.addChild(assignment_h_cell);
+         assignment_set.addDataRow(assignment_row);
+      }
+      i++;
+   }
+}

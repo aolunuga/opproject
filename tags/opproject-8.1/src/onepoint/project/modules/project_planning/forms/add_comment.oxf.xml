@@ -1,0 +1,23 @@
+<form layout="border" width="400" height="240" text="${AddComment}" start-focus-ref="SubjectField" resource-map-ref="project_planning.AddComment" script="/modules/project_planning/scripts/add_comment.jes" provider-class="onepoint.project.modules.project_planning.forms.OpAddCommentFormProvider">
+	
+   <data-field id="ActivityIDField"/>
+
+   <panel layout="border">
+
+   <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+
+   <panel layout="table">
+         <label text="${Subject}:" style-ref="label-emphasized-default"/><text-field x="1" width="2" id="SubjectField"/>
+         <text-box y="1" width="3" id="TextBox" wrap="true" rows="13" columns="54"/>
+   </panel>
+
+   <panel y="1" layout="flow" direction="west">
+	  <panel layout="border">
+      <button x="0" id="okButton" text="${OK}" on-button-pressed="ok"/>
+      <button x="1" id="cancelButton" text="${Cancel}" on-button-pressed="cancel"/>
+	  </panel>
+   </panel>
+
+   </panel>
+
+</form>

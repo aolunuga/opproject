@@ -1,0 +1,29 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+// Controller script for confirm_import_project.oxf.xml
+require "onepoint/project/scripts/error.jes";
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XValidator;
+
+function ok(event) {
+   // run the import script:
+   thisWindow = XDisplay.getActiveWindow();
+   
+   form = XValidator.choiceID(XDisplay.getActiveForm().findComponent("ImportSourceChooser").getStringValue());
+   Console.println("Form: " + form);
+
+   dialog = XComponent.newDialog();
+   parameters = XDisplay.getActiveForm().findComponent("parameters").getValue();
+   dialog.open(form, parameters);
+   
+   thisWindow.close();
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}

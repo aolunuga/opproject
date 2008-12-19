@@ -1,0 +1,6 @@
+<prototype name="OpExtAppUser" instance-class="onepoint.project.modules.external_applications.OpExternalApplicationUser">
+   <relationship name="User" type="OpUser" back-relationship="ExternalApplications"/>
+   <relationship name="Application" type="OpExtApp" back-relationship="Users"/>
+
+   <relationship name="Parameters" type="OpExtAppUserParam" collection-type="Set" back-relationship="User" inverse="true" cascade="delete"/>
+</prototype>

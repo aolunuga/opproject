@@ -1,0 +1,12 @@
+<module name="custom_attribute" caption="Custom Attribute" version="1.0" class="onepoint.project.modules.custom_attribute.OpCustomAttributeModule">
+   <prototype-files>
+      <prototype-file file-name="/modules/custom_attribute/custom_type.opt.xml"/>
+      <prototype-file file-name="/modules/custom_attribute/custom_attribute.opt.xml"/>
+      <prototype-file file-name="/modules/custom_attribute/action_type.opt.xml"/>
+      <!-- must be added after custom_type and custom_attribute, otherwise backup won't work -->
+      <prototype-file file-name="/modules/custom_attribute/customizable.opt.xml"/>
+<!--       <prototype-file file-name="/modules/custom_attribute/customize.opt.xml"/>-->
+      <prototype-file file-name="/modules/custom_attribute/custom_text_value.opt.xml"/>
+      <prototype-file file-name="/modules/custom_attribute/custom_value_page.opt.xml"/>
+   </prototype-files>
+</module>

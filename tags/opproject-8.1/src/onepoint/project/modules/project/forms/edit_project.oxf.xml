@@ -1,0 +1,136 @@
+<form layout="border" width="900" height="540" text="${EditProject}" start-focus-ref="Name"
+   default-button-ref="okButton" resource-map-ref="project.EditProject"
+   provider-class="onepoint.project.modules.project.forms.OpEditProjectFormProvider" error-label-ref="ErrorLabel" 
+   script="/modules/project/scripts/edit_project.jes" id="EditProjectDialog">
+   <data-field id="ProjectID" />
+   <data-set id="SubTypeSet" />
+   <data-field id="AccessLevel" />
+   <data-field id="EditMode" />
+   <data-field id="AccessLevel" />
+   <data-field id="OriginalStartDate" />
+   <data-field id="WorkingVersionNumber" />
+   <data-field id="CurrentVersionNumber" />
+   <data-field id="Today" />
+   <data-field id="EndOfYear" />
+   <data-field id="ModifiedRates" />
+
+   <panel y="0" layout="border">
+      <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default" />
+      <tab-box y="0" id="TabBoxId">
+         <tab text="${General}" layout="table" id="GeneralTab">
+
+            <data-set id="ProjectStatusDataSet" />
+
+            <label x="0" y="0" width="2" text="${Name}" style-ref="label-emphasized-default"/>
+            <text-field x="2" y="0" width="3" id="Name"/>
+            <label x="0" y="1" width="2" text="${SubType}" id="SubTypeLabel" visible="false"/>
+            <choice-field x="2" y="1" width="3" id="SubTypeField" on-value-changed="subTypeChanged" data-set-ref="SubTypeSet" visible="false"/>
+            <label x="0" y="2" width="2" text="${Template}"/>
+            <choice-field x="2" y="2" width="3" id="TemplateField" data-set-ref="TemplateSet"/>
+            <label x="0" y="3" width="2" text="${Description}"/>
+            <text-box x="2" y="3" width="3" id="Description"/>
+            <label x="0" y="4" width="2" text="${Priority}"/>
+            <int-field x="2" y="4" width="3" id="Priority" lower-limit="1" upper-limit="9"/>
+            <label x="0" y="5" width="2" text="${Status}" id="StatusLabel"/>
+            <choice-field x="2" y="5" width="3" data-set-ref="ProjectStatusDataSet" id="StatusChoice" selected-index="0"/>
+            <label x="0" y="6" width="2" text="${Start}" style-ref="label-emphasized-default"/>
+            <date-field x="2" y="6" width="3" id="Start"/>
+            <label x="0" y="7" width="2" text="${End}"/>
+            <date-field x="2" y="7" width="3" id="Finish"/>
+            <label x="0" y="9" width="2" text="${Probability}"/>
+            <int-field x="2" y="9" width="3" id="Probability" lower-limit="0" upper-limit="100"/>
+         </tab>
+
+		<!-- Constrains tab, introduced in OPP 8.1 -->
+         <tab text="${Constraints}" layout="table" id="ConstraintsTab">
+
+            <label x="0" y="0" width="2" text="${Budget}"/>
+            <double-field x="2" y="0" width="3" id="Budget" decimals="2"/>
+            <check-box x="2" y="1" width="3" id="CalculationMode" text="${CalculationMode}"/>
+            <check-box x="2" y="2" width="3" id="ProgressTracked" text="${ProgressTracked}"/>
+            <check-box x="2" y="3" width="3" id="Archived" text="${Archived}"/>
+
+ 		 </tab>
+
+         <tab text="${Goals}" layout="border" id="GoalsTab">
+            <data-set id="GoalsSet" />
+            <table-box y="0" id="GoalsTableBox" data-set-ref="GoalsSet" flexible="true">
+               <table-column text="" width="20" data-column-index="0" value-type="Boolean" sortable="true" />
+               <table-column text="${Subject}" width="350" data-column-index="1" value-type="String" sortable="true" />
+               <table-column text="${Priority}" width="60" data-column-index="2" value-type="Int" sortable="true"
+                  upper-limit="9" lower-limit="1" />
+            </table-box>
+            <panel id="GoalsToolPanel" y="1" layout="flow" direction="east">
+               <icon-button icon-type="PlusSign" on-button-pressed="addGoal" />
+               <icon-button icon-type="MinusSign" on-button-pressed="removeGoals" />
+               <!-- maybe in addition: Up- and down-arrows -->
+            </panel>
+         </tab>
+
+         <tab text="${Resources}" layout="border" id="ResourcesTab">
+            <data-set id="AssignedResourceDataSet" />
+            <data-set id="OriginalResourceDataSet" />
+            <data-set id="ReadOnlyResourceDataSet" />
+            <table-box id="ResourcesTable" data-set-ref="AssignedResourceDataSet" sidebar-width="0" flexible="true"
+               stateful="true" edit-mode="true">
+               <table-column text="${Resource}" sortable="true" width="65" data-column-index="0" value-type="String" />
+               <table-column text="${Description}" sortable="true" width="65" data-column-index="1" value-type="String" />
+               <table-column text="${AdjustRates}" id="AdjustRatesColumn" width="40" on-value-changed="checkAdjust"
+                  data-column-index="2" value-type="Boolean" />
+               <table-column text="${InternalRate}" sortable="true" id="InternalRatesColumn" width="65"
+                  data-column-index="3" value-type="Double" />
+               <table-column text="${ExternalRate}" sortable="true" id="ExternalRatesColumn" width="65"
+                  data-column-index="4" value-type="Double" />
+            </table-box>
+            <panel id="ResourcesToolPanel" y="1" layout="flow" direction="east">
+               <icon-button icon-type="PlusSign" on-button-pressed="addProjectAssignment" />
+               <icon-button icon-type="MinusSign" on-button-pressed="removeProjectAssignment" />
+            </panel>
+         </tab>
+
+         <tab text="${Versions}" layout="border" id="VersionsTab">
+            <data-set id="VersionsSet" />
+            <label id="ConfirmDialogHeader" text="${DeleteVersions}" visible="false" />
+            <table-box y="0" id="VersionsTableBox" data-set-ref="VersionsSet" flexible="true"
+               on-row-select="selectionChanged" icon-set-ref="ControllingIconSet">
+               <table-column id="ControlledColumn" text="" width="10" data-column-index="5" value-type="Choice" />
+               <table-column text="${Version}" width="45" data-column-index="1" value-type="String" />
+               <table-column text="${CreatedBy}" width="140" data-column-index="2" value-type="String" sortable="true" />
+               <table-column text="${CreatedOn}" width="70" data-column-index="3" value-type="Date" sortable="true" />
+               <table-column id="BaselineColumn" text="${Baseline}" width="70" data-column-index="4"
+                  value-type="Boolean" on-value-changed="baselineSelected" />
+            </table-box>
+            <panel id="VersionsToolPanel" y="1" layout="flow" direction="east">
+               <button style-ref="icon-button-default" id="RemoveVersionButton" icon="/icons/minus_s.png"
+                  disabled-icon="/icons/minus_s_disabled.png" on-button-pressed="removeVersions" />
+            </panel>
+         </tab>
+
+         <tab text="${Permissions}" layout="border" id="PermissionsTab">
+            <data-set id="PerimssionIconSet">
+               <data-row icon="/modules/user/icons/group.png" />
+               <data-row icon="/modules/user/icons/user.png" />
+               <data-row icon="/modules/user/icons/role.png" />
+            </data-set>
+            <data-set id="PermissionSet" />
+            <list-box id="PermissionTree" tree="true" data-set-ref="PermissionSet" icon-set-ref="PerimssionIconSet"
+               flexible="true" />
+            <panel id="PermissionToolPanel" y="1" layout="flow" direction="east">
+               <icon-button icon-type="PlusSign" on-button-pressed="addSubject" />
+               <icon-button icon-type="MinusSign" on-button-pressed="removeSubject" />
+               <icon-button icon-type="NorthArrow" on-button-pressed="moveSubjectUp" />
+               <icon-button icon-type="SouthArrow" on-button-pressed="moveSubjectDown" />
+            </panel>
+         </tab>
+
+      </tab-box>
+
+      <panel y="1" layout="flow" direction="west">
+         <panel layout="border">
+            <button x="0" id="okButton" text="${OK}" on-button-pressed="ok" />
+            <button x="1" id="Cancel" text="${Cancel}" on-button-pressed="cancel" />
+         </panel>
+      </panel>
+
+   </panel>
+</form>

@@ -1,0 +1,36 @@
+<form layout="border"
+      resource-map-ref="report.resource_allocation"
+      script="resource_allocation.jes"
+      provider-class="onepoint.project.reports.resource_allocation.OpResourceAllocationFormProvider"
+      on-show="prepareForm">
+	<data-set id="ResultSet"/>
+
+   <data-set id="ProjectSet" on-expand="retrieveChildren"/>
+
+   <data-set id="IconSet">
+      <data-row icon="/modules/project/icons/portfolio.png"/>
+      <data-row icon="/modules/project/icons/template.png"/>
+      <data-row icon="/modules/project/icons/project.png"/>
+      <data-row icon="/modules/project/icons/project_edit.png"/>
+      <data-row icon="/modules/project/icons/project_locked.png"/>
+      <data-row icon="/modules/project/icons/template_edit.png"/>
+      <data-row icon="/modules/project/icons/template_locked.png"/>
+   </data-set>
+
+  <!-- division orientation="horizontal" -->
+   <panel layout="border">
+
+      <label x="0" y="-1" id="ErrorLabel" text="${InvalidProject}" visible="false" style-ref="label-error-default"/>
+
+      <panel x="0" y="0" layout="table" style-ref="table-panel-default">
+         <label x="0" y="1" width="2" text="${Project}"/>
+         <list-box x="2" y="1" width="3" id="ProjectList" tree="true" data-set-ref="ProjectSet" icon-set-ref="IconSet"/>
+      </panel>
+
+      <panel x="0" y="1" layout="border" style-ref="table-panel-default">
+         <label x="1" y="1" text="${QuickQueryNotAvailable}"/>
+      </panel>
+
+   </panel>
+   
+</form>

@@ -1,0 +1,89 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+// Controller script for project_chooser.oxf.xml
+require "onepoint/project/scripts/lazyLoad.jes";
+
+import onepoint.express.XDisplay;
+import onepoint.express.XValidator;
+import onepoint.service.XMessage;
+
+function ok(event) {
+   form = XDisplay.getActiveForm();
+   callingFrameID = form.findComponent("CallingFrameID").getStringValue();
+   projectLocatorFieldID = form.findComponent("ProjectLocatorFieldID").getStringValue();
+   projectNameFieldID = form.findComponent("ProjectNameFieldID").getStringValue();
+   actionHandler = form.findComponent("ActionHandler").getStringValue();
+   multipleSelection = form.findComponent("MultipleSelection").getBooleanValue();
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectSet");
+   selected_rows = project_data_set.selectedRows();
+   selection_size = selected_rows.size();
+   if (selection_size > 0) {
+      i = 0;
+      selectedChoiceIds = new ArrayList;
+      callingFrame = XDisplay.findFrame(callingFrameID);      
+      while (i < selection_size) {
+         projectChoice = selected_rows[i].getStringValue();
+         //only set the project locator and project name for single selection
+         if (selection_size == 1) {
+            projectLocator = XValidator.choiceID(projectChoice);
+            projectName = XValidator.choiceCaption(projectChoice);
+
+            projectLocatorField = callingFrame.currentForm().findComponent(projectLocatorFieldID);
+            if (projectLocatorField != null) {
+               projectLocatorField.setStringValue(projectLocator);
+            }
+            projectNameField = callingFrame.currentForm().findComponent(projectNameFieldID);
+            if (projectNameField != null) {
+               projectNameField.setStringValue(projectName);
+            }
+         }
+
+         selectedChoiceIds[i] = projectChoice;
+         i++;
+      }
+
+      if (actionHandler != null) {
+         if (multipleSelection == true) {
+            arguments[0] = selectedChoiceIds;
+         }
+         else {
+            arguments[0] = selectedChoiceIds[0];
+         }
+         // Note: It is important to close the window first because callback might use getActiveForm()
+         XDisplay.getActiveWindow().close();
+         callingFrame.currentForm().invokeFunction(actionHandler, arguments);
+      }
+      else {
+         XDisplay.getActiveWindow().close();
+         callingFrame.getForm().repaint();
+      }
+   }
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+
+function retrieveChildren(event) {
+   dataRow = event.expand_source;
+
+   form = XDisplay.getActiveForm();
+   enableProjects = form.findComponent("EnableProjects").getBooleanValue();
+   enablePortfolios = form.findComponent("EnablePortfolios").getBooleanValue();
+   enableTemplates = form.findComponent("EnableTemplates").getBooleanValue();
+   filteredOutIds = form.findComponent("FilteredOutIds").getValue();
+   nonSelectableIds = form.findComponent("NotSelectableIds").getListValue();
+
+   request = new XMessage;
+   request.setAction("ProjectService.expandProjectChooserNode");
+   request.setArgument("project_row", dataRow);
+   request.setArgument("EnableProjects", enableProjects);
+   request.setArgument("EnablePortfolios", enablePortfolios);
+   request.setArgument("EnableTemplates", enableTemplates);
+   request.setArgument("FilteredOutIds", filteredOutIds);
+   request.setArgument("NotSelectableIds", nonSelectableIds);
+
+   expandNode(dataRow, 1, request);   
+}

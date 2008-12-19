@@ -1,0 +1,11 @@
+<module name="external_applications" caption="External Applications" version="0.1"
+        class="onepoint.project.modules.external_applications.OpExternalApplicationsModule">
+
+   <prototype-files>
+      <prototype-file file-name="/modules/external_applications/external_application.opt.xml"/>
+      <prototype-file file-name="/modules/external_applications/external_application_user.opt.xml"/>
+      <prototype-file file-name="/modules/external_applications/external_application_parameter.opt.xml"/>
+      <prototype-file file-name="/modules/external_applications/external_application_user_parameter.opt.xml"/>
+   </prototype-files>
+
+</module>

@@ -1,0 +1,20 @@
+<prototype name="OpProjectPlanVersion" instance-class="onepoint.project.modules.project.OpProjectPlanVersion"  implements="OpPermissionable">
+   <field name="VersionNumber" type="Integer"/>
+   <field name="Comment" type="String"/>
+   <field name="Start" type="Date" mandatory="true" indexed="true"/>
+   <field name="Finish" type="Date" mandatory="true" indexed="true"/>
+   <field name="Template" type="Boolean"/>
+   <field name="Baseline" type="Boolean"/>
+   <field name="Creator" type="String"/>
+   <field name="Recalculated" type="Timestamp"/>
+   <field name="CheckInTime" type="Timestamp"/>
+     
+   <relationship name="ProjectPlan" type="OpProjectPlan" back-relationship="Versions"/>
+   <relationship name="ActivityVersions" type="OpActivityVersion" collection-type="Set" back-relationship="PlanVersion" inverse="true" cascade="delete"/>
+   <relationship name="AssignmentVersions" type="OpAssignmentVersion" collection-type="Set" back-relationship="PlanVersion" inverse="true" cascade="delete"/>
+   <relationship name="WorkPeriodVersions" type="OpWorkPeriodVersion" collection-type="Set" back-relationship="PlanVersion" inverse="true" cascade="delete"/>
+   <relationship name="DependencyVersions" type="OpDependencyVersion" collection-type="Set" back-relationship="PlanVersion" inverse="true" cascade="delete"/>
+   <relationship name="ControllingSheets" type="OpControllingSheet" collection-type="Set" back-relationship="PlanVersion" inverse="true"/>
+   <relationship name="WorkBreaks" type="OpActivityVersionWorkBreak" collection-type="Set" back-relationship="PlanVersion" inverse="true" cascade="delete"/>
+   <relationship name="WorkCalendar" type="OpWorkCalendar" back-relationship="ProjectPlanVersions"/>
+</prototype>

@@ -1,0 +1,8 @@
+<prototype name="OpDiscussionReadArticleLink" instance-class="onepoint.project.modules.discussion.OpDiscussionReadArticleLink">
+
+   <field name="Type" type="Integer"/>
+
+   <relationship name="User" type="OpUser" back-relationship="DiscussionArticlesRead"/>
+   <relationship name="Article" type="OpDiscussionArticle" back-relationship="Readers"/>
+   
+</prototype>

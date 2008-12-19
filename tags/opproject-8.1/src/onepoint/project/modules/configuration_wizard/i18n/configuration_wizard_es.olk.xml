@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="es">
+    <resource-map id="configuration_wizard.main">
+        <resource id="DatabaseType">Base de datos</resource>
+        <resource id="DatabaseUrl">Cadena de conexión</resource>
+        <resource id="DatabaseLogin">Nombre de usuario</resource>
+        <resource id="DatabasePassword">Contraseña</resource>
+        <resource id="Connect">Conectar</resource>
+        <resource id="LoadDemodata">Importar demodata</resource>
+    </resource-map>
+    <resource-map id="standalone_configuration_wizard.main">
+        <resource id="DatabaseLocation">Carpeta de datos</resource>
+        <resource id="SelectFolder">Seleccionar archivo de la base de datos</resource>
+        <resource id="Select">Modificar</resource>
+        <resource id="OK">OK</resource>
+    </resource-map>
+    <resource-map id="configuration_wizard.error">
+        <resource id="DatabaseUrlMissing">La cadena de conexión de la base de datos no ha sido especificada</resource>
+        <resource id="DatabasePathMissing">La carpeta de la base de datos no ha sido especificada</resource>
+        <resource id="DatabaseLoginMissing">El nombre de usuario no ha sido especificado</resource>
+        <resource id="InvalidCredentials">El nombre de usuario o la contraseña no son correctos</resource>
+        <resource id="InvalidConnectionString">La cadena de conexión no es válida</resource>
+        <resource id="GeneralConnectionError">No hay conexión con la base de datos</resource>
+        <resource id="JDBCDriverError">El controlador de JDBC no ha podido ser cargado</resource>
+        <resource id="InvalidMySqlEngine">Usted está utilizando una base de datos no-transaccional, lo que puede llevar a una inconsistencia grave de datos. Para instrucciones sobre la actualización de bases de datos lea el fichero README</resource>
+        <resource id="InvalidDemodataFile">El archivo que está intentando cargar no existe</resource>
+        <resource id="RestoreError">Se ha producido un error al intentar recuperar datos</resource>
+    </resource-map>
+</language-kit>

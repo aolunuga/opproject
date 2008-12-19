@@ -1,0 +1,96 @@
+<form id="WorkSlipsForm" layout="border" resource-map-ref="work.work_slips"
+      provider-class="onepoint.project.modules.work.forms.OpWorkSlipsFormProvider"
+      script="/modules/work/scripts/work_slips.jes">
+   <!-- maybe add 2nd tab showing calendar of work-slip "coverage" -->
+   <data-set id="WorkSlipSet"/>
+
+   <panel layout="border" style-ref="compact-panel-default" id="WorkSlipsPanel">
+
+      <data-set id="PeriodSet">
+         <data-row string-value="currentWeek['${CurrentWeek}']"/>
+         <data-row string-value="previousWeek['${PreviousWeek}']"/>
+         <data-row string-value="current['${CurrentMonth}']"/>
+         <data-row string-value="previous['${PreviousMonth}']"/>
+         <data-row string-value="year['${CurrentYear}']"/>
+         <data-row string-value="all['${All}']"/>
+      </data-set>
+
+      <data-set id="LockStateSet">
+         <data-row />
+         <data-row icon="/modules/work/icons/l_locked.png" />
+      </data-set>
+
+      <panel layout="border" style-ref="tool-panel-default" y="-1" id="ToolBarPanel">
+         <tool-bar x="-1" id="ToolBar">
+            <tool-button text="${NewWorkSlip}" id="NewWorkSlip" icon="/modules/work/icons/new_work_slip.png"
+                         disabled-icon="/modules/work/icons/new_work_slip_disabled.png" on-button-pressed="newWorkSlip"
+                         tooltip="${NewWorkSlipTooltip}"/>
+            <tool-button text="${Info}" id="InfoWorkSlip" icon="/icons/info.png"
+                         disabled-icon="/icons/info_disabled.png" on-button-pressed="edit" tooltip="${InfoTooltip}"/>
+            <tool-button text="${Delete}" id="DeleteWorkSlip" icon="/icons/delete.png"
+                         disabled-icon="/icons/delete_disabled.png" on-button-pressed="delete"
+                         tooltip="${DeleteTooltip}"/>
+         </tool-bar>
+         <panel x="1" layout="border" style-ref="compact-panel-default">
+            <panel layout="flow" flexible="false" direction="west" id="ChooserPanel">
+               <choice-field id="PeriodChooser" stateful="true" data-set-ref="PeriodSet"
+                             on-value-changed="filterChanged" selected-index="0"/>
+               <label text="${Time}"/>
+            </panel>
+         </panel>
+
+      </panel>
+
+      <data-set id="WeekDaysDataSet">
+         <data-row string-value="1['${Sunday}']"/>
+         <data-row string-value="2['${Monday}']"/>
+         <data-row string-value="3['${Tuesday}']"/>
+         <data-row string-value="4['${Wednesday}']"/>
+         <data-row string-value="5['${Thursday}']"/>
+         <data-row string-value="6['${Friday}']"/>
+         <data-row string-value="7['${Saturday}']"/>
+      </data-set>
+
+      <data-set id="WorkSlipsFooterDataSet">
+         <data-row>
+            <data-cell/>
+            <data-cell/>
+            <data-cell/>
+            <data-cell id="WorkSlipsFooterDataSet[1]" double-value="1"/>
+            <data-cell id="WorkSlipsFooterDataSet[3]" double-value="1"/>
+            <data-cell id="WorkSlipsFooterDataSet[4]" double-value="1"/>
+            <data-cell id="WorkSlipsFooterDataSet[5]" double-value="1"/>
+            <data-cell id="WorkSlipsFooterDataSet[6]" double-value="1"/>
+         </data-row>
+      </data-set>
+
+      <data-set id="WorkslipRowMap">
+         <data-row string-value="workslip.locator"><data-cell int-value="-1"/></data-row>
+         <data-row string-value="workslip.state[' '][[workslip.state]]"><data-cell int-value="2"/></data-row>
+         <data-row string-value="weekday"><data-cell int-value="7"/></data-row>
+         <data-row string-value="workslip.date"><data-cell int-value="0"/></data-row>
+         <data-row string-value="workslip.totalActualEffort"><data-cell int-value="1"/></data-row>
+         <data-row string-value="workslip.totalActualOtherCosts0"><data-cell int-value="3"/></data-row>
+         <data-row string-value="workslip.totalActualOtherCosts1"><data-cell int-value="4"/></data-row>
+         <data-row string-value="workslip.totalActualOtherCosts2"><data-cell int-value="5"/></data-row>
+         <data-row string-value="workslip.totalActualOtherCosts3"><data-cell int-value="6"/></data-row>
+      </data-set>
+   
+      <table-box id="WorkSlipTable" y="0" data-set-ref="WorkSlipSet" flexible="true" on-double-click="edit"
+                 on-row-select="selectionChanged" icon-set-ref="LockStateSet" footer-data-set-ref="WorkSlipsFooterDataSet">
+         <table-column width="20" text="" data-column-index="2" value-type="Choice" sortable="true" />
+         <table-column width="80" text="${Date}" data-column-index="0" value-type="Date" sortable="true"/>
+         <table-column width="80" text="${Weekday}" data-column-index="7" value-type="Choice" data-set-ref="WeekDaysDataSet"/>
+         <table-column width="80" text="${TotalEffort}" data-column-index="1" value-type="Double" sortable="true"/>
+         <table-column width="80" text="${TotalOtherCosts0}" data-column-index="3" value-type="Double" sortable="true"/>
+         <table-column width="80" text="${TotalOtherCosts1}" data-column-index="4" value-type="Double" sortable="true"/>
+         <table-column width="80" text="${TotalOtherCosts2}" data-column-index="5" value-type="Double" sortable="true"/>
+         <table-column width="80" text="${TotalOtherCosts3}" data-column-index="6" value-type="Double" sortable="true"/>
+         <!-- <table-column width="80" text="${State}" data-column-index="2" value-type="Choice"/> -->
+      </table-box>
+
+      <status-bar y="1"/>
+
+   </panel>
+
+</form>

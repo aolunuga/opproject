@@ -1,0 +1,9 @@
+<prototype name="OpWorkMonthVersion" instance-class="onepoint.project.modules.project.OpWorkMonthVersion">
+   <field name="Year" type="Integer"/>
+   <field name="Month" type="Byte"/>
+   <field name="BaseAssigned" type="Double"/>
+   <field name="BaseEffort" type="Double"/>
+   <field name="BasePersonnelCosts" type="Double"/>
+   <field name="BaseProceeds" type="Double"/>
+   <relationship name="AssignmentVersion" type="OpAssignmentVersion" back-relationship="WorkMonthVersions"/>
+</prototype>

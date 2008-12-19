@@ -1,0 +1,26 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+// Utitility function for opening a generic project chooser
+
+import onepoint.express.XComponent;
+
+function openProjectChooser(callingFrameID, actionHandler, projectLocatorFieldID, projectNameFieldID,
+                            enableProjects, enablePortfolios, enableTemplates, filteredOutIds,
+                            multipleSelection, notSelectableIds) {
+   // Open project chooser dialog w/calling frame and project field as parameters
+   dialog = XComponent.newDialog();
+   parameters.CallingFrameID = callingFrameID;
+   parameters.ProjectLocatorFieldID = projectLocatorFieldID;
+   parameters.ProjectNameFieldID = projectNameFieldID;
+   parameters.EnableProjects = enableProjects;
+   parameters.EnablePortfolios = enablePortfolios;
+   parameters.EnableTemplates = enableTemplates;
+   parameters.FilteredOutIds = filteredOutIds;
+   parameters.ActionHandler = actionHandler;
+   parameters.MultipleSelection = multipleSelection;
+   parameters.NotSelectableIds = notSelectableIds;
+   dialog.open("/modules/project/forms/project_chooser.oxf.xml", parameters);
+}
+

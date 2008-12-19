@@ -1,0 +1,182 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+// Controller script for edit_project.oxf.xml
+
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/modules/user/scripts/permissions_tab.jes";
+require "onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
+require "onepoint/project/modules/project/scripts/project_helper.jes";
+
+import onepoint.express.XValidator;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.service.XMessage;
+
+function ok(event) {
+   form = XDisplay.getActiveForm();
+   edit_mode = form.findComponent("EditMode").getBooleanValue();
+   if (edit_mode) {
+      ok_edit(event);
+   }
+   else {
+      cancel(event);
+   }
+}
+
+function ok_edit(event) {
+   bypassFutureStartDateCheck = event.BypassFutureStartDateCheck;
+
+   // Gather project-data
+   form = XDisplay.getActiveForm();
+
+   //check for future start dates
+   project_data.Start = form.findComponent("Start").getDateValue();
+   originalStartDate = form.findComponent("OriginalStartDate").getDateValue();
+   if (project_data.Start != null) {
+      if (bypassFutureStartDateCheck == null && project_data.Start.after(originalStartDate)) {
+         Console.println("Start date in the future");
+         dialog = XComponent.newDialog();
+         dialog.loadForm("/modules/project/forms/confirm_startdate_future.oxf.xml");
+         dialog.open();
+         return;
+      }
+   }
+
+   project_id = form.findComponent("ProjectID").getStringValue();
+   project_data.Type = 3;
+   project_data.Name = form.findComponent("Name").getStringValue();
+   project_data.CustomTypeLocator = form.findComponent("SubTypeField").getStringValue();
+   project_data.Description = form.findComponent("Description").getStringValue();
+   project_data.Finish = form.findComponent("Finish").getDateValue();
+   project_data.Budget = form.findComponent("Budget").getDoubleValue();
+   project_data.CalculationMode = form.findComponent("CalculationMode").getBooleanValue();
+   project_data.ProgressTracked = form.findComponent("ProgressTracked").getBooleanValue();
+   project_data.Priority = form.findComponent("Priority").getIntValue();
+   project_data.Probability = form.findComponent("Probability").getIntValue();
+   project_data.Archived = form.findComponent("Archived").getBooleanValue();
+   choice = form.findComponent("StatusChoice").getStringValue();
+   if (choice != null) {
+      project_data.Status = XValidator.choiceID(choice);
+   }
+   modifiedRates = form.findComponent("ModifiedRates").getBooleanValue();
+
+   goals_set = XDisplay.getActiveForm().findComponent("GoalsSet");
+   assigned_resource_set = XDisplay.getActiveForm().findComponent("AssignedResourceDataSet");
+   original_resource_set = XDisplay.getActiveForm().findComponent("OriginalResourceDataSet");
+   versions_set = XDisplay.getActiveForm().findComponent("VersionsSet");
+
+   project_data.PermissionSet = form.findComponent("PermissionSet");
+
+   //check extended hourly rates
+   if (checkExtendedHourlyRates(assigned_resource_set, project_id, project_data, goals_set,
+        versions_set)) {
+      return;
+   }
+
+   //check if the rates from the resource tab were modified
+   request = new XMessage;
+   request.setAction("ProjectService.checkModifiedRates");
+   request.setArgument("resource_set", assigned_resource_set);
+   request.setArgument("original_resource_set", original_resource_set);
+   request.setArgument("project_id", project_id);
+   response = XDisplay.getClient().invokeMethod(request);
+   hasAssignments = response.getArgument("Assignments");
+   if (hasAssignments == true) {
+      //display
+      dialog = XComponent.newDialog();
+      parameters.project_id = project_id;
+      parameters.project_data = project_data;
+      parameters.goals_set = goals_set;
+      parameters.resource_set = assigned_resource_set;
+      parameters.versions_set = versions_set;
+      parameters.changed = "resourceTab";
+      dialog.open("/modules/project/forms/confirm_project_changed.oxf.xml", parameters);
+      return;
+   }
+
+   request = new XMessage;
+   request.setAction("ProjectService.updateProject");
+   request.setArgument("project_id", project_id);
+   request.setArgument("project_data", project_data);
+   request.setArgument("goals_set", goals_set);
+   request.setArgument("resource_set", assigned_resource_set);
+   request.setArgument("versions_set", versions_set);
+   request.setArgument("modified_rates", modifiedRates);
+   addAdditionalArguments(request);
+   addAdvancedProjectProperties(request);
+
+   response = XDisplay.getClient().invokeMethod(request);
+   if (handleError(form, response, "ErrorLabel") == true) {
+      XDisplay.getActiveWindow().close();
+      XDisplay.findFrame("MainFrame").refreshForm();
+   }
+}
+
+function addAdditionalArguments(request) {
+}
+
+function addAdvancedProjectProperties(request) {
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+
+function checkExtendedHourlyRates(assigned_resource_set, project_id, project_data, goals_set,
+                                  versions_set) {
+   return false;
+}
+
+function removeVersions(event) {
+   data_set = XDisplay.getActiveForm().findComponent("VersionsSet");
+   selected_rows = data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      dialog = XComponent.newDialog();
+      header = XDisplay.getActiveForm().findComponent("ConfirmDialogHeader").getText();
+      dialog.setText(header);
+      form = dialog.loadForm("/modules/project/forms/confirm_version_delete.oxf.xml");
+      form.findComponent("SelectedVersions").setListValue(selected_rows);
+      dialog.open();
+   }
+}
+
+function selectionChanged(event) {
+   Console.println("selectionChanged");
+   form = XDisplay.getActiveForm();
+
+   version_set = form.findComponent("VersionsSet");
+   selected_rows = version_set.selectedRows();
+
+   delete_button = form.findComponent("RemoveVersionButton");
+
+   can_delete = false;
+   accessLevel = form.findComponent("AccessLevel").getByteValue();
+   //determine if the working version is among the selected ones
+   if (accessLevel >= 64) { // ADMINISTRATOR
+      can_delete = true;
+      if (selected_rows.size() > 0) {
+         i = 0;
+         while (i < selected_rows.size()) {
+            if (selected_rows[i].getChild(6).getBooleanValue() == false) {
+               can_delete = false;
+               break;
+            }
+            i++;
+         }
+      }
+   }
+   
+   delete_button = form.findComponent("RemoveVersionButton");
+
+   delete_button.setEnabled(can_delete);
+   form.repaint();
+}
+
+function baselineSelected(event) {
+  //not available in free edtions
+}
+
+function addAdditionalArguments(request) {
+}

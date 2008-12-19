@@ -1,0 +1,33 @@
+<form layout="border" width="400" height="200" text="${SelectDocument}" resource-map-ref="attachments.AttachmentChooser"
+      provider-class="onepoint.project.forms.OpAttachmentChooserFormProvider"
+      script="/scripts/attachment_chooser.jes">
+
+   <data-field id="ActionHandler"/>
+   <data-field id="MaxAttachmentSize" />
+   <data-field id="InvalidAttachmentSize" text="${InvalidAttachmentSize}"/>
+   <data-field id="Parameters"/>
+
+   <panel y="0" layout="border">
+
+      <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+      <data-field id="DocumentPathField"/>
+      <data-field id="DialogTitle" text="${ChooseDocument}"/>
+
+      <panel y="0" layout="table">
+         <label x="0" y="0" width="2" text="${Name}" style-ref="label-emphasized-default"/>
+         <text-field x="2" y="0" width="3" id="Name"/>
+         <check-box x="2" y="2" width="3" id="Linked" text="${Linked}" on-value-changed="linkedChanged" boolean-value="false"/>
+         <label x="0" y="3" width="2" text="${Location}"/>
+         <text-field x="2" y="3" width="2" id="Location" enabled="false"/>
+         <button x="4" y="3" id="SelectButton" text="${Select}" on-button-pressed="select"/>
+      </panel>
+
+      <panel y="1" layout="flow" direction="west">
+         <panel layout="border">
+            <button x="0" id="okButton" text="${OK}" on-button-pressed="ok"/>
+            <button x="1" id="Cancel" text="${Cancel}" on-button-pressed="cancel"/>
+         </panel>
+      </panel>
+
+   </panel>
+</form>

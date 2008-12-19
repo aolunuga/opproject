@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="de">
+    <resource-map id="project_dates.module">
+        <resource id="ProjectDatesTool">Termine</resource>
+    </resource-map>
+    <resource-map id="project_dates.project_dates">
+        <resource id="ProjectHistory">Terminplan-Verlauf</resource>
+        <resource id="ResourceFilter">Ressourcen</resource>
+        <resource id="AllResources">Alle</resource>
+        <resource id="VersionFilter">Versionen</resource>
+        <resource id="CurrentPlan">Aktuelle</resource>
+        <resource id="PreviousVersion">Vorige</resource>
+        <resource id="Last5Versions">Letzten 5</resource>
+        <resource id="AllVersions">Alle</resource>
+        <resource id="BaselineVersion">Basisplan</resource>
+        <resource id="Print">Drucken</resource>
+        <resource id="PrintTooltip">Diese Ansicht drucken</resource>
+        <resource id="ChangeTimeUnit">Zeiteinheit</resource>
+        <resource id="Days">Tage</resource>
+        <resource id="Weeks">Wochen</resource>
+        <resource id="Months">Monate</resource>
+        <resource id="SaveImage">Als Bild speichern...</resource>
+    </resource-map>
+</language-kit>

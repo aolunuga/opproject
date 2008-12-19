@@ -1,0 +1,8 @@
+<prototype name="OpCostRecord" instance-class="onepoint.project.modules.work.OpCostRecord" implements="OpCustomizable">
+   <field name="Type" type="Byte" mandatory="true" indexed="true"/>
+   <field name="ActualCosts" type="Double"/>
+   <field name="RemainingCosts" type="Double"/>
+   <field name="Comment" type="String"/>
+   <relationship name="WorkRecord" type="OpWorkRecord" back-relationship="CostRecords"/>
+   <relationship name="Attachments" type="OpAttachment"  collection-type="Set"  back-relationship="CostRecord" inverse="true" cascade="all"/>
+</prototype>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="it">
+    <resource-map id="report.module">
+        <resource id="QueryTool">Query</resource>
+        <resource id="ReportsToolGroup">REPORT</resource>
+    </resource-map>
+    <resource-map id="report.report">
+        <resource id="ReportNavigator">REPORT BROWSER</resource>
+        <resource id="RunQuery">Query rapida</resource>
+        <resource id="CreateReport">Crea report</resource>
+        <resource id="SendReport">Invia report</resource>
+        <resource id="ResetQuery">Azzera query</resource>
+        <resource id="Print">Stampa</resource>
+        <resource id="ProjectEffort">Impegno del progetto</resource>
+        <resource id="ProjectCosts">Costi progetto</resource>
+        <resource id="ResourceEfforts">Impegno della risorsa</resource>
+        <resource id="ResourceCosts">Costi risorsa</resource>
+        <resource id="WorkHours">Ore lavoro</resource>
+        <resource id="DaysPerProject">Giorni per progetto (R)</resource>
+        <resource id="ProjectProgress">Progressi del progetto (R)</resource>
+        <resource id="QuickQueryTooltip">Esegui query rapida</resource>
+        <resource id="CreateReportTooltip">Crea e visualizza il report selezionato</resource>
+        <resource id="ResetQueryTooltip">Azzera la maschera della query</resource>
+        <resource id="PrintTooltip">Stampa questa vista</resource>
+        <resource id="SendReportTooltip">Invia il report selezionato via web</resource>
+    </resource-map>
+    <resource-map id="report.error">
+        <resource id="ValueConversionException">Si è verificato un errore di conversione del valore</resource>
+        <resource id="CouldNotExecuteReportSQL">La query SQL del report non può essere eseguita</resource>
+        <resource id="JasperCanNotBuildFilledReport">Jasper non riesce a costruire il report compilato</resource>
+        <resource id="JasperCanNotExportReport">Jasper non può esportare il report</resource>
+        <resource id="InvalidReportFormat">Il formato report richiesto non è supportato</resource>
+        <resource id="CreateReportException">Si è verificato un errore durante la creazione del report</resource>
+        <resource id="SaveReportException">Si è verificato un errore durante il salvataggio del report</resource>
+        <resource id="SendReportException">Si è verificato un errore durante la trasmissione del report</resource>
+        <resource id="InvalidProject">Selezionare un progetto</resource>
+        <resource id="PermissionDenied">Permesso negato</resource>
+    </resource-map>
+</language-kit>

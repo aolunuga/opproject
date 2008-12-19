@@ -1,0 +1,25 @@
+<form width="400" height="80" layout="border" resource-map-ref="project_planning.ChooseImportSource" text="${ImportSource}"
+      provider-class="onepoint.project.modules.project_planning.forms.OpChooseImportSourceFormProvider"
+      script="/modules/project_planning/scripts/choose_import_source.jes">
+
+   <data-field id="parameters"/>
+   <data-set id="ImporterChoicesDataSet"/>
+   
+   <data-set id="DialogMap">
+      <data-row string-value="[sources]"><data-cell string-value="ImportSourceChooser"/></data-row>
+   </data-set>
+
+   <panel y="0" layout="border">
+      <panel y="0" layout="table">
+         <label y="0" x="0" width="2" id="ImportSourceChooserLabel" text="${ChooseImportSource}"/>
+         <choice-field y="0" x="2" width="3" id="ImportSourceChooser" data-set-ref="ImporterChoicesDataSet"/>
+      </panel>
+      <panel y="1" layout="flow" direction="west">
+         <panel layout="border">
+            <button x="0" id="OkButton" text="${OK}" on-button-pressed="ok"/>
+            <button x="1" id="CancelButton" text="${Cancel}" on-button-pressed="cancel"/>
+   	   </panel>
+      </panel>
+	   
+   </panel>
+</form>

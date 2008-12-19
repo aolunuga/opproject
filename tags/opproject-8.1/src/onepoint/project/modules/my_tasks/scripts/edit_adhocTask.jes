@@ -1,0 +1,73 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/modules/project_planning/scripts/attachments.jes";
+require "onepoint/project/modules/project_planning/scripts/comments.jes";
+require "onepoint/project/modules/my_tasks/scripts/add_resources_to_adhocTask.jes";
+require "onepoint/project/modules/documents/scripts/content.jes";
+
+import onepoint.express.XDisplay;
+import onepoint.service.XMessage;
+
+function ok(event){
+
+   form = XDisplay.getActiveForm();
+
+   adhocData.activityLocator = form.findComponent("ActivityLocator").getStringValue();
+   adhocData.name = form.findComponent("Name").getStringValue();
+   adhocData.description = form.findComponent("Description").getStringValue();
+   adhocData.priority = form.findComponent("Priority").getIntValue();
+   adhocData.dueDate = form.findComponent("DueDate").getValue();
+   adhocData.projectChoice = form.findComponent("ProjectChooser").getValue();
+   adhocData.resourceChoice = form.findComponent("ResourceChooser").getValue();
+   adhocData.attachmentSet = form.findComponent("AttachmentSet");
+
+   request = new XMessage;
+   request.setAction("MyTasksService.updateAdhocTask");
+   request.setArgument("adhocData", adhocData);
+   response = XDisplay.getClient().invokeMethod(request);
+
+   if (handleError(form, response, "ErrorLabel") == true) {
+      XDisplay.getActiveWindow().close();
+      XDisplay.findFrame("MainFrame").refreshForm();
+   }
+   else {
+      //in case of an error update the attachment set with the values obtained from
+      //the response (files were replaced by content ids)
+      responseAttachmentSet = response.getArgument("attachmentSet");
+      if(responseAttachmentSet != null) {
+         form.findComponent("AttachmentSet").copyAllChildren(responseAttachmentSet);
+      }
+   }
+}
+
+function cancel(event){
+   XDisplay.getActiveWindow().close();
+}
+
+function projectChooserChanged(event) {
+   form = XDisplay.getActiveForm();
+   resourceMap = form.findComponent("ProjectToResourceMap").getValue();
+   projectValue = form.findComponent("ProjectChooser").getStringValue();
+   resourceChooser = form.findComponent("ResourceChooser");
+   resourceSet = form.findComponent("ResourceSet");
+   resourceList = resourceMap.get(projectValue);
+
+   resourceSet.removeAllChildren();
+   resourceChooser.setValue(null);
+   i = 0;
+   while (i < resourceList.size()) {
+      row = resourceSet.newDataRow();
+      row.setValue(resourceList[i]);
+      resourceSet.addDataRow(row);
+      i++;
+   }
+   form.doLayout();
+}
+
+function addComment(event) {
+   activityLocator = XDisplay.getActiveForm().findComponent("ActivityLocator").getStringValue();
+   addActivityComment(activityLocator);
+}

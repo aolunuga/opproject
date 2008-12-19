@@ -1,0 +1,25 @@
+require "onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
+
+import onepoint.express.XDisplay;
+
+function addResource(event) {
+   form = XDisplay.getActiveForm();
+
+   excludedResourceSet = XDisplay.getActiveForm().findComponent("AllResources").getValue();
+   resourceMap = form.findComponent("ProjectToResourceMap").getValue();
+   projectValue = form.findComponent("ProjectChooser").getStringValue();
+   resourceList = resourceMap.get(projectValue);
+
+   i = 0;
+   j = 0;
+   resourceIds = new HashSet;
+
+   while (i < excludedResourceSet.getChildCount()) {
+      if (!resourceList.contains(excludedResourceSet.getChild(i).getStringValue())) {
+         resourceIds.add(XValidator.choiceID(excludedResourceSet.getChild(i).getStringValue()));
+         j++;
+      }
+      i++;
+   }
+   openResourceChooser("MainFrame", "addResourceOk", resourceIds, false, false, true, null);
+}

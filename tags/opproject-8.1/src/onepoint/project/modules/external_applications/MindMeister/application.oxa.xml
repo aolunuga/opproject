@@ -1,0 +1,15 @@
+<application type="MindMeister">
+   <main-class name="onepoint.project.modules.external_applications.MindMeister.OpMindMeisterApplication"/>
+   <project-plan-import  form="/modules/external_applications/MindMeister/import_plan.oxf.xml"/>
+   <language-kit-path  path="/modules/external_applications/MindMeister/i18n"/>
+   <service-file file-name="/modules/external_applications/MindMeister/application_service.osd.xml"/>
+
+   <parameter  name="url" value="www.mindmeister.com"/>
+   <parameter  name="description" value="MindMeister Integration Mind To Project"/>
+
+   <parameter  name="api-key" value="cf9602fd37df684d75310097c6dd9c41"/>
+   <parameter  name="shared-secret" value="54745129de095b43"/>
+   <parameter  name="auth-service" value="http://www.mindmeister.com/services/auth/"/>
+   <parameter  name="rest-service" value="http://www.mindmeister.com/services/rest/"/>
+   <parameter  name="attachment-service" value="http://www.mindmeister.com/attachments/download"/>
+</application>

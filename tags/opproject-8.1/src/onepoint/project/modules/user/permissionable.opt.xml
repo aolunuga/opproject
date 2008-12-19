@@ -1,0 +1,3 @@
+<prototype name="OpPermissionable" instance-class="onepoint.project.modules.user.OpPermissionable" type="interface">
+   <relationship name="Permissions" type="OpPermission" collection-type="Set" back-relationship="Object" inverse="true" cascade="delete"/>
+</prototype>

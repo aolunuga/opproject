@@ -1,0 +1,12 @@
+<form layout="border" default-button-ref="OkButton"
+      resource-map-ref="project.startdate_future"
+      text="${ConfirmStartDateFuture}"
+      script="/modules/project/scripts/confirm_startdate_future.jes">
+   <panel y="0" layout="border">
+      <label y="0" id="ConfirmStartDateFutureLabel" text="${ConfirmStartDateFutureText}"/>
+      <panel y="1" layout="flow" direction="west">
+         <button id="CancelButton" text="${Cancel}" on-button-pressed="cancel"/>
+         <button id="OkButton" text="${Ok}" on-button-pressed="ok"/>
+      </panel>
+   </panel>
+</form>

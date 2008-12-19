@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="ru">
+    <resource-map id="repository.module">
+        <resource id="RepositoryTool">Архив</resource>
+    </resource-map>
+    <resource-map id="repository.main">
+        <resource id="Backup">Резервная копия</resource>
+        <resource id="BackupTooltip">Сделать резервную копию архива</resource>
+        <resource id="Restore">Восстановить</resource>
+        <resource id="RestoreTooltip">Восстановить архив</resource>
+        <resource id="Reset">Очистить</resource>
+        <resource id="ResetTooltip">Очистить весь архив</resource>
+        <resource id="UserGroupsCount">Группы пользователей:</resource>
+        <resource id="UsersCount">Пользователи:</resource>
+        <resource id="PortfoliosCount">Проектные портфели:</resource>
+        <resource id="TemplatesCount">Проектные шаблоны:</resource>
+        <resource id="ProjectsCount">Проекты:</resource>
+        <resource id="PoolsCount">Ресурсный фонд:</resource>
+        <resource id="ResourcesCount">Ресурсы:</resource>
+        <resource id="ReportsCount">Архивные отчеты:</resource>
+    </resource-map>
+    <resource-map id="repository.restore_file_list">
+        <resource id="RestoreFile">Выбирете файл для восстановления</resource>
+        <resource id="RestoreConfirmationSuccessfull">Операция по восстановлению прошла успешно. Нажмите Подтвердить, чтобы повторно запустить сессию.</resource>
+        <resource id="OK">Подтвердить</resource>
+        <resource id="Cancel">Отменить</resource>
+    </resource-map>
+    <resource-map id="repository.backup_confirmation">
+        <resource id="BackupConfirmation">Резервирование выполнено</resource>
+        <resource id="BackupConfirmationMessage">Резервирование выполнено успешно как... </resource>
+        <resource id="OK">Подтвердить</resource>
+    </resource-map>
+    <resource-map id="repository.success_confirmation">
+        <resource id="SuccessConfirmation">Подтверждение</resource>
+        <resource id="OK">Подтвердить</resource>
+    </resource-map>
+    <resource-map id="repository.reset_confirmation">
+        <resource id="ResetConfirmation">Подтвердить сброс</resource>
+        <resource id="ResetConfirmationSuccessfull">Сброс базы данных выполнен успешно. Нажмите Подтвердить для повторного запуска всех пользовательских сессий.</resource>
+        <resource id="AdminPasswordRequest">Пожалуйста введите пароль администратора: </resource>
+        <resource id="SimpleConfirmMessage">Вы уверены, что хотите сбросить базу данных?</resource>
+        <resource id="Cancel">Отменить</resource>
+        <resource id="OK">Подтвердить</resource>
+    </resource-map>
+    <resource-map id="repository.restore_confirmation">
+        <resource id="RestoreConfirmation">Подтвердить восстановление</resource>
+        <resource id="AdminPasswordRequest">Пожалуйста, введите пароль администратора: </resource>
+        <resource id="SimpleConfirmMessage">Вы уверены, что хотите выполнить восстановление с резервного файла?</resource>
+        <resource id="Cancel">Отменить</resource>
+        <resource id="OK">Подтвердить</resource>
+    </resource-map>
+    <resource-map id="repository.error">
+        <resource id="BackupError">Произошла ошибка во время резервирования. Пожалуйста, проверьте системный файл log file с информацией</resource>
+        <resource id="RestoreError">Произошла ошибка во время восстановления. Пожалуйста, проверьте системный файл log file с информацией</resource>
+        <resource id="ResetError">Произошла ошибка во время сброса. Пожалуйста, проверьте системный файл log file с информацией</resource>
+        <resource id="BackupDirectoryError">Нельзя создать или получить доступ к резервной директории</resource>
+        <resource id="InsuficientPermissions">Вы не имеете достаточных прав для выполнения этой операции</resource>
+        <resource id="InvalidAdminPassword">Введен неверный пароль</resource>
+    </resource-map>
+</language-kit>

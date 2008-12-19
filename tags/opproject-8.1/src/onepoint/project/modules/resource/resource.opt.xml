@@ -1,0 +1,24 @@
+<prototype name="OpResource" instance-class="onepoint.project.modules.resource.OpResource" implements="OpCustomizable, OpPermissionable">
+   <field name="Name" type="String" mandatory="true" unique="true"/>
+   <field name="Description" type="Text"/>
+   <field name="Available" type="Double"/>
+   <field name="InheritPoolRate" type="Boolean"/>
+   <field name="HourlyRate" type="Double"/>
+   <field name="ExternalRate" type="Double"/>
+   <field name="BaseDataChanged" type="Timestamp"/>
+   <field name="InheritPoolWorkCalendar" type="Boolean" default="true"/>
+   <field name="Archived" type="Boolean" default="false"/>
+   
+   <relationship name="CustomType" type="OpCustomType" />
+   <relationship name="User" type="OpUser" back-relationship="Resources"/>
+   <relationship name="Pool" type="OpResourcePool" back-relationship="Resources"/>
+   <relationship name="HourlyRatesPeriods" type="OpHourlyRatesPeriod" collection-type="Set" back-relationship="Resource" inverse="true" cascade="delete"/>
+   <relationship name="ProjectNodeAssignments" type="OpProjectNodeAssignment" collection-type="Set" back-relationship="Resource" inverse="true" cascade="delete"/>
+   <relationship name="ActivityAssignments" type="OpAssignment" collection-type="Set" back-relationship="Resource" inverse="true" cascade="delete"/>
+   <relationship name="AssignmentVersions" type="OpAssignmentVersion" collection-type="Set" back-relationship="Resource" inverse="true"/>
+   <relationship name="ResponsibleActivities" type="OpActivity" collection-type="Set" back-relationship="ResponsibleResource" inverse="true"/>
+   <relationship name="ResponsibleActivityVersions" type="OpActivityVersion" collection-type="Set" back-relationship="ResponsibleResource" inverse="true"/>
+   <relationship name="SkillRatings" type="OpSkillRating" collection-type="Set" back-relationship="Resource" inverse="true" cascade="delete"/>
+   <relationship name="WorkCalendar" type="OpWorkCalendar" back-relationship="Resources"/>
+   <relationship name="Absences" type="OpAbsence" collection-type="Set" back-relationship="Resource" inverse="true" cascade="delete"/>
+</prototype>

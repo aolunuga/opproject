@@ -1,0 +1,3 @@
+<prototype name="OpLockable" instance-class="onepoint.project.modules.user.OpLockable" type="interface">
+	<relationship name="Locks" type="OpLock" collection-type="Set" back-relationship="Target" inverse="true" cascade="delete"/>
+</prototype>

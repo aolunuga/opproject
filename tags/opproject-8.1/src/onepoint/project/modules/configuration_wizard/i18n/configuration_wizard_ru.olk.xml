@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="ru">
+    <resource-map id="configuration_wizard.main">
+        <resource id="DatabaseType">База данных</resource>
+        <resource id="DatabaseUrl">Подсоединенная строка</resource>
+        <resource id="DatabaseLogin">Имя пользователя</resource>
+        <resource id="DatabasePassword">Пароль</resource>
+        <resource id="Connect">Соединить</resource>
+        <resource id="LoadDemodata">Импортировать демонстрационные данные</resource>
+    </resource-map>
+    <resource-map id="standalone_configuration_wizard.main">
+        <resource id="DatabaseLocation">Папка данных</resource>
+        <resource id="SelectFolder">Выбрать файл базы данных</resource>
+        <resource id="Select">Изменить</resource>
+        <resource id="OK">Подтвердить</resource>
+    </resource-map>
+    <resource-map id="configuration_wizard.error">
+        <resource id="DatabaseUrlMissing">Не указанна строка присоединенная к базе данных</resource>
+        <resource id="DatabasePathMissing">Папка с базой данных не указанна</resource>
+        <resource id="DatabaseLoginMissing">Пользовательское имя не указанно</resource>
+        <resource id="InvalidCredentials">Имя или пароль неправильные</resource>
+        <resource id="InvalidConnectionString">Присоединенная строка неправильная</resource>
+        <resource id="GeneralConnectionError">Нельзя подсоединиться к базе данных</resource>
+        <resource id="JDBCDriverError">Нельзя загрузить JDBC драйвер для данного типа базы данных</resource>
+        <resource id="InvalidMySqlEngine">Вы используете не связанную с транзакцией базу данных, что может вызвать серьёзную несовместимость. Пожалуйста, обратитесь к файлу README с инструкцией по обновлению базы данных</resource>
+        <resource id="InvalidDemodataFile">Вы пытаетесь загрузить файл который не существует</resource>
+        <resource id="RestoreError">Произошла ошибка во время восстановления</resource>
+    </resource-map>
+</language-kit>

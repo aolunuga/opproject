@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="it">
+    <resource-map id="configuration_wizard.main">
+        <resource id="DatabaseType">Database</resource>
+        <resource id="DatabaseUrl">Stringa di connessione</resource>
+        <resource id="DatabaseLogin">Username</resource>
+        <resource id="DatabasePassword">Password</resource>
+        <resource id="Connect">Connessione</resource>
+        <resource id="LoadDemodata">Importa dati demo</resource>
+    </resource-map>
+    <resource-map id="standalone_configuration_wizard.main">
+        <resource id="DatabaseLocation">Cartella dati</resource>
+        <resource id="SelectFolder">Seleziona file database</resource>
+        <resource id="Select">Cambia</resource>
+        <resource id="OK">OK</resource>
+    </resource-map>
+    <resource-map id="configuration_wizard.error">
+        <resource id="DatabaseUrlMissing">La stringa di connessione al database non è stata specificata</resource>
+        <resource id="DatabasePathMissing">La cartella database non è stata specificata</resource>
+        <resource id="DatabaseLoginMissing">Il nome di login non è stato specificato</resource>
+        <resource id="InvalidCredentials">Username o password non sono validi</resource>
+        <resource id="InvalidConnectionString">La stringa di connessione non è valida</resource>
+        <resource id="GeneralConnectionError">Non posso connettermi al database</resource>
+        <resource id="JDBCDriverError">Non riesco a caricare il <parameter name="Protocol"/> driver JDBC</resource>
+        <resource id="InvalidMySqlEngine">Stai utilizzando un database non transazionale che può essere all'origine di serie inconsistenze nella base dati. Per cortesia fare riferimento al file README per le istruzioni di upgrade del database.</resource>
+        <resource id="InvalidDemodataFile">Stai tentando di caricare un file che non esiste</resource>
+        <resource id="RestoreError">Si è verificato un errore durante il ripristino</resource>
+    </resource-map>
+</language-kit>
