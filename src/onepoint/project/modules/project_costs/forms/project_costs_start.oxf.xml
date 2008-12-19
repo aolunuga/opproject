@@ -1,9 +1,0 @@
-<form id="ProjectStart" layout="border">
-
-   <panel layout="border" style-ref="compact-panel-default">
-      <!-- attention: The order of overlapping components is important for correct drawing of borders -->
-      <frame id="ProjectContentFrame" content="/modules/project_costs/forms/project_costs.oxf.xml"/>
-      <frame x="-1" id="ProjectNavigatorFrame" content="/modules/project_planning/forms/project_navigator.oxf.xml"/>
-   </panel>
-
-</form>

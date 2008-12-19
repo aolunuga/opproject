@@ -1,8 +1,0 @@
-<locale-map>
-   <locale language="en" country="US" name="English (US &amp; Canada)"/>
-   <locale language="en" country="GB" name="English (UK)"/>
-   <locale language="en" country="DE" name="English (Europe)"/>
-   <locale language="de"/>
-   <locale language="ru"/>
-   <locale language="fr"/>      
-</locale-map>

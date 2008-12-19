@@ -1,8 +1,0 @@
-/*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
- */
-
-function ok(event) {
-   XDisplay.getClient().quit();
-//   System.exitApplication(1);
-}

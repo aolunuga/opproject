@@ -1,5 +1,0 @@
-<prototype name="OpPreference" instance-class="onepoint.project.modules.user.OpPreference" super-type="OpObject">
-   <field name="Name" type="String"/>
-   <field name="Value" type="String"/>
-   <relationship name="User" type="OpUser" back-relationship="Preferences"/>
-</prototype>

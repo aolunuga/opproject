@@ -1,7 +1,0 @@
-<prototype name="OpAttachmentVersion" instance-class="onepoint.project.modules.project.OpAttachmentVersion" super-type="OpObject">
-   <field name="Name" type="String"/>
-   <field name="Linked" type="Boolean"/>
-   <field name="Location" type="String"/>
-   <relationship name="Content" type="OpContent" back-relationship="AttachmentVersions"/>
-   <relationship name="ActivityVersion" type="OpActivityVersion" back-relationship="AttachmentVersions"/>
-</prototype>

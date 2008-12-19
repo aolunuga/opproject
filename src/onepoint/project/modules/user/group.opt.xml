@@ -1,5 +1,0 @@
-<prototype name="OpGroup" instance-class="onepoint.project.modules.user.OpGroup" super-type="OpSubject">
-   <relationship name="UserAssignments" type="OpUserAssignment" collection-type="Set" back-relationship="Group" inverse="true" cascade="delete"/>
-   <relationship name="SuperGroupAssignments" type="OpGroupAssignment" collection-type="Set" back-relationship="SubGroup" inverse="true" cascade="delete"/>
-   <relationship name="SubGroupAssignments" type="OpGroupAssignment" collection-type="Set" back-relationship="SuperGroup" inverse="true" cascade="delete"/>
-</prototype>
