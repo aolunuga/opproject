@@ -1,0 +1,58 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+//error dialog control
+import onepoint.express.XDisplay;
+import onepoint.service.XMessage;
+
+function action(event) {
+	   Console.println("XXXXXXXX0");
+   form = XDisplay.getActiveForm();
+   frame = form.findComponent("FrameName").getValue();
+   if (frame != null) {
+	   callbackForm = frame.currentForm();
+   }
+   callbackName = form.findComponent("CallbackName").getStringValue();
+   actionName = form.findComponent("ActionName").getStringValue();
+
+   //   Console.println("XXXXXXXX"+event.event_source.getID());
+   //params = form.findComponent("CallbackParameters").getValue();
+   buttonId = event.event_source.getID();
+   pressed = getButtonAction(buttonId);
+   Console.println("XXXXXXXX"+pressed);
+   XDisplay.getActiveWindow().close();
+
+   Console.println("XXXXXXXX1");
+	if (callbackForm != null) {
+		params.action = pressed;
+		   Console.println("XXXXXXXX3");
+		callbackForm.invokeFunction(action, params);
+	}
+	   Console.println("XXXXXXXX2");
+	if (actionName != null) {
+		   Console.println("XXXXXXXX4: "+actionName);
+
+		request = new XMessage;
+		request.setAction(actionName);
+		request.setArgument("action", pressed);
+		response = XDisplay.getClient().invokeMethod(request);
+	}
+}
+ 
+function getButtonAction(buttonId) {
+	pressed = 0;
+	if (buttonId.equals("OKButton")) {
+		pressed = XDisplay.OK_OPTION;
+	}
+	if (buttonId.equals("YesButton")) {
+		pressed = XDisplay.YES_OPTION;
+	}
+	if (buttonId.equals("NoButton")) {
+		pressed = XDisplay.NO_OPTION;
+	}
+	if (buttonId.equals("CancelButton")) {
+		pressed = XDisplay.CANCEL_OPTION;
+	}
+	return pressed;
+}

@@ -1,0 +1,66 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+//Controller script for new_time_sheet.oxf.xml
+
+import onepoint.express.XComponent;
+import onepoint.express.XDisplay;
+import onepoint.service.XMessage;
+import onepoint.express.XValidator;
+
+
+function manageAttachments(event) {
+	form = XDisplay.getActiveForm();
+	if (form.findComponent("WorkCostRecordSet") != null) {
+		workCostDataSet = form.findComponent("WorkCostRecordSet");
+		selectedRows = workCostDataSet.selectedRows();
+
+		if (selectedRows.size() > 0) {
+			selectedIndex = selectedRows.get(0).getIndex();
+			attachmentList = selectedRows.get(0).getChild(9).getValue();
+
+			parameters.costRowIndex = selectedIndex;
+			parameters.attachmentsList = attachmentList;
+
+			dialog = XComponent.newDialog();
+			dialog.open("/modules/work/forms/manage_attachments.oxf.xml", parameters);
+		}
+	}
+}
+
+function editActivity(event) {
+	form = XDisplay.getActiveForm();
+	effortDataSet = form.findComponent("WorkEffortRecordSet");
+	selectedRows = effortDataSet.selectedRows();
+	if (selectedRows.size() > 0) {
+		selectedIndex = selectedRows.get(0).getIndex();
+		activity = selectedRows.get(0).getChild(1);
+		type = selectedRows.get(0).getChild(9).getValue();
+		if (type == 6) {
+			return;
+		}
+		if (activity.getStringValue() == null) {
+			return;
+		}
+		activity_id = XValidator.choiceID(activity.getStringValue());
+		parameters.editMode = false;
+		parameters.activity_id = activity_id;
+		parameters.callingForm = form;
+		parameters.activityRowIndex = selectedIndex;      
+		parameters.fillData = true;
+
+		dialog = XComponent.newDialog();
+		// Show form
+		dialog.open(getEditActivityForm(), parameters);
+	}
+}
+
+function editAdhoc(selectedRow) {
+	parameters.selectedRow = selectedRow;
+	parameters.EditMode = event.editMode;
+	dialog = XComponent.newDialog();
+	dialog.open("/modules/my_tasks/forms/edit_adhoc_task.oxf.xml", parameters);
+	//   }
+}
+

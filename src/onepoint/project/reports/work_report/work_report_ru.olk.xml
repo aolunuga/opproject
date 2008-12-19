@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="ru">
+    <resource-map id="report.work_report">
+        <resource id="PrintTitle">Рабочий рапорт</resource>
+        <resource id="User">Ползователь</resource>
+        <resource id="Select">Выбрать</resource>
+        <resource id="Start">Начало</resource>
+        <resource id="Finish">Окончание</resource>
+        <resource id="Date">Дата</resource>
+        <resource id="Resource">Ресурс</resource>
+        <resource id="Hours">Попытка (ч)</resource>
+        <resource id="Costs">Чел. ({CurrencySymbol})</resource>
+        <resource id="Travel">{Travel} ({CurrencySymbol})</resource>
+        <resource id="Material">{Material} ({CurrencySymbol})</resource>
+        <resource id="External">{External} ({CurrencySymbol})</resource>
+        <resource id="Miscellaneous">{Miscellaneous} ({CurrencySymbol})</resource>
+        <resource id="TotalHours">Суммарная попытка (ч)</resource>
+        <resource id="InvalidUser">Пожалуйста выбирете пользователя</resource>
+        <resource id="SaveCSV">Сохранить как таблицу...</resource>
+        <resource id="SaveImage">Сохранить как образ...</resource>
+        <resource id="InvalidStart">Введенная дата начала недействительна</resource>
+        <resource id="InvalidFinish">Введенная дата окончания недействительна</resource>
+    </resource-map>
+</language-kit>

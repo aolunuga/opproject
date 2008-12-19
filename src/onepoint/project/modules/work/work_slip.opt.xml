@@ -1,0 +1,13 @@
+<prototype name="OpWorkSlip" instance-class="onepoint.project.modules.work.OpWorkSlip">
+   <!-- do we need a running number for the time-sheets -->
+   <field name="Date" type="Date" indexed="true"/>
+   <field name="TotalActualEffort" type="Double"/>
+   <field name="TotalActualOtherCosts0" type="Double"/>
+   <field name="TotalActualOtherCosts1" type="Double"/>
+   <field name="TotalActualOtherCosts2" type="Double"/>
+   <field name="TotalActualOtherCosts3" type="Double"/>
+   <field name="TotalActualOtherCosts4" type="Double"/>
+   <field name="State" type="Integer" default="0"/>
+   <relationship name="Creator" type="OpUser" back-relationship="WorkSlips"/>
+   <relationship name="Records" type="OpWorkRecord" collection-type="Set" back-relationship="WorkSlip" inverse="true" cascade="all"/>
+</prototype>

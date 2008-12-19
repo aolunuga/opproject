@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="it">
+    <resource-map id="main.login">
+        <resource id="Login">Login</resource>
+        <resource id="Password">Password</resource>
+        <resource id="Remember">Ricordami su questo computer</resource>
+        <resource id="OK">OK</resource>
+    </resource-map>
+    <resource-map id="main.levels">
+        <resource id="runLevel0">Non riesco a caricare il file di configurazione</resource>
+        <resource id="runLevel1">Non riesco a caricare i moduli registrati</resource>
+        <resource id="runLevel2">Non riesco ad accedere al database</resource>
+        <resource id="runLevel3">La struttura del repository non può essere inizializzata</resource>
+        <resource id="runLevel4">Non riesco ad aggiornare la struttura del database</resource>
+        <resource id="runLevel5">Non riesco ad avviare i moduli registrati</resource>
+    </resource-map>
+    <resource-map id="main.header">
+        <resource id="ClearResourceCache">Svuota cache delle risorse</resource>
+        <resource id="ClearImageCache">Svuota cache delle immagini</resource>
+        <resource id="GetBandwidthInfo">Mostra informazioni sulla larghezza di banda</resource>
+        <resource id="SignOff">Log off</resource>
+        <resource id="SystemSettingsToolTip">Opzioni di sistema</resource>
+        <resource id="Quit">Termina</resource>
+    </resource-map>
+    <resource-map id="main.dock">
+        <resource id="ToolDock">TOOL DOCK</resource>
+    </resource-map>
+    <resource-map id="main.about">
+        <resource id="OK">OK</resource>
+        <resource id="About">Riconoscimenti Onepoint Project</resource>
+        <resource id="Version">Versione:</resource>
+        <resource id="Build">Creato il:</resource>
+        <resource id="CurrentVersion">versione corrente:</resource>
+    </resource-map>
+    <resource-map id="main.bandwidth">
+        <resource id="OK">OK</resource>
+        <resource id="BandwidthInfo">Larghezza di banda misurata (Kb/s)</resource>
+        <resource id="MinVal">Minimo</resource>
+        <resource id="MaxVal">Massimo</resource>
+        <resource id="AvgVal">Media</resource>
+    </resource-map>
+    <resource-map id="main.error">
+        <resource id="Error">Errore</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Warning">Attenzione</resource>
+        <resource id="SessionExpired">La tua sessione è scaduta. Effettuare nuovamente il login.</resource>
+        <resource id="InsuficientViewPermissions">Non hai sufficienti permessi per visualizzare queste informazioni</resource>
+        <resource id="InvalidSession">Devi essere autentificato per vedere queste informazioni</resource>
+        <resource id="InvalidFileURL">Non posso aprire il file a causa del formato non valido</resource>
+    </resource-map>
+    <resource-map id="main.confirmation">
+        <resource id="Confirmation">Conferma</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Yes">Si</resource>
+        <resource id="No">No</resource>
+        <resource id="Cancel">Annulla</resource>
+    </resource-map>
+    <resource-map id="main.lockFileExistsDialog">
+        <resource id="lockFileExistsTitle">File di blocco rilevato</resource>
+        <resource id="lockFileExists">Esiste un file di blocco!
+      Questo può indicare che un altro Onepoint Project è in esecuzione.
+      Cliccando su 'OK' verrà ignorato il file di blocco e continuerà l'inizializzazione di Onepoint Project
+      Cliccando su 'Annulla' Onepoint Project terminerà.</resource>
+    </resource-map>
+    <resource-map id="dialog.error">
+        <resource id="MandatoryValue">&lt;LABEL&gt; è obbligatorio</resource>
+        <resource id="IvnalidFormat">Il formato di &lt;LABEL&gt; non è corretto</resource>
+        <resource id="InternalError">Si è verificato un errore interno</resource>
+    </resource-map>
+    <resource-map id="attachments.AttachmentChooser">
+        <resource id="SelectDocument">Seleziona un documento</resource>
+        <resource id="Name">Nome</resource>
+        <resource id="Linked">Link</resource>
+        <resource id="Location">Posizione</resource>
+        <resource id="Select">Seleziona</resource>
+        <resource id="InvalidAttachmentSize">La dimensione del documento è al di sopra dei limiti configurati</resource>
+        <resource id="ChooseDocument">Seleziona un documento</resource>
+        <resource id="Cancel">Annulla</resource>
+        <resource id="OK">OK</resource>
+    </resource-map>
+    <resource-map id="calendar.chooser">
+        <resource id="SelectCalendar">(Seleziona un calendario)</resource>
+    </resource-map>
+</language-kit>

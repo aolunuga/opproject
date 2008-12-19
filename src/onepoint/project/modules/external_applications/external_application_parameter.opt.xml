@@ -1,0 +1,6 @@
+<prototype name="OpExtAppParameter" instance-class="onepoint.project.modules.external_applications.OpExternalApplicationParameter">
+   <field name="Name" type="String"/>
+   <field name="Value" type="String"/>
+   
+   <relationship name="Application" type="OpExtApp" back-relationship="Parameters"/>
+</prototype>

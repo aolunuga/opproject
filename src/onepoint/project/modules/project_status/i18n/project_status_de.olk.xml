@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="de">
+    <resource-map id="project_status.module">
+        <resource id="Customize">ANPASSEN</resource>
+        <resource id="ProjectStatusTool">Projektstatus</resource>
+    </resource-map>
+    <resource-map id="project_status.project_status">
+        <resource id="NewProjectStatus">Neuer Projektstatus</resource>
+        <resource id="Properties">Eigenschaften</resource>
+        <resource id="Delete">Löschen</resource>
+        <resource id="Up">Nach oben</resource>
+        <resource id="Down">Nach unten</resource>
+        <resource id="Name">Name</resource>
+        <resource id="Description">Beschreibung</resource>
+        <resource id="Color">Farbe</resource>
+        <resource id="NewProjectStatusTooltip">Neuen Projektstatus erstellen</resource>
+        <resource id="InfoTooltip">Metainformation für ausgewählten Projektstatus anzeigen</resource>
+        <resource id="DeleteTooltip">Ausgewählte Projektstatusobjekte löschen</resource>
+        <resource id="UpTooltip">Ausgewählte Projektstatusobjekte nach oben verschieben</resource>
+        <resource id="DownTooltip">Ausgewählte Projektstatusobjekte nach unten verschieben</resource>
+    </resource-map>
+    <resource-map id="project_status.new">
+        <resource id="NewProjectStatus">Neuer Projektstatus</resource>
+        <resource id="Name">Name</resource>
+        <resource id="Description">Beschreibung</resource>
+        <resource id="Color">Farbe</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Abbrechen</resource>
+    </resource-map>
+    <resource-map id="project_status.edit">
+        <resource id="EditProjectStatus">Projektstatus bearbeiten</resource>
+        <resource id="Name">Name</resource>
+        <resource id="Description">Beschreibung</resource>
+        <resource id="Color">Farbe</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Abbrechen</resource>
+    </resource-map>
+    <resource-map id="project_status.Info">
+        <resource id="InfoProjectStatus">Projekstatuseigenschaften</resource>
+    </resource-map>
+    <resource-map id="project_status.delete">
+        <resource id="ConfirmDelete">Projektstatus löschen</resource>
+        <resource id="NoSelectionMessage">Bitte wählen Sie ein oder mehrere Projektstatusobjekte zum Löschen aus</resource>
+        <resource id="ConfirmDeleteOneMessage">Möchten Sie den ausgewählten Projektstatus wirklich löschen?</resource>
+        <resource id="ConfirmDeleteMultipleMessage">Möchten Sie die ausgewählten Projektstatusobjekte wirklich löschen?</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Abbrechen</resource>
+    </resource-map>
+    <resource-map id="project_status.error">
+        <resource id="StatusNameNotSpecified">Bitte Projektstatusname eingeben</resource>
+        <resource id="StatusNameNotUnique">Der Projektstatusname wird bereits verwendet</resource>
+        <resource id="StatusNotFound">Der Projektstatus konnte nicht gefunden werden</resource>
+        <resource id="InsufficientPrivileges">Nur der Administrator darf Projektstatusobjekte verwalten</resource>
+    </resource-map>
+</language-kit>

@@ -1,0 +1,18 @@
+<module name="report" caption="Berichte" version="0.5" depends="documents" class="onepoint.project.modules.report.OpReportModule">
+   <prototype-files>
+      <prototype-file file-name="/modules/report/report.opt.xml"/>
+      <prototype-file file-name="/modules/report/report_type.opt.xml"/>
+   </prototype-files>
+   <service-files>
+      <service-file file-name="/modules/report/report_service.osd.xml"/>
+   </service-files>
+   <language-kit-paths>
+      <language-kit-path path="/modules/report/i18n"/>
+   </language-kit-paths>
+   <tool-groups>
+      <tool-group name="reports" caption="${ReportsToolGroup}" sequence="90" level="Manager"/>
+   </tool-groups>
+   <tools>
+      <tool name="report" caption="${QueryTool}" group-ref="reports" icon="/modules/report/icons/report_tool.png" start-form="/modules/report/forms/report.oxf.xml" level="Manager"/>
+   </tools>
+</module>

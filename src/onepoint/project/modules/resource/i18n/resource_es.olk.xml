@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="es">
+    <resource-map id="resource.module">
+        <resource id="AdministrationTool">Administración</resource>
+        <resource id="ResourcesToolGroup">RECURSOS</resource>
+    </resource-map>
+    <resource-map id="resource.resources">
+        <resource id="NewPool">Nuevo pool</resource>
+        <resource id="NewResource">Nuevo recurso</resource>
+        <resource id="Properties">Propiedades</resource>
+        <resource id="Move">Mover</resource>
+        <resource id="Delete">Borrar</resource>
+        <resource id="AssignToProject">Asignar a proyecto</resource>
+        <resource id="ImportUser">Importar usuarios</resource>
+        <resource id="Name">Nombre</resource>
+        <resource id="Description">Descripción</resource>
+        <resource id="NewPoolTooltip">Crear nuevo pool de recursos</resource>
+        <resource id="NewResourceTooltip">Crear nuevo recurso</resource>
+        <resource id="InfoTooltip">Mostrar metainformación para recurso o pool seleccionado</resource>
+        <resource id="MoveTooltip">Mover recurso o pool seleccionado a otro pool</resource>
+        <resource id="DeleteTooltip">Borrar recursos y pools seleccionados</resource>
+        <resource id="AssignToProjectTooltip">Asignar recursos seleccionados a un proyecto</resource>
+        <resource id="ImportUsersTooltip">Importar usuarios como recursos</resource>
+    </resource-map>
+    <resource-map id="resource.NewPool">
+        <resource id="NewPool">Nuevo pool</resource>
+        <resource id="General">General</resource>
+        <resource id="Permissions">Autorizaciones</resource>
+        <resource id="Name">Nombre</resource>
+        <resource id="SubType">Tipo</resource>
+        <resource id="Description">Descripción</resource>
+        <resource id="HourlyRate">Tarifa horaria interna</resource>
+        <resource id="ExternalRate">Tarifa horaria externa</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Cancelar</resource>
+    </resource-map>
+    <resource-map id="resource.EditPool">
+        <resource id="EditPool">Editar pool</resource>
+        <resource id="General">General</resource>
+        <resource id="Permissions">Autorizaciones</resource>
+        <resource id="ApplyPermissionsRecursively">Aplicar cambios a sub-pools y recursos</resource>
+        <resource id="Name">Nombre</resource>
+        <resource id="SubType">Tipo</resource>
+        <resource id="Description">Descripción</resource>
+        <resource id="HourlyRate">Tarifa horaria interna</resource>
+        <resource id="ExternalRate">Tarifa horaria externa</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Cancelar</resource>
+    </resource-map>
+    <resource-map id="resource.Info">
+        <resource id="InfoPool">Propiedades del pool</resource>
+        <resource id="InfoResource">Propiedades del recurso</resource>
+    </resource-map>
+    <resource-map id="resource.NewResource">
+        <resource id="HourlyRates">Tarifas horarias</resource>
+        <resource id="NewResource">Nuevo recurso</resource>
+        <resource id="General">General</resource>
+        <resource id="Projects">Proyectos</resource>
+        <resource id="Permissions">Autorizaciones</resource>
+        <resource id="Name">Nombre</resource>
+        <resource id="SubType">Tipo</resource>
+        <resource id="Description">Descripción</resource>
+        <resource id="Available">Disponible (%)</resource>
+        <resource id="InheritPoolRate">No tomar en cuenta las tarifas horarias del pool</resource>
+        <resource id="ResponsibleUser">Responsable</resource>
+        <resource id="SelectUser">Seleccionar</resource>
+        <resource id="Pool">Pool</resource>
+        <resource id="HourlyRate">Tarifa horaria interna</resource>
+        <resource id="ExternalRate">Tarifa horaria externa</resource>
+        <resource id="Archived">Archivado</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Cancelar</resource>
+    </resource-map>
+    <resource-map id="resource.EditResource">
+        <resource id="HourlyRates">Tarifas horarias</resource>
+        <resource id="EditResource">Editar recurso</resource>
+        <resource id="General">General</resource>
+        <resource id="Projects">Proyectos</resource>
+        <resource id="Permissions">Autorizaciones</resource>
+        <resource id="Name">Nombre</resource>
+        <resource id="SubType">Tipo</resource>
+        <resource id="Description">Descripción</resource>
+        <resource id="Available">Disponible (%)</resource>
+        <resource id="HourlyRate">Tarifa horaria interna</resource>
+        <resource id="ExternalRate">Tarifa horaria externa</resource>
+        <resource id="InheritPoolRate">No tomar en cuenta las tarifas del pool</resource>
+        <resource id="ResponsibleUser">Responsable</resource>
+        <resource id="SelectUser">Seleccionar</resource>
+        <resource id="Pool">Pool</resource>
+        <resource id="Archived">Archivado</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Cancelar</resource>
+    </resource-map>
+    <resource-map id="resource.ImportUser">
+        <resource id="ImportUser">Importar usuarios</resource>
+        <resource id="General">General</resource>
+        <resource id="Projects">Proyectos</resource>
+        <resource id="NameFormat">Formato del nombre</resource>
+        <resource id="Available">Disponible (%)</resource>
+        <resource id="HourlyRate">Tarifa interna</resource>
+        <resource id="ExternalRate">Tarifa externa</resource>
+        <resource id="InheritPoolRate">No tomar en cuenta las tarifas horarias del pool</resource>
+        <resource id="Pool">Pool</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Cancelar</resource>
+    </resource-map>
+    <resource-map id="resource.ResourceChooser">
+        <resource id="SelectResource">Seleccionar recurso o pool</resource>
+        <resource id="SelectPool">Seleccionar pool</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Cancelar</resource>
+    </resource-map>
+    <resource-map id="resource.objects">
+        <resource id="RootResourcePoolName">Pool de recursos base</resource>
+        <resource id="RootResourcePoolDescription">El pool de recursos base forma la raíz de la jerarquía de los recursos</resource>
+        <resource id="NotAssignedDisplayName">no asignado</resource>
+    </resource-map>
+    <resource-map id="resource.add_project">
+        <resource id="AddProject">Añadir proyecto</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Cancelar</resource>
+    </resource-map>
+    <resource-map id="resource.error">
+        <resource id="ResourceNameNotSpecified">Especificar el nombre del recurso</resource>
+        <resource id="ResourceNameNotUnique">El nombre del recurso ya está utilizado</resource>
+        <resource id="ResourceNameNotValid">El nombre del recurso no es válido</resource>
+        <resource id="UserIDNotSpecified">No se ha especificado el usuario</resource>
+        <resource id="PoolNameNotUnique">El nombre del pool ya está utilizado</resource>
+        <resource id="PoolNameNotSpecified">Especificar el nombre del pool</resource>
+        <resource id="AvailabilityNotValid">La disponibilidad introducida no es válida</resource>
+        <resource id="HourlyRateNotValid">La tarifa horaria interna introducida no es válida</resource>
+        <resource id="ExternalRateNotValid">La tarifa horaria externa no es válida</resource>
+        <resource id="NameFormatNotSpecified">No se ha especificado el formato del nombre</resource>
+        <resource id="NameFormatNotValid">El formato del nombre introducido no es válido</resource>
+        <resource id="ResourceNotFound">No se ha encontrado el recurso</resource>
+        <resource id="PoolNotFound">No se ha encontrado el pool</resource>
+        <resource id="UpdateAccessDenied">Usted no tiene las autorizaciones de acceso necesarias para editar el recurso o pool</resource>
+        <resource id="AssignAccessDenied">Usted no tiene las autorizaciones de acceso necesarias para asignar recursos al proyecto</resource>
+        <resource id="ResourceAssignmentWarning">No todos los recursos seleccionados han podido ser asignados al proyecto</resource>
+        <resource id="ManagerAccessDenied">Usted necesita autorizaciones de acceso como gerente para esta operación</resource>
+        <resource id="DeleteResourceAssignmentsDenied">No se ha podido borrar el recurso porque está todavía aplicado en planes de proyectos</resource>
+        <resource id="DeletePoolResourceAssignmentsDenied">No se ha podido borrar el pool porque sus recursos están todavía siendo aplicados en planes de proyectos</resource>
+        <resource id="ActivityAssignmentsExistError">No se puede eliminar el recurso del proyecto porque está asignado a una o varias actividades del proyecto</resource>
+        <resource id="LoopAssignmentError">Esta asignación provocaría un bucle</resource>
+        <resource id="ActivityAssignmentVersionsExistError">No se puede eliminar el recurso del proyecto porque está asignado a una o varias actividades en versiones del plan del proyecto</resource>
+        <resource id="ResponsibleActivitiesExistError">No se puede eliminar el recurso del proyecto porque todavía es responsable de algunas actividades en el plan del proyecto</resource>
+        <resource id="ResponsibleActivityVersionsExistError">No se puede eliminar el recurso porque todavía es responsable de algunas actividades en versiones del plan del proyecto</resource>
+        <resource id="InvalidUserLevelError">El usuario responsable no tiene el nivel de usuario adecuado</resource>
+        <resource id="AbsenceReasonInUse">Los tipos de no disponibilidad que están en uso pudieran no ser borrados</resource>
+    </resource-map>
+    <resource-map id="resource.delete">
+        <resource id="ConfirmDelete">Borrar recursos o pools</resource>
+        <resource id="NoSelectionMessage">Seleccione uno o varios recursos o pools para borrar</resource>
+        <resource id="ConfirmDeleteOneMessage">¿Está seguro de que quiere borrar el recurso o pool seleccionado?</resource>
+        <resource id="ConfirmDeleteMultipleMessage">¿Está seguro de que quiere borrar los recursos y pools seleccionados?</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Cancelar</resource>
+    </resource-map>
+    <resource-map id="resource.change">
+        <resource id="ConfirmChange">Modificar recurso</resource>
+        <resource id="ConfirmChangeHR">Modificaciones en la tarifa horaria interna y/o externa de este recurso pueden causar un nuevo cálculo del coste del personal y de los ingresos en diferentes planes de proyectos</resource>
+        <resource id="ConfirmChangeAvailable">Modificaciones en la disponibilidad de este recurso pueden causar la revalidación de los planes de proyectos asociados a este</resource>
+        <resource id="ConfirmPoolChange">Modificar pool</resource>
+        <resource id="ConfirmPoolChangeHR">Modificaciones en la tarifa horaria interna y/o externa de este pool de recursos pueden causar un nuevo cálculo del coste del personal y de los ingresos en diferentes planes de proyectos</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Cancelar</resource>
+    </resource-map>
+</language-kit>

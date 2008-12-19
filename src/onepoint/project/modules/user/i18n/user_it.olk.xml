@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="it">
+    <resource-map id="user.module">
+        <resource id="UserTool">Utenti</resource>
+    </resource-map>
+    <resource-map id="user.add_group">
+        <resource id="AddGroup">Aggiungi gruppo</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Annulla</resource>
+    </resource-map>
+    <resource-map id="user.edit_group">
+        <resource id="EditGroup">Modifica gruppo</resource>
+        <resource id="General">Generale</resource>
+        <resource id="Name">Nome</resource>
+        <resource id="Description">Descrizione</resource>
+        <resource id="GroupAffiliation">Super Gruppi</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Annulla</resource>
+    </resource-map>
+    <resource-map id="user.edit_user">
+        <resource id="EditUser">Modifica utente</resource>
+        <resource id="General">Generale</resource>
+        <resource id="Firstname">Nome</resource>
+        <resource id="Lastname">Cognome</resource>
+        <resource id="Login">Login</resource>
+        <resource id="Password">Password</resource>
+        <resource id="PasswordRetyped">Inserisci nuovamente password</resource>
+        <resource id="Description">Descrizione</resource>
+        <resource id="UserLanguage">Lingua</resource>
+        <resource id="Contact">Contatto</resource>
+        <resource id="EMail">E-mail</resource>
+        <resource id="Phone">Telefono</resource>
+        <resource id="Mobile">Cellulare</resource>
+        <resource id="Fax">Fax</resource>
+        <resource id="Groups">Gruppi</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Annulla</resource>
+        <resource id="UserLevel">Livello utente</resource>
+        <resource id="ManagerLevel">Manager</resource>
+        <resource id="ObserverCustomerLevel">Osservatore (cliente)</resource>
+        <resource id="ObserverLevel">Osservatore</resource>
+        <resource id="ContributorLevel">Contributor</resource>
+    </resource-map>
+    <resource-map id="user.delete">
+        <resource id="ConfirmDelete">Elimina utenti o gruppi</resource>
+        <resource id="NoSelectionMessage">Seleziona uno o più utenti o gruppi che devono essere eliminati.</resource>
+        <resource id="ConfirmDeleteOneMessage">Vuoi davvero eliminare l'utente o il gruppo selezionato?</resource>
+        <resource id="ConfirmDeleteMultipleMessage">Vuoi davvero eliminare gli utenti o i gruppi selezionati?</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Annulla</resource>
+    </resource-map>
+    <resource-map id="user.new_group">
+        <resource id="NewGroup">Nuovo gruppo</resource>
+        <resource id="General">Generale</resource>
+        <resource id="Name">Nome</resource>
+        <resource id="Description">Descrizione</resource>
+        <resource id="GroupAffiliation">Super Gruppi</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Annulla</resource>
+    </resource-map>
+    <resource-map id="user.Info">
+        <resource id="InfoUser">Proprietà utente</resource>
+        <resource id="InfoGroup">Proprietà gruppo</resource>
+    </resource-map>
+    <resource-map id="user.new_user">
+        <resource id="NewUser">Nuovo utente</resource>
+        <resource id="General">Generale</resource>
+        <resource id="Firstname">Nome</resource>
+        <resource id="Lastname">Cognome</resource>
+        <resource id="Login">Login</resource>
+        <resource id="Password">Password</resource>
+        <resource id="PasswordRetyped">Inserisci nuovamente password</resource>
+        <resource id="Description">Descrizione</resource>
+        <resource id="Contact">Contatto</resource>
+        <resource id="EMail">E-mail</resource>
+        <resource id="Phone">Telefono</resource>
+        <resource id="Mobile">Cellulare</resource>
+        <resource id="Fax">Fax</resource>
+        <resource id="UserLanguage">Lingua</resource>
+        <resource id="GroupAffiliation">Gruppi</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Annulla</resource>
+        <resource id="UserLevel">Livello utente</resource>
+        <resource id="ManagerLevel">Manager</resource>
+        <resource id="ObserverCustomerLevel">Osservatore (cliente)</resource>
+        <resource id="ObserverLevel">Osservatore</resource>
+        <resource id="ContributorLevel">Contributor</resource>
+    </resource-map>
+    <resource-map id="user.users">
+        <resource id="NewGroup">Nuovo gruppo</resource>
+        <resource id="NewUser">Nuovo utente</resource>
+        <resource id="Properties">Proprietà</resource>
+        <resource id="Delete">Elimina</resource>
+        <resource id="AssignToGroup">Assegna al gruppo</resource>
+        <resource id="Search">Trova</resource>
+        <resource id="Name">Nome</resource>
+        <resource id="Description">Descrizione</resource>
+        <resource id="UserLevel">Livello utente</resource>
+        <resource id="Login">Login</resource>
+        <resource id="NewGroupTooltip">Crea nuovo gruppo utenti</resource>
+        <resource id="NewUserTooltip">Crea nuovo utente</resource>
+        <resource id="InfoTooltip">Vedi informazioni addizionali per l'utente o il gruppo selezionato</resource>
+        <resource id="DeleteTooltip">Elimina gli utenti e i gruppi selezionati</resource>
+        <resource id="AssignToGroupTooltip">Assegna gli utenti e i gruppi selezionati ad un gruppo</resource>
+    </resource-map>
+    <resource-map id="user.SubjectChooser">
+        <resource id="SelectSubject">Seleziona utente o gruppo</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Annulla</resource>
+    </resource-map>
+    <resource-map id="user.permissions_tab">
+        <resource id="Administrators">Amministratori</resource>
+        <resource id="Managers">Manager</resource>
+        <resource id="Contributors">Contributor</resource>
+        <resource id="Observers">Osservatori</resource>
+    </resource-map>
+    <resource-map id="user.objects">
+        <resource id="AdministratorDisplayName">Amministratore</resource>
+        <resource id="AdministratorDescription">L'amministratore ha originariamente permessi di amministrazione ovunque</resource>
+        <resource id="EveryoneDisplayName">Tutti</resource>
+        <resource id="EveryoneDescription">Ogni utente è originariamente membro di questo gruppo</resource>
+        <resource id="ManagerLevel">Manager</resource>
+        <resource id="ObserverCustomerLevel">Osservatore (cliente)</resource>
+        <resource id="ObserverLevel">Osservatore</resource>
+        <resource id="ContributorLevel">Contributor</resource>
+    </resource-map>
+    <resource-map id="user.error">
+        <resource id="PasswordMismatch">La password che hai inserito non è corretta</resource>
+        <resource id="UserUnknown">Il nome utente non esiste</resource>
+        <resource id="FirstNameMissing">Il nome non è stato specificato</resource>
+        <resource id="LastNameMissing">Il cognome non è stato specificato</resource>
+        <resource id="LoginNameMissing">Il nome di login non è stato specificato</resource>
+        <resource id="PasswordMissing">La password non è specificata</resource>
+        <resource id="LoginAlreadyUsed">Il nome di login è già in uso da parte di un altro utente</resource>
+        <resource id="GroupNameMissing">Il nome del gruppo non è stato specificato</resource>
+        <resource id="GroupNameAlreadyUsed">Il nome del gruppo è già in uso</resource>
+        <resource id="UserNotFound">Il nome utente non esiste</resource>
+        <resource id="GroupNotFound">Il nome di gruppo non esiste</resource>
+        <resource id="GroupNotEmpty">I gruppi selezionati hanno ancora dei membri</resource>
+        <resource id="EmailIncorrect">L'indirizzo e-mail che hai inserito non è valido</resource>
+        <resource id="InsufficientPrivileges">Non hai privilegi sufficienti per effettuare questa operazione</resource>
+        <resource id="SessionUser">Non puoi cancellare l'utente che stai correntemente utilizzando per questo login</resource>
+        <resource id="EveryoneGroup">Il gruppo &quot;Tutti&quot; è un oggetto gestito dal sistema e non può essere eliminato</resource>
+        <resource id="LoopAssignment">Questa assegnazione potrebbe originare un ciclo chiuso (loop)</resource>
+        <resource id="InvalidUserLevel">Livello utente non valido</resource>
+        <resource id="UserDemoteError">Non puoi degradare questo utente al livello standard: ci sono ancora permessi di amministrazione rimasti per questo utente nel repository</resource>
+        <resource id="PermissionLevelError">Il livello dell'utente è troppo basso per consentire questi privilegi</resource>
+        <resource id="AdminPermissionError">Non puoi cambiare i permessi dell'utente amministratore</resource>
+        <resource id="OutOfMemory">Il client HTTP non supporta lo streaming. Non puoi effettuare l'upload di file più grandi della dimensione totale d'insieme.</resource>
+        <resource id="FileNotFound">Uno o più dei file selezionati per l'upload non possono essere trovati o aperti.</resource>
+        <resource id="InvalidSiteError">Il database del sito è momentaneamente non disponibile. Riprova tra un minuto.</resource>
+        <resource id="UserLinkedError">Utenti o gruppi che stai cercando di eliminare sono ancora collegati a risorse o progetti oppure hanno ancora fogli ore o non sono vuoti</resource>
+        <resource id="ControllingSheetsExist">Esistono fogli di controllo per gli utenti selezionati</resource>
+        <resource id="LocksExist">Gli utenti selezionati hanno ancora piani di progetto che non hanno effettuato il check in</resource>
+        <resource id="WorkslipsExist">Sono presenti fogli ore per gli utenti selezionati</resource>
+    </resource-map>
+</language-kit>

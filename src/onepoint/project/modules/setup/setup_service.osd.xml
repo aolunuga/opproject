@@ -1,0 +1,2 @@
+<service name="SetupService" class="onepoint.project.modules.setup.OpSetupService">
+</service>

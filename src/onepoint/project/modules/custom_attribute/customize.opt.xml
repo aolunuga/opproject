@@ -1,0 +1,4 @@
+<prototype name="OpCustomize" instance-class="onepoint.project.modules.custom_attribute.OpCustomizableObject">
+  <relationship name="CustomValuePage" type="OpCustomValuePage" transient="true" /> <!--  fetch="join" /> -->
+  <relationship name="CustomValuePages" type="OpCustomValuePage" collection-type="Set" back-relationship="Object" inverse="true" cascade="delete"/>
+</prototype>

@@ -1,0 +1,41 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+require "onepoint/project/scripts/saveImage.jes";
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XValidator;
+
+function saveTableCSV(event) {
+   XDisplay.getActiveForm().findComponent("ResourceTable").saveAsCSV("Save Project Resources");
+}
+
+function saveTableImage(event) {
+   saveAsImage(XDisplay.getActiveForm().findComponent("ResourceTable"), "Save Project Resources");
+}
+
+function getPrintTitle() {
+   tabBox = XDisplay.getActiveForm().findComponent("ProjectResourcesTabBox");
+   cur_tab = tabBox.getIntValue();
+   tabName = tabBox.getChild(cur_tab + 1).getText();
+   printTitle = XDisplay.getActiveForm().findComponent("PrintTitle").getStringValue();
+   title = printTitle + " - ";
+   title = title + tabName;
+   return title;
+}
+
+function print(event) {
+   tabBox = XDisplay.getActiveForm().findComponent("ProjectResourcesTabBox");
+   cur_tab = tabBox.getIntValue();
+   title = getPrintTitle();
+   if (cur_tab == 0) {
+      component = XDisplay.getActiveForm().findComponent("ResourceTable");
+      component.print(title);
+   }
+}
+
+function projectChanged(event) {
+}

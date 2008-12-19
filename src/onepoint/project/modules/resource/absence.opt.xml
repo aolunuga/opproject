@@ -1,0 +1,10 @@
+<prototype name="OpAbsence" instance-class="onepoint.project.modules.resource.OpAbsence">
+
+   <field name="Start" type="Date"/>
+   <field name="Finish" type="Date"/>
+
+   <field name="Comment" type="Text"/>
+
+   <relationship name="Reason" type="OpAbsenceReason" back-relationship="Absences"/>
+   <relationship name="Resource" type="OpResource" back-relationship="Absences"/>
+</prototype>

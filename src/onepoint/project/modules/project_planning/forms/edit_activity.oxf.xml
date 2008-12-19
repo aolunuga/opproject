@@ -1,0 +1,830 @@
+<form layout="border" width="900" height="540" 
+   start-focus-ref="Name" default-button-ref="okButton" resource-map-ref="project_planning.EditActivity"
+   error-label-ref="ValidationErrorLabel" script="/modules/project_planning/scripts/edit_activity.jes"
+   on-unload="clearContents"
+   on-show="updateCostSum"
+   provider-class="onepoint.project.modules.project_planning.forms.OpEditActivityFormProvider">
+   <panel layout="border">
+      <data-set id="ResponsibleResourceSet" />
+      <data-field id="ActivitySet" />
+      <data-set id="AssignmentSet" />
+      <data-set id="ResourceAvailability" />
+      <data-set id="LinkTypeSet">
+         <data-row string-value="0['${Finish-Start}']" />
+      </data-set>
+
+      <data-field id="ActivityIDField" />
+      <data-field id="ActivityRowIndex" />
+      <data-field id="SubjectIDField" />
+
+      <data-field id="ActivityDuration" />
+      <data-field id="CheckAvailability" />
+
+      <data-field id="EditModeField" boolean-value="false" />
+      <data-field id="ActionsEditable" boolean-value="false" />
+      <data-field id="EditActionsModeField" boolean-value="true"/>
+      <data-field id="CallingForm" />
+      <data-field id="ActivityTypeField" />
+
+      <data-field id="LoopException" text="${LoopErrorMessage}" />
+      <data-field id="MandatoryException" text="${MandatoryErrorMessage}" />
+      <data-field id="RangeException" text="${RangeErrorMessage}" />
+      <data-field id="InvalidCostException" text="${InvalidCostErrorMessage}" />
+      <data-field id="WorkRecordsExistException" text="${WorkRecordsExistErrorMessage}" />
+      <data-field id="NotEqualEffortsException" text="${NotEqualEffortsErrorMessage}" />
+      <data-field id="InvalidPriorityException" text="${InvalidPriorityErrorMessage}" />
+      <data-field id="AssignmentException" text="${AssignmentErrorMessage}" />
+      <data-field id="InvalidPaymentException" text="${InvalidPaymentErrorMessage}" />
+      <data-field id="ActionIsMandatory" text="${ActionIsMandatory}" />
+
+      <data-field id="ViewedNewContents" />
+
+      <label y="-1" id="EditStandardDialogTitle" text="${EditStandardActivity}"
+         visible="false" />
+      <label y="-1" id="EditCollectionDialogTitle" text="${EditCollectionActivity}"
+         visible="false" />
+      <label y="-1" id="EditMilestoneDialogTitle" text="${EditMilestoneActivity}"
+         visible="false" />
+      <label y="-1" id="EditTaskDialogTitle" text="${EditTaskActivity}"
+         visible="false" />
+      <label y="-1" id="EditCollectionTaskDialogTitle" text="${EditCollectionTaskActivity}"
+         visible="false" />
+      <label y="-1" id="EditScheduledTaskTitle" text="${EditScheduledTaskTitle}"
+         visible="false" />
+
+      <label y="-1" id="InfoStandardDialogTitle" text="${InfoStandardActivity}"
+         visible="false" />
+      <label y="-1" id="InfoCollectionDialogTitle" text="${InfoCollectionActivity}"
+         visible="false" />
+      <label y="-1" id="InfoMilestoneDialogTitle" text="${InfoMilestoneActivity}"
+         visible="false" />
+      <label y="-1" id="InfoTaskDialogTitle" text="${InfoTaskActivity}"
+         visible="false" />
+      <label y="-1" id="InfoCollectionTaskDialogTitle" text="${InfoCollectionTaskActivity}"
+         visible="false" />
+      <label y="-1" id="InfoScheduledTaskTitle" text="${InfoScheduledTaskTitle}"
+         visible="false" />
+
+      <label y="-1" id="ValidationErrorLabel" visible="false"
+         style-ref="label-error-default" />
+
+      <data-field id="ExcludedResources" />
+
+      <data-set id="AssignmentFooterSet">
+         <data-row id="sum-row">
+            <data-cell string-value="${AssignmentSum}" />
+            <data-cell id="AssignmentSet[2]" double-value="1" />
+            <data-cell />
+         </data-row>
+      </data-set>
+
+      <data-set id="AssignmentSetRowMap">
+         <data-row string-value="choice">
+            <data-cell int-value="0" />
+         </data-row>
+         <data-row string-value="percent">
+            <data-cell int-value="1" />
+         </data-row>
+         <data-row string-value="hours">
+            <data-cell int-value="2" />
+         </data-row>
+      </data-set>
+
+      <data-set id="AttachmentSetRowMap">
+         <data-row string-value="type">
+            <data-cell int-value="0" />
+         </data-row>
+         <data-row string-value="choice">
+            <data-cell int-value="1" />
+         </data-row>
+         <data-row string-value="location">
+            <data-cell int-value="2" />
+         </data-row>
+         <data-row string-value="contentId">
+            <data-cell int-value="3" />
+         </data-row>
+      </data-set>
+
+      <data-set id="PredecessorSetRowMap">
+         <data-row string-value="choice">
+            <data-cell int-value="1" />
+         </data-row>
+      </data-set>
+
+      <data-set id="BaseDialogElementsMap">
+         <data-row string-value="activityLocator">
+            <data-cell string-value="ActivityIDField" />
+         </data-row>
+         <data-row string-value="activityRowIndex">
+            <data-cell string-value="ActivityRowIndex" />
+         </data-row>
+         <data-row string-value="subject.locator">
+            <data-cell string-value="SubjectIDField" />
+         </data-row>
+
+         <data-row string-value="activity.name">
+            <data-cell string-value="Name" />
+         </data-row>
+         <data-row string-value="activity.type">
+            <data-cell string-value="ActivityTypeField" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="categoryLocator['activity.category.name']">
+            <data-cell string-value="Category" />
+         </data-row>
+         <data-row string-value="activity.complete">
+            <data-cell string-value="Complete" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activity.start">
+            <data-cell string-value="Start" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activity.finish">
+            <data-cell string-value="End" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activity.duration">
+            <data-cell string-value="Duration" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activity.duration">
+            <data-cell string-value="ActivityDuration" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activity.baseEffort">
+            <data-cell string-value="BaseEffort" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="predecessors">
+            <data-cell string-value="8" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="successors">
+            <data-cell string-value="9" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="resources">
+            <data-cell string-value="10" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activity.basePersonnelCosts">
+            <data-cell string-value="PersonnelCosts" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activity.baseTravelCosts">
+            <data-cell string-value="TravelCosts" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activity.baseMaterialCosts">
+            <data-cell string-value="MaterialCosts" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activity.baseExternalCosts">
+            <data-cell string-value="ExternalCosts" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activity.baseMiscellaneousCosts">
+            <data-cell string-value="MiscellaneousCosts" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activity.description">
+            <data-cell string-value="Description" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="attachments">
+            <data-cell string-value="17" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activity.attributes">
+            <data-cell string-value="18" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="workPhaseStarts">
+            <data-cell string-value="19" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="workPhaseFinishs">
+            <data-cell string-value="20" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="workPhaseBaseEfforts">
+            <data-cell string-value="21" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="resourceBaseEfforts">
+            <data-cell string-value="22" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activity.priority">
+            <data-cell string-value="Priority" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="workRecords">
+            <data-cell string-value="24" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activity.actualEffort">
+            <data-cell string-value="25" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activityResources">
+            <data-cell string-value="26" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row
+            string-value="responsibleResourceLocator['activity.responsibleResource.name']">
+            <data-cell string-value="ResponsibleResource" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="projectNodeLocator['activity.projectPlan.projectNode.name']">
+            <data-cell string-value="28" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activity.payment">
+            <data-cell string-value="Payment" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activity.baseProceeds">
+            <data-cell string-value="ProceedsCosts" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activity.effortBillable">
+            <data-cell string-value="EffortBillable" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="customAttributes">
+            <data-cell string-value="32" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="ownedResources">
+            <data-cell string-value="33" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activity.leadTime">
+            <data-cell string-value="34" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="activity.followUpTime">
+            <data-cell string-value="35" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="mandatory">
+            <data-cell string-value="Mandatory" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+         <data-row string-value="reourceAvailabilityMap">
+            <data-cell string-value="ResourceAvailability" />
+            <data-cell />
+            <data-cell string-value="out" />
+         </data-row>
+      </data-set>
+
+      <data-set id="FormElementPermissionsBase">
+         <data-row string-value="GeneralTab">
+            <data-cell string-value="rrrr" />
+         </data-row>
+         <data-row string-value="Name">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="Description">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="Start">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="End">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="Duration">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="BaseEffort">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="Complete">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="Category">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="Priority">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="Mandatory">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+
+         <data-row string-value="AttachmentsTab">
+            <data-cell string-value="rrrr" />
+         </data-row>
+         <data-row string-value="AttachmentList">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="rrrr" />
+         </data-row>
+         <data-row string-value="AddDocumentButton">
+            <data-cell string-value="----" />
+            <data-cell string-value="ww--" />
+            <data-cell string-value="----" />
+            <data-cell string-value="ww--" />
+         </data-row>
+         <data-row string-value="AddURLButton">
+            <data-cell string-value="----" />
+            <data-cell string-value="ww--" />
+            <data-cell string-value="----" />
+            <data-cell string-value="ww--" />
+         </data-row>
+         <data-row string-value="RemoveAttachmentButton">
+            <data-cell string-value="----" />
+            <data-cell string-value="ww--" />
+            <data-cell string-value="----" />
+            <data-cell string-value="ww--" />
+         </data-row>
+         <data-row string-value="ViewAttachmentButton">
+            <data-cell string-value="----" />
+            <data-cell string-value="ww--" />
+            <data-cell string-value="----" />
+            <data-cell string-value="ww--" />
+         </data-row>
+
+         <data-row string-value="CommentsTab">
+            <data-cell string-value="rrrr" />
+         </data-row>
+         <data-row string-value="CommentsBox">
+            <data-cell string-value="rrrr" />
+         </data-row>
+         <data-row string-value="CommentsPanel">
+            <data-cell string-value="rrrr" />
+         </data-row>
+         <data-row string-value="AddCommentButton">
+            <data-cell string-value="www-" />
+         </data-row>
+
+         <data-row string-value="okButton">
+            <data-cell string-value="ww--" />
+         </data-row>
+         <data-row string-value="cancelButton">
+            <data-cell string-value="wwww" />
+         </data-row>
+      </data-set>
+
+      <data-set id="FormElementPermissionsLinked">
+         <data-row string-value="PredecessorTab">
+            <data-cell string-value="rrrr" />
+         </data-row>
+         <data-row string-value="PredecessorTable">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="PredecessorAddIcon">
+            <data-cell string-value="----" />
+            <data-cell string-value="ww--" />
+            <data-cell string-value="----" />
+            <data-cell string-value="ww--" />
+         </data-row>
+         <data-row string-value="PredecessorRemoveIcon">
+            <data-cell string-value="----" />
+            <data-cell string-value="ww--" />
+            <data-cell string-value="----" />
+            <data-cell string-value="ww--" />
+         </data-row>
+      </data-set>
+
+      <!-- Standard Activity: -->
+      <data-set id="FormElementPermissionsStandard">
+         <!--
+            Mode 0: read-only Mode 1: edit Mode 2: template read, Mode 3:
+            template edit
+         -->
+         <data-row string-value="EditStandardDialogTitle">
+            <data-cell string-value="----" />
+            <data-cell string-value="wwww" />
+            <data-cell string-value="----" />
+            <data-cell string-value="wwww" />
+         </data-row>
+         <data-row string-value="EditCollectionDialogTitle">
+            <data-cell string-value="----" />
+         </data-row>
+         <data-row string-value="EditMilestoneDialogTitle">
+            <data-cell string-value="----" />
+         </data-row>
+         <data-row string-value="EditTaskDialogTitle">
+            <data-cell string-value="----" />
+         </data-row>
+         <data-row string-value="EditCollectionTaskDialogTitle">
+            <data-cell string-value="----" />
+         </data-row>
+         <data-row string-value="EditScheduledTaskTitle">
+            <data-cell string-value="----" />
+         </data-row>
+         <data-row string-value="InfoStandardDialogTitle">
+            <data-cell string-value="wwww" />
+            <data-cell string-value="----" />
+            <data-cell string-value="wwww" />
+            <data-cell string-value="----" />
+         </data-row>
+         <data-row string-value="InfoCollectionDialogTitle">
+            <data-cell string-value="----" />
+         </data-row>
+         <data-row string-value="InfoMilestoneDialogTitle">
+            <data-cell string-value="----" />
+         </data-row>
+         <data-row string-value="InfoTaskDialogTitle">
+            <data-cell string-value="----" />
+         </data-row>
+         <data-row string-value="InfoCollectionTaskDialogTitle">
+            <data-cell string-value="----" />
+         </data-row>
+         <data-row string-value="InfoScheduledTaskTitle">
+            <data-cell string-value="----" />
+         </data-row>
+
+         <data-row string-value="Payment">
+            <data-cell string-value="----" />
+         </data-row>
+
+         <data-row string-value="ResourcesTab">
+            <data-cell string-value="hhhh" />
+         </data-row>
+         <data-row string-value="ResponsibleResource">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="AssignmentTable">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="ResourceAddIcon">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="ResourceRemoveIcon">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="BaseEffortSum">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+
+         <data-row string-value="CostsTab">
+            <data-cell string-value="rrrr" />
+         </data-row>
+         <data-row string-value="PersonnelCosts">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="EffortBillable">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="TravelCosts">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="MaterialCosts">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="ExternalCosts">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="MiscellaneousCosts">
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+            <data-cell string-value="rrrr" />
+            <data-cell string-value="wwrr" />
+         </data-row>
+         <data-row string-value="ProceedsCosts">
+            <data-cell string-value="rrrr" />
+         </data-row>
+
+      </data-set>
+
+      <!-- Milestone Activity: -->
+      <data-set id="FormElementPermissionsMilestone">
+         <!--
+            Mode 0: read-only Mode 1: edit Mode 2: template read, Mode 3:
+            template edit
+         -->
+      </data-set>
+
+      <!-- Standard Activity: -->
+      <data-set id="FormElementPermissionsCollection">
+         <!--
+            Mode 0: read-only Mode 1: edit Mode 2: template read, Mode 3:
+            template edit
+         -->
+      </data-set>
+
+      <!-- Standard Activity: -->
+      <data-set id="FormElementPermissionsTask">
+         <!--
+            Mode 0: read-only Mode 1: edit Mode 2: template read, Mode 3:
+            template edit
+         -->
+      </data-set>
+
+      <!-- Standard Activity: -->
+      <data-set id="FormElementPermissionsTaskCollection">
+         <!--
+            Mode 0: read-only Mode 1: edit Mode 2: template read, Mode 3:
+            template edit
+         -->
+      </data-set>
+
+      <!-- Standard Activity: -->
+      <data-set id="FormElementPermissionsScheduledTaskCollection">
+         <!--
+            Mode 0: read-only Mode 1: edit Mode 2: template read, Mode 3:
+            template edit
+         -->
+      </data-set>
+
+      <!-- Standard Activity: -->
+      <data-set id="FormElementPermissionsAdHocTask">
+         <!--
+            Mode 0: read-only Mode 1: edit Mode 2: template read, Mode 3:
+            template edit
+         -->
+      </data-set>
+
+      <data-field id="EffortBasedPlanning" boolean-value="false" />
+
+      <tab-box id="TabBoxId">
+
+         <tab text="${General}" layout="table" id="GeneralTab">
+            <label x="0" y="0" width="2" text="${Name}" id="NameLabel" />
+            <text-field x="2" y="0" width="3" id="Name" />
+            <!-- x="0" y="1" CategoryLabel -->
+            <!-- x="2" y="1" Category -->
+            <label x="0" y="2" width="2" text="${Description}" id="DescriptionLabel" />
+            <text-box x="2" y="2" width="3" id="Description" />
+            <label x="0" y="3" width="2" text="${Priority}" id="PriorityLabel" />
+            <int-field x="2" y="3" width="3" id="Priority"
+               upper-limit="9" lower-limit="1" />
+            <label x="0" y="4" width="2" text="${PercentageFinished}" id="CompleteLabel" />
+            <double-field x="2" y="4" width="3" id="Complete"
+               decimals="0" />
+            <label x="0" y="5" width="2" text="${Start}" id="StartLabel" />
+            <date-field x="2" y="5" width="3" id="Start" />
+            <label x="0" y="6" width="2" text="${End}" id="EndLabel" />
+            <date-field x="2" y="6" width="3" id="End" />
+            <label x="0" y="7" width="2" text="${Effort}" id="BaseEffortLabel" />
+            <double-field x="2" y="7" width="3" id="BaseEffort"
+               on-value-changed="baseEffortChanged" />
+            <label x="0" y="8" width="2" text="${Duration}" id="DurationLabel" />
+            <double-field x="2" y="8" width="3" id="Duration" />
+            <label x="0" y="9" width="2" text="${Payment}" id="PaymentLabel"
+               visible="false" />
+            <double-field x="2" y="9" width="3" id="Payment"
+               decimals="2" visible="false" />
+         </tab>
+
+         <tab text="${Resources}" layout="border" id="ResourcesTab">
+            <data-field id="recursionMarker" boolean-value="false" />
+            <panel layout="table" y="-1">
+               <label x="0" y="0" width="2" text="${ResponsibleResource}"
+                  id="ResponsibleResourceLabel" />
+               <action-button x="2" y="0" width="3"
+                  id="ResponsibleResource" edit-mode="false" on-button-pressed="addResponsibleResource"
+                  left-icon="/icons/remove.png" right-icon="/icons/choose_resource.png" />
+               <label x="0" y="1" text="${AssignedResources}" id="AssignedResources" />
+
+            </panel>
+            <table-box id="AssignmentTable" data-set-ref="AssignmentSet"
+               footer-data-set-ref="AssignmentFooterSet">
+               <table-column id="ResourceColumn" text="${Resource}"
+                  width="120" data-column-index="0" value-type="Choice"
+                  edit-mode="false" />
+               <table-column text="${HoursAssigned}" width="80"
+                  data-column-index="2" value-type="Double" sortable="true"
+                  decimals="2" on-value-changed="hoursAssignedChanged" />
+               <table-column text="${PercentageAssigned}" width="80"
+                  data-column-index="1" value-type="Double" sortable="true"
+                  decimals="2" on-value-changed="percentageAssignedChanged" />
+               <!-- Note: Maybe max/min-values might make sense for table-cells -->
+               <!-- This way, we could allow availability within global availability -->
+               <!-- Attention: Even percentages could be specified this way (0-100) -->
+            </table-box>
+
+            <panel y="1" layout="table">
+               <panel layout="flow" direction="east">
+                  <button style-ref="icon-button-default" icon="/icons/plus_s.png"
+                     id="ResourceAddIcon" on-button-pressed="addAssignment" />
+                  <button style-ref="icon-button-default" icon="/icons/minus_s.png"
+                     id="ResourceRemoveIcon" on-button-pressed="removeAssignments" />
+               </panel>
+               <panel x="1" layout="border">
+                  <panel layout="table">
+                     <label x="0" y="0" width="2" text="${TotalEffort}"
+                        id="BaseEffortSumLabel" />
+                     <double-field x="2" y="0" width="3"
+                        id="BaseEffortSum" enabled="false" />
+                  </panel>
+               </panel>
+            </panel>
+         </tab>
+
+         <tab text="${Costs}" layout="table" id="CostsTab">
+            <label x="0" y="0" width="2" text="${Billable}" id="EffortBillableLabel" />
+            <double-field x="2" y="0" width="3" id="EffortBillable"
+               decimals="0" />
+            <label x="0" y="1" width="2" text="${Personnel}" id="PersonnelCostsLabel" />
+            <double-field x="2" y="1" width="3" id="PersonnelCosts"  on-value-changed="updateCostSum"
+               enabled="false" decimals="2" />
+            <label x="0" y="2" width="2" text="${Travel}" id="TravelCostsLabel" />
+            <double-field x="2" y="2" width="3" id="TravelCosts"  on-value-changed="updateCostSum"
+               decimals="2" />
+            <label x="0" y="3" width="2" text="${Material}" id="MaterialCostsLabel" />
+            <double-field x="2" y="3" width="3" id="MaterialCosts"  on-value-changed="updateCostSum"
+               decimals="2" />
+            <label x="0" y="4" width="2" text="${External}" id="ExternalCostsLabel" />
+            <double-field x="2" y="4" width="3" id="ExternalCosts"  on-value-changed="updateCostSum"
+               decimals="2" />
+            <label x="0" y="5" width="2" text="${Misc}" id="MiscellaneousCostsLabel" />
+            <double-field x="2" y="5" width="3" id="MiscellaneousCosts"  on-value-changed="updateCostSum"
+               decimals="2" />
+            <label x="0" y="6" width="2" text="${CostsSum}" id="CostsSumLabel"/>
+            <double-field x="2" y="6" width="3" id="CostsSum" decimals="2" enabled="false"/>
+            <label x="0" y="7" width="2" text="${Proceeds}" id="ProceedsCostsLabel" />
+            <double-field x="2" y="7" width="3" id="ProceedsCosts"
+               decimals="2" />
+         </tab>
+
+         <tab text="${Constraints}" layout="border" id="PredecessorTab">
+            <data-set id="PredecessorSet" />
+
+            <panel y="-1" layout="table" id="ConstraintsPanel">
+               <check-box x="2" y="5" width="3" id="Mandatory" text="${Mandatory}"
+                  enabled="false" />
+               <label x="0" y="6" text="${PredecessorList}"/>
+            </panel>
+
+            <table-box y="0" id="PredecessorTable" data-set-ref="PredecessorSet"
+               flexible="true">
+               <table-column id="PredecessorNameColumn" text="${PredecessorName}"
+                  width="200" data-column-index="0" value-type="Choice"
+                  index-based="true" caption-column-index="1" />
+               <table-column id="PredecessorTypeColumn" text="${PredecessorType}"
+                  width="120" data-column-index="1" value-type="Choice"
+                  caption-column-index="1" data-set-ref="LinkTypeSet" />
+            </table-box>
+            <panel y="1" layout="flow" direction="east">
+               <button style-ref="icon-button-default" icon="/icons/plus_s.png"
+                  id="PredecessorAddIcon" on-button-pressed="addPredecessor" />
+               <button style-ref="icon-button-default" icon="/icons/minus_s.png"
+                  id="PredecessorRemoveIcon" on-button-pressed="removePredecessors" />
+            </panel>
+         </tab>
+
+
+         <tab text="${Attachments}" layout="border" id="AttachmentsTab">
+            <data-set id="AttachmentSet" />
+            <data-set id="AttachmentIconSet">
+               <data-row icon="/modules/project_planning/icons/link_attachment_s.png" />
+               <data-row
+                  icon="/modules/project_planning/icons/document_attachment_s.png" />
+            </data-set>
+            <table-box y="0" id="AttachmentList" data-set-ref="AttachmentSet"
+               icon-set-ref="AttachmentIconSet" flexible="true" on-double-click="viewAttachment">
+               <table-column id="AttachmentTitle" text="${Title}"
+                  width="200" data-column-index="1" value-type="Choice"
+                  index-based="true" caption-column-index="1" />
+               <table-column id="AttachmentLocation" text="${Location}"
+                  width="200" data-column-index="2" value-type="String"
+                  index-based="true" caption-column-index="2" sortable="true" />
+            </table-box>
+            <panel y="1" layout="flow" direction="east">
+               <button style-ref="icon-button-default"
+                  icon="/modules/project_planning/icons/document.png"
+                  on-button-pressed="addDocumentAttachment" id="AddDocumentButton"
+                  tooltip="${AddDocumentAttachmentTooltip}" />
+               <button style-ref="icon-button-default"
+                  icon="/modules/project_planning/icons/url.png"
+                  on-button-pressed="addURLAttachment" id="AddURLButton"
+                  tooltip="${AddLinkAttachmentTooltip}" />
+               <button style-ref="icon-button-default" icon="/icons/minus_s.png"
+                  on-button-pressed="removeAttachments" id="RemoveAttachmentButton"
+                  tooltip="${RemoveAttachmentTooltip}" />
+               <button style-ref="icon-button-default" icon="/icons/info_s.png"
+                  on-button-pressed="editAttachment" id="ViewAttachmentButton"
+                  tooltip="${ViewAttachmentTooltip}" />
+            </panel>
+         </tab>
+
+         <tab text="${Comments}" layout="border" id="CommentsTab">
+            <data-field id="HasCommentsField" />
+            <label id="CommentsLabel" y="-1" style-ref="label-left-default" />
+            <scroll-box id="CommentsBox" y="0" flexible="true">
+               <panel id="CommentsPanel" layout="flow" direction="south" />
+            </scroll-box>
+            <panel y="1" layout="flow" direction="east">
+               <button style-ref="icon-button-default" icon="/icons/plus_s.png"
+                  on-button-pressed="addComment" id="AddCommentButton" enabled="false" />
+            </panel>
+         </tab>
+
+      </tab-box>
+
+      <panel y="1" layout="flow" direction="west">
+         <panel layout="border">
+            <button x="0" id="okButton" text="${OK}" on-button-pressed="ok" />
+            <button x="1" id="cancelButton" text="${Cancel}"
+               on-button-pressed="cancel" />
+         </panel>
+      </panel>
+
+   </panel>
+</form>

@@ -1,0 +1,18 @@
+<prototype name="OpClient" instance-class="onepoint.project.modules.customers.OpClient">
+
+   <field name="Name" type="String"/>
+   <field name="ContactFirstName" type="String"/>
+   <field name="ContactLastName" type="String"/>
+   <field name="ContactEmail" type="String"/>
+   <field name="ContactPhone" type="String"/>
+   <field name="ContactFax" type="String"/>
+   <field name="Description" type="Text"/>
+   <field name="WebSite" type="String"/>
+   <field name="Address" type="Text"/>
+   <field name="Zip" type="String"/>
+   <field name="City" type="String"/>
+
+   <relationship name="Projects" type="OpProjectNode" collection-type="Set" back-relationship="Client" inverse="true"/>
+   <relationship name="Country" type="OpCountry" back-relationship="Clients"/>
+   
+</prototype>

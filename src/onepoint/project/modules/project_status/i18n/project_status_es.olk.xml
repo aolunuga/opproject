@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="es">
+    <resource-map id="project_status.module">
+        <resource id="Customize">PERSONALIZAR</resource>
+        <resource id="ProjectStatusTool">Estado del proyecto</resource>
+    </resource-map>
+    <resource-map id="project_status.project_status">
+        <resource id="NewProjectStatus">Nuevo estado del proyecto</resource>
+        <resource id="Properties">Propiedades</resource>
+        <resource id="Delete">Borrar</resource>
+        <resource id="Up">Desplazar hacia arriba</resource>
+        <resource id="Down">Desplazar hacia abajo</resource>
+        <resource id="Name">Nombre</resource>
+        <resource id="Description">Descripción</resource>
+        <resource id="Color">Color</resource>
+        <resource id="NewProjectStatusTooltip">Crear nuevo estado del proyecto</resource>
+        <resource id="InfoTooltip">Mostrar metainformación para el estado del proyecto seleccionado</resource>
+        <resource id="DeleteTooltip">Borrar objetos seleccionados del estado del proyecto</resource>
+        <resource id="UpTooltip">Desplazar objetos seleccionados del estado hacia arriba</resource>
+        <resource id="DownTooltip">Desplazar objetos seleccionados del estado hacia abajo</resource>
+    </resource-map>
+    <resource-map id="project_status.new">
+        <resource id="NewProjectStatus">Nuevo estado del proyecto</resource>
+        <resource id="Name">Nombre</resource>
+        <resource id="Description">Descripción</resource>
+        <resource id="Color">Color</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Cancelar</resource>
+    </resource-map>
+    <resource-map id="project_status.edit">
+        <resource id="EditProjectStatus">Editar estado del proyecto</resource>
+        <resource id="Name">Nombre</resource>
+        <resource id="Description">Descripción</resource>
+        <resource id="Color">Color</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Cancelar</resource>
+    </resource-map>
+    <resource-map id="project_status.Info">
+        <resource id="InfoProjectStatus">Propiedades del estado del proyecto</resource>
+    </resource-map>
+    <resource-map id="project_status.delete">
+        <resource id="ConfirmDelete">Borrar objetos del estado del proyecto</resource>
+        <resource id="NoSelectionMessage">Seleccione uno o varios objetos del estado del proyecto para borrar</resource>
+        <resource id="ConfirmDeleteOneMessage">¿Está seguro de que quiere borrar el estado del proyecto seleccionado?</resource>
+        <resource id="ConfirmDeleteMultipleMessage">¿Está seguro de que quiere borrar los objetos seleccionados del estado del proyecto?</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Cancelar</resource>
+    </resource-map>
+    <resource-map id="project_status.error">
+        <resource id="StatusNameNotSpecified">Especificar nombre del estado del proyecto</resource>
+        <resource id="StatusNameNotUnique">El nombre del estado del proyecto ya está utilizado</resource>
+        <resource id="StatusNotFound">El estado del proyecto no se ha encontrado</resource>
+        <resource id="InsufficientPrivileges">Sólo el administrador está autorizado para gestionar objetos del estado del proyecto</resource>
+    </resource-map>
+</language-kit>

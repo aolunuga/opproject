@@ -1,0 +1,8 @@
+<prototype name="OpActionType" instance-class="onepoint.project.modules.custom_attribute.OpActionType">
+   <field name="Name" type="String" indexed="true" />
+   <field name="Description" type="String" indexed="true" />
+   <field name="Mandatory" type="Boolean" />
+   <relationship name="CustomType" type="OpCustomType" back-relationship="ActionTypes" />
+   <relationship name="Actions" type="OpAction" collection-type="Set" inverse="true" back-relationship="ActionType" />   
+   <relationship name="ActionVersions" type="OpActionVersion" collection-type="Set" inverse="true" back-relationship="ActionType" />   
+</prototype>

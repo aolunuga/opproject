@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="it">
+    <resource-map id="repository.module">
+        <resource id="RepositoryTool">Repository</resource>
+    </resource-map>
+    <resource-map id="repository.main">
+        <resource id="Backup">Backup</resource>
+        <resource id="BackupTooltip">Backup del repository</resource>
+        <resource id="Restore">Ripristina</resource>
+        <resource id="RestoreTooltip">Ripristina il repository</resource>
+        <resource id="Reset">Azzera</resource>
+        <resource id="ResetTooltip">Cancella l'intero repository</resource>
+        <resource id="UserGroupsCount">Gruppi utente:</resource>
+        <resource id="UsersCount">Utenti:</resource>
+        <resource id="PortfoliosCount">Portafogli progetti:</resource>
+        <resource id="TemplatesCount">Template di progetto:</resource>
+        <resource id="ProjectsCount">Progetti:</resource>
+        <resource id="PoolsCount">Pool di risorse:</resource>
+        <resource id="ResourcesCount">Risorse:</resource>
+        <resource id="ReportsCount">Report archiviati:</resource>
+    </resource-map>
+    <resource-map id="repository.restore_file_list">
+        <resource id="RestoreFile">Seleziona un file da ripristinare</resource>
+        <resource id="RestoreConfirmationSuccessfull">L'operazione di ripristino è terminata con successo. Premi OK per inizializzare di nuovo la sessione.</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Annulla</resource>
+    </resource-map>
+    <resource-map id="repository.backup_confirmation">
+        <resource id="BackupConfirmation">Backup completato</resource>
+        <resource id="BackupConfirmationMessage">Backup completato con successo con il nome </resource>
+        <resource id="OK">OK</resource>
+    </resource-map>
+    <resource-map id="repository.success_confirmation">
+        <resource id="SuccessConfirmation">Conferma</resource>
+        <resource id="OK">OK</resource>
+    </resource-map>
+    <resource-map id="repository.reset_confirmation">
+        <resource id="ResetConfirmation">Conferma azzeramento database</resource>
+        <resource id="ResetConfirmationSuccessfull">Azzeramento del database avvenuto con successo. Premi OK per inizializzare di nuovo la sessione.</resource>
+        <resource id="AdminPasswordRequest">Inserire la password di amministratore: </resource>
+        <resource id="SimpleConfirmMessage">Sei sicuro di voler azzerare il database?</resource>
+        <resource id="Cancel">Annulla</resource>
+        <resource id="OK">OK</resource>
+    </resource-map>
+    <resource-map id="repository.restore_confirmation">
+        <resource id="RestoreConfirmation">Conferma il ripristino</resource>
+        <resource id="AdminPasswordRequest">Inserire la password di amministratore: </resource>
+        <resource id="SimpleConfirmMessage">Sei sicuro di voler ripristinare un file di backup?</resource>
+        <resource id="Cancel">Annulla</resource>
+        <resource id="OK">OK</resource>
+    </resource-map>
+    <resource-map id="repository.error">
+        <resource id="BackupError">Si è verificato un errore durante il backup. Controllare il file di log per maggiori dettagli</resource>
+        <resource id="RestoreError">Si è verificato un errore durante la fase di ripristino. Controllare il file di log per maggiori dettagli</resource>
+        <resource id="ResetError">Si è verificato un errore durante l'azzeramento. Controllare il file di log per maggiori dettagli</resource>
+        <resource id="BackupDirectoryError">Non posso creare o accedere alla directory di backup</resource>
+        <resource id="InsuficientPermissions">Non hai abbastanza permessi per effettuare questa operazione</resource>
+        <resource id="InvalidAdminPassword">La password che hai inserito non è valida</resource>
+    </resource-map>
+</language-kit>

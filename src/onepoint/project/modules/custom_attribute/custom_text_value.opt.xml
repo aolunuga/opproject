@@ -1,0 +1,3 @@
+<prototype name="OpCustomTextValue" instance-class="onepoint.project.modules.custom_attribute.OpCustomTextValue">
+   <field name="Memo" type="Text" />
+</prototype>

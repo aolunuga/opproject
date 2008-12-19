@@ -1,0 +1,8 @@
+<module name="customers" caption="Customer Database" version="0.1"
+        class="onepoint.project.modules.customers.OpCustomersModule">
+
+   <prototype-files>
+      <prototype-file file-name="/modules/customers/customer.opt.xml"/>
+   </prototype-files>
+
+</module>

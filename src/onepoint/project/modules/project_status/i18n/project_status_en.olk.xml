@@ -1,0 +1,66 @@
+<language-kit locale="en">
+
+   <resource-map id="project_status.module">
+       <resource id="Customize">CUSTOMIZE</resource>
+      <resource id="ProjectStatusTool">Project Status</resource>
+   </resource-map>
+
+   <resource-map id="project_status.project_status">
+
+      <resource id="NewProjectStatus">New Project Status</resource>
+      <resource id="Properties">Properties</resource>
+      <resource id="Delete">Delete</resource>
+      <resource id="Up">Move Up</resource>
+      <resource id="Down">Move Down</resource>
+
+      <resource id="Name">Name</resource>
+      <resource id="Description">Description</resource>
+      <resource id="Color">Color</resource>
+
+      <resource id="NewProjectStatusTooltip">Create new project status</resource>
+      <resource id="InfoTooltip">View meta information for the selected project status</resource>
+      <resource id="DeleteTooltip">Delete selected project status objects</resource>
+      <resource id="UpTooltip">Move the selected project status objects up</resource>
+      <resource id="DownTooltip">Move the selected project status objects down</resource>
+
+   </resource-map>
+
+   <resource-map id="project_status.new">
+      <resource id="NewProjectStatus">New Project Status</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Description</resource>
+      <resource id="Color">Color</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+
+   <resource-map id="project_status.edit">
+      <resource id="EditProjectStatus">Edit Project Status</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Description</resource>
+      <resource id="Color">Color</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+
+   <resource-map id="project_status.Info">
+      <resource id="InfoProjectStatus">Project Status Properties</resource>
+   </resource-map>
+
+   <resource-map id="project_status.delete">
+      <resource id="ConfirmDelete">Delete Project Status Objects</resource>
+      <resource id="NoSelectionMessage">Please select one or more project status objects which should be deleted</resource>
+      <resource id="ConfirmDeleteOneMessage">Do you really want to delete the selected project status?</resource>
+      <resource id="ConfirmDeleteMultipleMessage">Do you really want to delete the selected project status objects?</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+
+   <resource-map id="project_status.error">
+      <resource id="StatusNameNotSpecified">The project status name was not specified</resource>
+      <resource id="StatusNameNotUnique">The project status name is already used</resource>
+      <resource id="StatusNotFound">The project status could not be found</resource>
+      <resource id="InsufficientPrivileges">Only Administrator is allowed to manage project status objects</resource>
+   </resource-map>
+
+</language-kit>

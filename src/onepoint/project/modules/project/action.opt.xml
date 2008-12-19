@@ -1,0 +1,9 @@
+<prototype name="OpAction" instance-class="onepoint.project.modules.project.OpAction">
+   <field name="Name" type="String" /> <!--  deprecated -->
+   <field name="Description" type="Text" /> <!--  deprecated -->
+   <field name="Deleted" type="Boolean" /> <!--  deprecated -->
+   <field name="Status" type="Integer" />
+   <relationship name="Activity" type="OpActivity" back-relationship="Actions"/> <!--  deprecated -->
+   <relationship name="ActionType" type="OpActionType" back-relationship="Actions"/> <!--  deprecated -->
+   <relationship name="ActionVersions" type="OpActionVersion" collection-type="Set" back-relationship="Action" inverse="true"/>
+</prototype>

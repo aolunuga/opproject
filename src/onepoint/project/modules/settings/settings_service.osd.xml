@@ -1,0 +1,7 @@
+<service name="SettingsService" class="onepoint.project.modules.settings.OpSettingsService" interceptor="onepoint.project.modules.user.OpPermissionCheckServiceInterceptor">
+   <method name="saveSettings" adminCheck="true">
+      <parameter name="settings" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="loadSettings">
+   </method>
+</service>

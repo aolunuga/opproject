@@ -1,0 +1,22 @@
+<form layout="border" resource-map-ref="project.projects_details">
+   <panel layout="border" style-ref="border-panel-default">
+   <panel layout="table">
+      <label x="0" y="0" width="2" text="${ProjectName}"/>
+      <text-field x="2" y="0" width="6" id="ProjectName" enabled="false"/>
+      <label x="0" y="1" width="2" text="${StatusName}"/>
+      <text-field x="2" y="1" width="6" id="StatusName" enabled="false"/>
+      <label x="0" y="2" width="2" text="${Start}"/>
+      <date-field x="2" y="2" width="2" id="Start" enabled="false"/>
+      <label x="4" y="2" width="2" text="${Finish}"/>
+      <date-field x="6" y="2" width="2" id="Finish" enabled="false"/>
+      <label x="0" y="3" width="2" text="${Priority}"/>
+      <int-field x="2" y="3" width="2" id="Priority" enabled="false"/>
+      <label x="4" y="3" width="2" text="${PercentComplete}"/>
+      <double-field x="6" y="3" width="2" id="Complete" decimals="2" enabled="false"/>
+      <label x="0" y="4" width="2" text="${Resources}"/>
+      <text-field x="2" y="4" width="2" id="Resources" enabled="false"/>
+      <label x="4" y="4" width="2" text="${Costs}"/>
+      <text-field x="6" y="4" width="2" id="Costs" enabled="false"/>
+   </panel>
+   </panel>
+</form>

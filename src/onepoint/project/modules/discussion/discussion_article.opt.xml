@@ -1,0 +1,10 @@
+<prototype name="OpDiscussionArticle" instance-class="onepoint.project.modules.discussion.OpDiscussionArticle" type="abstract">
+
+   <field name="Title" type="String" mandatory="true"/>
+   <field name="Text" type="Text"/>
+
+   <relationship name="User" type="OpUser" back-relationship="DiscussionArticles"/>
+   <relationship name="Replies" type="OpDiscussionReply" collection-type="Set" back-relationship="Article" inverse="true"/>
+   <relationship name="Readers" type="OpDiscussionReadArticleLink" collection-type="Set" back-relationship="Article" inverse="true" cascade="delete"/>
+   
+</prototype>

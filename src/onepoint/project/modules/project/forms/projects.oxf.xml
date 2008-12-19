@@ -1,0 +1,111 @@
+<form id="ProjectsForm" layout="border" resource-map-ref="project.projects" provider-class="onepoint.project.modules.project.forms.OpProjectsFormProvider" script="/modules/project/scripts/projects.jes">
+   <data-field id="ManagerPermission"/>
+   <data-field id="RootPortfolioPermission"/>
+   <data-set id="IconSet">
+      <data-row icon="/modules/project/icons/portfolio.png"/>
+      <data-row icon="/modules/project/icons/template.png"/>
+      <data-row icon="/modules/project/icons/project.png"/>
+      <data-row icon="/modules/project/icons/project_edit.png"/>
+      <data-row icon="/modules/project/icons/project_locked.png"/>
+      <data-row icon="/modules/project/icons/template_edit.png"/>
+      <data-row icon="/modules/project/icons/template_locked.png"/>
+   </data-set>
+   <data-set id="ProjectDataSet" stateful="true" on-expand="retrieveChildren"/>
+
+   <!-- next choice captions should be language resource references -->
+   <data-set id="TimeUnitSet">
+      <data-row string-value="d['${Days}']"/>
+      <data-row string-value="w['${Weeks}']"/>
+      <data-row string-value="m['${Months}']"/>
+   </data-set>
+
+   <pop-up-menu id="ProjectTablePopupMenu">
+      <pop-up-item text="${SaveCSV}" on-item-selected="saveTableCSV"/>
+      <pop-up-item text="${SaveImage}" on-item-selected="saveTableImage"/>
+   </pop-up-menu>
+
+   <pop-up-menu id="ganttChartPopupMenu">
+      <pop-up-item text="${SaveImage}" on-item-selected="saveGanttImage"/>
+   </pop-up-menu>
+
+   <panel layout="border" style-ref="compact-panel-default">
+
+      <panel layout="border" style-ref="tool-panel-default" y="-1">
+         <tool-bar id="ProjectToolbar">
+            <tool-button id="NewPortfolioButton" text="${NewPortfolio}" disabled-icon="/modules/project/icons/new_portfolio_disabled.png" icon="/modules/project/icons/new_portfolio.png" on-button-pressed="newPortfolio" tooltip="${NewPortfolioTooltip}"/>
+            <tool-button id="NewProjectButton" text="${NewProject}" disabled-icon="/modules/project/icons/new_project_disabled.png" icon="/modules/project/icons/new_project.png" on-button-pressed="newProject" tooltip="${NewProjectTooltip}"/>
+            <tool-button id="InfoButton" text="${Info}" disabled-icon="/icons/info_disabled.png" icon="/icons/info.png" on-button-pressed="edit" tooltip="${InfoTooltip}"/>
+            <tool-button id="MoveButton" text="${Move}" disabled-icon="/icons/move_disabled.png" icon="/icons/move.png" on-button-pressed="move" tooltip="${MoveTooltip}"/>
+            <tool-button id="DeleteButton" text="${Delete}" disabled-icon="/icons/delete_disabled.png" icon="/icons/delete.png" on-button-pressed="delete" tooltip="${DeleteTooltip}"/>
+         </tool-bar>
+      </panel>
+
+      <tab-box id="MyTabBox" stateful="true" flexible="true">
+         <tab layout="border" text="${ProjectList}" id="ProjectListTab" on-tab-activated="tabChanged">
+            <table-box id="ProjectTreeTable" data-set-ref="ProjectDataSet" tree-column-index="1" icon-set-ref="IconSet" y="0" on-double-click="edit"
+                       pop-up-menu-ref="ProjectTablePopupMenu" on-row-select="selectionChanged">
+               <!-- The list of columns to show could be editable and dynamic (form-provider) -->
+               <!-- vielleicht auch eine Projekt-Nummer/ID -->
+               <table-column width="20" text="${Empty}" data-column-index="25" value-type="Choice" exported="false"/>
+               <table-column width="180" text="${Name}" data-column-index="1" value-type="Choice"/>
+               <table-column width="200" text="${Description}" data-column-index="2"/>
+               <table-column text="${Status}" width="65" value-type="String" data-column-index="9"/>
+               <table-column text="${Priority}" width="60" value-type="Int" data-column-index="10" sortable="true"/>
+               <table-column width="60" text="${Start}" value-type="Date" data-column-index="3" sortable="true"/>
+               <table-column width="60" text="${End}" value-type="Date" data-column-index="4" sortable="true"/>
+               <table-column width="70" text="${Activities}" value-type="PercentageBar" data-column-index="6" sortable="false"/>
+               <table-column width="70" text="${Resources}" value-type="PercentageBar" data-column-index="7" sortable="false"/>
+               <table-column width="70" text="${Costs}" id="CostsColumn" value-type="PercentageBar" data-column-index="8" sortable="false"/>
+            </table-box>
+         </tab>
+
+         <tab layout="border" text="${ProjectResources}" id="ProjectResourcesTab" on-tab-activated="tabChanged">
+            <table-box if="ProjectResourcesTable" data-set-ref="ProjectDataSet" tree-column-index="0" icon-set-ref="IconSet" flexible="true" pop-up-menu-ref="ProjectTablePopupMenu"
+                       on-row-select="selectionChanged"  on-double-click="edit">
+            <table-column text="${Project}" width="120" sortable="true" data-column-index="1"  value-type="Choice"/>
+            <table-column text="${BaseEffort}" width="80" sortable="true" data-column-index="11" value-type="Double" decimals="2"/>
+            <table-column text="${ActualEffort}" width="80" sortable="true" data-column-index="12" value-type="Double" decimals="2"/>
+            <table-column text="${RemainingEffort}" width="70" data-column-index="14" value-type="Double" sortable="true" decimals="2"/>
+            <table-column text="${ProjectedEffort}" width="70" data-column-index="13" value-type="Double" sortable="true" decimals="2"/>
+            <table-column text="${DeviationEffort}" width="70" data-column-index="19" value-type="Deviation" sortable="true" decimals="2"/>
+            <table-column text="${PercentageDeviationEffort}" width="70" data-column-index="20" value-type="Deviation" decimals="2" sortable="true"/>
+            </table-box>
+         </tab>
+
+         <tab layout="border" text="${ProjectCosts}" id="ProjectCostsTab" on-tab-activated="tabChanged">
+            <table-box if="ProjectResourcesTable" data-set-ref="ProjectDataSet" tree-column-index="0" icon-set-ref="IconSet" flexible="true" pop-up-menu-ref="ProjectTablePopupMenu"
+                       on-row-select="selectionChanged"  on-double-click="edit">
+            <table-column text="${Project}" width="120" sortable="true" data-column-index="1" value-type="Choice"/>
+            <table-column text="${BaseCosts}" width="80" sortable="true" data-column-index="15" value-type="Double" decimals="2"/>
+            <table-column text="${ActualCosts}" width="80" sortable="true" data-column-index="16" value-type="Double" decimals="2"/>
+            <table-column text="${RemainingCosts}" width="70" data-column-index="18" value-type="Double" sortable="true" decimals="2"/>
+            <table-column text="${ProjectedCosts}" width="70" data-column-index="17" value-type="Double" sortable="true" decimals="2"/>
+            <table-column text="${DeviationCosts}" width="70" data-column-index="21" value-type="Deviation" sortable="true" decimals="2"/>
+            <table-column text="${PercentageDeviationCosts}" width="70" data-column-index="22" value-type="Deviation" decimals="2" sortable="true"/>
+            </table-box>
+         </tab>
+
+         <tab layout="border" text="${GanttDiagram}" id="GanttDiagramTab">
+            <panel y="-1" layout="border">
+               <panel layout="border" style-ref="compact-panel-default">
+                  <panel x="1" layout="table" flexible="false">
+                     <label x="0" width="2" text="${ChangeTimeUnit}"/>
+                     <choice-field x="2" width="3" id="TimeUnitChooser" data-set-ref="TimeUnitSet"
+                                   on-value-changed="timeUnitChanged"
+                                   stateful="true" selected-index="0"/>
+                  </panel>
+               </panel>
+            </panel>
+            <project-gantt-box id="ProjectGanttChart" data-set-ref="ProjectDataSet" time-unit="days"
+                       on-project-details="viewProject"
+                       details-form-ref="/modules/project/forms/project_details.oxf.xml" caption-left="ProjectName"
+                       caption-right="PercentComplete" stateful="true"
+                       pop-up-menu-ref="ganttChartPopupMenu"/>
+         </tab>
+
+      </tab-box>
+      <status-bar y="1"/>
+
+   </panel>
+
+</form>

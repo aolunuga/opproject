@@ -1,0 +1,11 @@
+<module name="my_tasks" caption="Meine Aufgaben" version="0.2" class="onepoint.project.modules.my_tasks.OpMyTasksModule">
+   <language-kit-paths>
+      <language-kit-path path="/modules/my_tasks/i18n"/>
+   </language-kit-paths>
+   <service-files>
+      <service-file file-name="/modules/my_tasks/my_tasks_service.osd.xml"/>
+   </service-files>
+   <tools>
+      <tool name="my_tasks" caption="${TasksTool}" group-ref="my" icon="/modules/my_tasks/icons/my_tasks_tool.png" start-form="/modules/my_tasks/forms/my_tasks.oxf.xml"/>
+   </tools>
+</module>

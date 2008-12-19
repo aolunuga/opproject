@@ -1,0 +1,15 @@
+// Controller script for edit_document.oxf.xml
+
+require "onepoint/project/modules/project_planning/scripts/add_document.jes";
+
+function ok(event) {
+   addOrUpdate(false);
+}
+
+/**
+ * Returns true if a file from the file dialog was selected, false otherwise
+ */
+function selectPressed() {
+   fileSelected = XDisplay.getActiveForm().findComponent("FileSelected");
+   fileSelected.setBooleanValue(true);
+}

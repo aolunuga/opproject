@@ -1,0 +1,16 @@
+<prototype name="OpWorkCalendar" instance-class="onepoint.project.modules.calendars.OpWorkCalendar">
+
+   <field name="Name" type="String"/>
+   <field name="FirstWorkday" type="Integer"/>
+   <field name="LastWorkday" type="Integer"/>
+   <field name="WorkHoursPerDay" type="Double"/>
+   <field name="HolidayCalendarId" type="String"/>
+   <field name="HolidaysAreWorkdays" type="Boolean" default="false"/>
+   <field name="DefaultCalendar" type="Boolean" default="false"/>
+
+   <relationship name="Resources" type="OpResource" collection-type="Set" back-relationship="WorkCalendar" inverse="true"/>
+   <relationship name="ResourcePools" type="OpResourcePool" collection-type="Set" back-relationship="WorkCalendar" inverse="true"/>
+   <relationship name="ProjectPlans" type="OpProjectPlan" collection-type="Set" back-relationship="WorkCalendar" inverse="true"/>
+   <relationship name="ProjectPlanVersions" type="OpProjectPlanVersion" collection-type="Set" back-relationship="WorkCalendar" inverse="true"/>
+   
+</prototype>

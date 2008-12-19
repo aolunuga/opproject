@@ -1,0 +1,12 @@
+<locale-map>
+   <locale language="en" country="US" name="English (US &amp; Canada)"/>
+   <locale language="en" country="GB" name="English (UK)"/>
+   <locale language="en" country="DE" name="English (Europe)"/>
+   <locale language="de"/>
+   <locale language="de" country="CH" name="Deutsch (Schweiz)"/>
+   <locale language="ru"/>
+   <locale language="it"/>
+   <locale language="fr"/>      
+   <locale language="fr" country="CH" name="Francais (Suisse)"/>
+   <locale language="es"/>
+</locale-map>

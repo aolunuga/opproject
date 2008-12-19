@@ -1,0 +1,442 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+
+require "onepoint/project/modules/project/scripts/open_project_chooser.jes";
+require "onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/scripts/lazyLoad.jes";
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XExtendedComponent;
+import onepoint.express.XValidator;
+
+function newPool(event) {
+
+   // Check if pool is selected
+   resource_data_set = XDisplay.getActiveForm().findComponent("ResourceDataSet");
+   selected_rows = resource_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+      is_pool = descriptor.equals("p");
+      if (is_pool) {
+         parameters.super_pool_id = selected_rows[0].getStringValue();
+         parameters.super_pool_index = selected_rows[0].getIndex();
+      }
+   }
+
+   dialog = XComponent.newDialog();
+   dialog.setText("Neuer Pool");
+   openNewPoolDialog(dialog, parameters);
+}
+
+function openNewPoolDialog(dialog, parameters) {
+   dialog.open("/modules/resource/forms/new_pool.oxf.xml", parameters);
+}
+
+function newResource(event) {
+
+   // Check if pool is selected
+   resource_data_set = XDisplay.getActiveForm().findComponent("ResourceDataSet");
+   selected_rows = resource_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+      is_pool = descriptor.equals("p");
+      if (is_pool) {
+         parameters.pool_id = selected_rows[0].getStringValue();
+         parameters.pool_index = selected_rows[0].getIndex();
+      }
+   }
+
+   dialog = XComponent.newDialog();
+   dialog.setText("Neue Ressource");
+   openNewDialog(dialog, parameters);
+}
+
+function openNewDialog(dialog, parameters) {
+   dialog.open("/modules/resource/forms/new_resource.oxf.xml", parameters);
+}
+
+function move(event) {
+   resource_data_set = XDisplay.getActiveForm().findComponent("ResourceDataSet");
+   selected_rows = resource_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      notSelectableIds = new ArrayList;
+      i = 0;
+      while (i < selected_rows.size()) {
+         row = selected_rows[i];
+         id = XValidator.choiceID(row.getStringValue());
+         notSelectableIds.add(id);
+         i++;
+      }
+      openResourceChooser("MainFrame", "moveResourceOK", null, false, true, false, notSelectableIds);
+   }
+}
+
+function moveResourceOK(selectedPools) {
+   targetPoolId = XValidator.choiceID(selectedPools[0].getStringValue());
+
+   resource_data_set = XDisplay.findFrame("MainFrame").currentForm().findComponent("ResourceDataSet");
+   selected_rows = resource_data_set.selectedRows();
+   firstErrorResponse = null;
+
+   //assign the pools
+   poolIds = getPoolIds(selected_rows);
+   request = new XMessage;
+   request.setAction("ResourceService.movePoolNode");
+   request.setArgument("pool_ids", poolIds);
+   request.setArgument("super_pool_id", targetPoolId);
+   response = XDisplay.getClient().invokeMethod(request);
+   if (response.getError() != null && firstErrorResponse == null) {
+      firstErrorResponse = response;
+   }
+
+   //assign the resources
+   resourceIds = getResourceIds(selected_rows, poolIds);
+   request = new XMessage;
+   request.setAction("ResourceService.moveResourceNode");
+   request.setArgument("resource_ids", resourceIds);
+   request.setArgument("pool_id", targetPoolId);
+   response = XDisplay.getClient().invokeMethod(request);
+   if (response.getError() != null && firstErrorResponse == null) {
+      firstErrorResponse = response;
+   }
+
+   if (firstErrorResponse != null) {
+      showWarning(firstErrorResponse, true, "MainFrame", "refreshForm", null);
+   }
+   else {
+      refreshForm();
+   }
+}
+
+function refreshForm() {
+   XDisplay.findFrame("MainFrame").refreshForm();
+}
+
+/**
+ * Gets all the pools from a list of selected rows.
+ */
+function getPoolIds(selectedRows) {
+   result = new ArrayList;
+   rowsList = new ArrayList;
+   i = 0;
+   while (i < selectedRows.size()) {
+      selectedRow = selectedRows[i];
+      descriptor = selectedRow.getChild(0).getStringValue();
+      isPool = descriptor.equals("p");
+      if (isPool) {
+         currentId = selectedRow.getStringValue();
+
+         //make sure none of the children of the given pool are selected
+         childrenIds = getChildrenIds(selectedRow);
+         j = 0;
+         while (j < childrenIds.size()) {
+            childId = childrenIds[j];
+            if (result.contains(childId)) {
+               result.remove(childId);
+            }
+            j++;
+         }
+         result.add(currentId);
+
+         //if any of the parents of the given row is selected, remove the current row
+         parentIds = getParentIds(selectedRow);
+         j = 0;
+         while (j < parentIds.size()) {
+            parentId = parentIds[j];
+            if (result.contains(parentId)) {
+               result.remove(currentId);
+               //break
+               j = parentIds.size();
+            }
+            else {
+               j++;
+            }
+         }
+      }
+      i++;
+   }
+
+   return result;
+}
+
+/**
+ * Returns a list of resource ids whose parent pools aren't found among the given list of pools.
+ */
+function getResourceIds(selectedRows, poolIds) {
+   result = new ArrayList;
+   i = 0;
+   while (i < selectedRows.size()) {
+      selectedRow = selectedRows[i];
+      descriptor = selectedRow.getChild(0).getStringValue();
+      isResource = descriptor.equals("r");
+      if (isResource) {
+         parentIds = getParentIds(selectedRow);
+         foundAmongstPools = false;
+         j = 0;
+         while (j < parentIds.size()) {
+            poolId = parentIds[j];
+            if (poolIds.contains(poolId)) {
+               foundAmongstPools = true;
+               //some sort of break....
+               j = parentIds.size();
+            }
+            else {
+               j++;
+            }
+         }
+         if (!foundAmongstPools) {
+            result.add(selectedRow.getStringValue());
+         }
+      }
+      i++;
+   }
+   return result;
+}
+
+/**
+ * Returns a List<String> with all the ids (recursively) of the parents of a data-row inside a data-set.
+ */
+function getParentIds(row) {
+   result = new ArrayList;
+   parentRow = row.getParentInDataSet();
+   while (parentRow.getOutlineLevel() > 0) {
+      result.add(parentRow.getStringValue());
+      parentRow = parentRow.getParentInDataSet();
+   }
+   result.add(parentRow.getStringValue());
+   return result;
+}
+
+/**
+ * Returns a List<String> with all the ids of the children of the given row
+ */
+function getChildrenIds(row) {
+   result = new ArrayList;
+   i = 0;
+   subRows = row.getSubRows();
+   while (i < subRows.size()) {
+      result.add(subRows[i].getStringValue());
+      i++;
+   }
+   return result;
+}
+
+function edit(event) {
+   resource_data_set = XDisplay.getActiveForm().findComponent("ResourceDataSet");
+   if (resource_data_set != null) {
+      selected_rows = resource_data_set.selectedRows();
+      if (selected_rows.size() > 0) {
+         parameters.edit_mode = true;
+         descriptor = selected_rows[0].getChild(0).getStringValue();
+         is_pool = descriptor.equals("p");
+         if (is_pool) {
+            parameters.pool_id = selected_rows[0].getStringValue();
+            dialog = XComponent.newDialog();
+            openEditPoolDialog(dialog, parameters);
+         }
+         else {
+            parameters.resource_id = selected_rows[0].getStringValue();
+            dialog = XComponent.newDialog();
+            openEditDialog(dialog, parameters);
+         }
+      }
+   }
+}
+
+function openEditPoolDialog(dialog, parameters) {
+   dialog.open("/modules/resource/forms/edit_pool.oxf.xml", parameters);
+}
+
+function openEditDialog(dialog, parameters) {
+   dialog.open("/modules/resource/forms/edit_resource.oxf.xml", parameters);
+}
+
+function delete(event) {
+   resource_data_set = XDisplay.getActiveForm().findComponent("ResourceDataSet");
+   selected_rows = resource_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      parameters.resource_ids = selected_rows;
+      dialog = XComponent.newDialog();
+      dialog.open("/modules/resource/forms/confirm_resource_delete.oxf.xml", parameters);
+   }
+}
+
+function assignToProject(event) {
+   // Assign multiple resources to a single super project
+   resource_data_set = XDisplay.getActiveForm().findComponent("ResourceDataSet");
+   selected_rows = resource_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      openProjectChooser("MainFrame", "assignToProjectOK", null, null, true, false, false, null, true, null);
+   }
+}
+
+function assignToProjectOK(projectChoices) {
+   mainFrame = XDisplay.findFrame("MainFrame");
+   projectsForm = mainFrame.currentForm();
+   resource_data_set = projectsForm.findComponent("ResourceDataSet");
+   selected_rows = resource_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      i = 0;
+      while (i < selected_rows.size()) {
+         resources[i] = selected_rows[i].getStringValue();
+         i++;
+      }
+      projectIds = new ArrayList;
+      j = 0;
+      while (j < projectChoices.size()) {
+         projectId = XValidator.choiceID(projectChoices[j]);
+         projectIds[j] = projectId;
+         j++;
+      }
+      request = new XMessage;
+      request.setAction("ResourceService.assignToProject");
+      request.setArgument("resource_ids", resources);
+      request.setArgument("project_ids", projectIds);
+      response = XDisplay.getClient().invokeMethod(request);
+      /*handle warning if exists*/
+      warning = response.getArgument("warning");
+      if (warning != null) {
+         if (warning) {
+            handleResponse(response, null, null);
+         }
+      }
+   }
+}
+
+function assignToProject_NewEdit(projectIds) {
+   form = XDisplay.getActiveForm();
+   if (form != null) {
+      i = 0;
+      while (i < projectIds.size()) {
+         projectChoice = projectIds[i];
+         assignedProjects = form.findComponent("AssignedProjectDataSet");
+         dataRow = assignedProjects.newDataRow();
+         dataRow.setStringValue(projectChoice);
+         assignedProjects.addChild(dataRow);
+         i++;
+      }
+      assigned_project_list_box = form.findComponent("AssignedProjectListBox");
+      assigned_project_list_box.update();
+   }
+}
+
+function importUser(event) {
+   // Check if pool is selected
+   resource_data_set = XDisplay.getActiveForm().findComponent("ResourceDataSet");
+   selected_rows = resource_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+      is_pool = descriptor.equals("p");
+      if (is_pool) {
+         parameters.pool_id = selected_rows[0].getStringValue();
+      }
+   }
+
+   dialog = XComponent.newDialog();
+   dialog.open("/modules/resource/forms/import_user.oxf.xml", parameters);
+}
+
+/**
+ * Event handler triggered when selecting a table row.
+ */
+function selectionChanged(event) {
+   //project form
+   form = XDisplay.getActiveForm();
+   //toolbar
+   toolbar = form.findComponent("ResourceToolbar");
+
+   //toolbar buttons
+   newPoolButton = form.findComponent("NewPoolButton");
+   newPoolButton.setEnabled(true);
+   newResourceButton = form.findComponent("NewResourceButton");
+   newResourceButton.setEnabled(true);
+   propertiesButton = form.findComponent("PropertiesButton");
+   propertiesButton.setEnabled(true);
+   moveButton = form.findComponent("MoveButton");
+   moveButton.setEnabled(true);
+   assignToProjectButton = form.findComponent("AssignToProjectButton");
+   
+   assignToProjectButton.setEnabled(true);
+   deleteButton = form.findComponent("DeleteButton");
+   deleteButton.setEnabled(true);
+   importUserButton = form.findComponent("ImportUserButton");
+   importUserButton.setEnabled(true);
+
+   //permissions
+   rootPoolPermission = form.findComponent("RootPoolPermission").getByteValue();
+   managerPermission = form.findComponent("ManagerPermission").getByteValue();
+
+   tableRow = event.event_source;
+   dataRow = tableRow.getDataComponent();
+   if (dataRow != null) {
+      descriptor = dataRow.getChild(0).getStringValue();
+      effectiveNodePermission = dataRow.getChild(3).getByteValue();
+      if (descriptor.equals("p")) {
+         //pool was selected
+         if (effectiveNodePermission < managerPermission) {
+            //the user isn't at least manager on the selected node
+            newPoolButton.setEnabled(false);
+            newResourceButton.setEnabled(false);
+            importUserButton.setEnabled(false);
+         }
+      }
+      else {
+         //resource was selected
+         if (rootPoolPermission < managerPermission) {
+            //the user isn't at least manager on the root portfolio
+            newPoolButton.setEnabled(false);
+            newResourceButton.setEnabled(false);
+            importUserButton.setEnabled(false);
+         }
+      }
+
+      //these buttons apply to all types of project nodes
+      if (effectiveNodePermission < managerPermission) {
+         //the user isn't at least manager on the selected node
+         moveButton.setEnabled(false);
+         assignToProjectButton.setEnabled(false);
+      }
+
+      //for the delete button we must also check parent permissions
+      parentRow = dataRow.getParentInDataSet();
+      effectiveParentPermission = parentRow.getChild(3).getByteValue();
+      if (effectiveParentPermission < managerPermission) {
+         deleteButton.setEnabled(false);
+      }
+
+   }
+   toolbar.doLayout();
+   toolbar.repaint();
+}
+
+
+function expandDataSet(event) {
+
+   sourcePool = event.expand_source;
+   outlineLevel = sourcePool.getOutlineLevel();
+   dataSet = sourcePool.getParent();
+   locator = sourcePool.getStringValue();
+
+   //FIXME author="Mihai Costin" description="Not the best way to obtain the form"
+   form = dataSet.getParent();
+
+   resourceSelector = form.findComponent("resourceColumnsSelector").getValue();
+   poolSelector = form.findComponent("poolColumnsSelector").getValue();
+
+   request = new XMessage;
+   request.setAction("ResourceService.expandResourcePool");
+   request.setArgument("source_pool_locator", locator);
+   request.setArgument("outlineLevel", outlineLevel);
+   request.setArgument("resourceColumnsSelector", resourceSelector);
+   request.setArgument("poolColumnsSelector", poolSelector);
+   request.setArgument("addArchivedResources", true);
+
+
+   expandNode(sourcePool, 4, request);
+}
+

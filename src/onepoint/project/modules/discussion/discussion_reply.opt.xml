@@ -1,0 +1,4 @@
+<prototype name="OpDiscussionReply" instance-class="onepoint.project.modules.discussion.OpDiscussionReply" super-type="OpDiscussionArticle">
+   <relationship name="Article" type="OpDiscussionArticle" back-relationship="Replies" recursive="true" mandatory="true"/>
+   <relationship name="Thread" type="OpDiscussionThread" back-relationship="FollowUps" recursive="true" mandatory="true"/>
+</prototype>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="it">
+    <resource-map id="project_status.module">
+         <resource id="Customize">PERSONALIZZA</resource>
+        <resource id="ProjectStatusTool">Stato del progetto</resource>
+    </resource-map>
+    <resource-map id="project_status.project_status">
+        <resource id="NewProjectStatus">Nuovo stato del progetto</resource>
+        <resource id="Properties">Poprietà</resource>
+        <resource id="Delete">Elimina</resource>
+        <resource id="Up">Sposta in alto</resource>
+        <resource id="Down">Sposta in basso</resource>
+        <resource id="Name">Nome</resource>
+        <resource id="Description">Descrizione</resource>
+        <resource id="Color">Colore</resource>
+        <resource id="NewProjectStatusTooltip">Crea nuovo stato di progetto</resource>
+        <resource id="InfoTooltip">Vedi informazioni addizionali per lo stato di progetto selezionato</resource>
+        <resource id="DeleteTooltip">Elimina gli oggetti di stato selezionati del progetto</resource>
+        <resource id="UpTooltip">Sposta in alto gli oggetti stato di progetto selezionati</resource>
+        <resource id="DownTooltip">Sposta in basso gli oggetti stato di progetto selezionati</resource>
+    </resource-map>
+    <resource-map id="project_status.new">
+        <resource id="NewProjectStatus">Nuovo stato di progetto</resource>
+        <resource id="Name">Nome</resource>
+        <resource id="Description">Descrizione</resource>
+        <resource id="Color">Colore</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Annulla</resource>
+    </resource-map>
+    <resource-map id="project_status.edit">
+        <resource id="EditProjectStatus">Modifica stato del progetto</resource>
+        <resource id="Name">Nome</resource>
+        <resource id="Description">Descrizione</resource>
+        <resource id="Color">Colore</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Annulla</resource>
+    </resource-map>
+    <resource-map id="project_status.Info">
+        <resource id="InfoProjectStatus">Proprietà dello stato del progetto</resource>
+    </resource-map>
+    <resource-map id="project_status.delete">
+        <resource id="ConfirmDelete">Elimina oggetti stato di progetto</resource>
+        <resource id="NoSelectionMessage">Selezionare uno o più oggetti stato di progetto che devono essere eliminati</resource>
+        <resource id="ConfirmDeleteOneMessage">Vuoi davvero eliminare lo stato di progetto selezionato?</resource>
+        <resource id="ConfirmDeleteMultipleMessage">Vuoi davvero eliminare gli oggetti stato di progetto selezionati?</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Annulla</resource>
+    </resource-map>
+    <resource-map id="project_status.error">
+        <resource id="StatusNameNotSpecified">Il nome dello stato di progetto non è stato specificato</resource>
+        <resource id="StatusNameNotUnique">Il nome di stato di progetto è già stato utilizzato</resource>
+        <resource id="StatusNotFound">Lo stato di progetto non è stato trovato</resource>
+        <resource id="InsufficientPrivileges">Solamente l'amministratore è autorizzato a gestire gli oggetti stato di progetto</resource>
+    </resource-map>
+</language-kit>

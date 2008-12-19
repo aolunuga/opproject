@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="ru">
+    <resource-map id="main.login">
+        <resource id="Login">Регистрация</resource>
+        <resource id="Password">Пароль</resource>
+        <resource id="Remember">Запомнить меня на этом компьютере</resource>
+        <resource id="OK">OK</resource>
+    </resource-map>
+    <resource-map id="main.levels">
+        <resource id="runLevel0">Не может загрузить конфигурационный файл</resource>
+        <resource id="runLevel1">Не может загрузить зарегистрированные модули</resource>
+        <resource id="runLevel2">Нельзя сконфигурировать постоянную поддержку для доступа в базу данных</resource>
+        <resource id="runLevel3">Архивная структура не может быть создана</resource>
+        <resource id="runLevel4">Не может обновить схему базы данных</resource>
+        <resource id="runLevel5">Не может стартовать зарегистрированные модули</resource>
+    </resource-map>
+    <resource-map id="main.header">
+        <resource id="ClearResourceCache">Почистить кэш с ресурсом</resource>
+        <resource id="ClearImageCache">Очистить кэш с образом</resource>
+        <resource id="GetBandwidthInfo">Показать информацию о пропускной способности</resource>
+        <resource id="SignOff">Выйти</resource>
+        <resource id="SystemSettingsToolTip">Параметры системы</resource>
+        <resource id="Quit">Выйти из системы</resource>
+    </resource-map>
+    <resource-map id="main.dock">
+        <resource id="ToolDock">СТЫК ИНСТРУМЕНТА</resource>
+    </resource-map>
+    <resource-map id="main.about">
+        <resource id="OK">Подтвердить</resource>
+        <resource id="About">О проекте Onepoint</resource>
+        <resource id="Version">Версия:</resource>
+        <resource id="Build">Создан на:</resource>
+        <resource id="CurrentVersion">Текущая версия:</resource>
+    </resource-map>
+    <resource-map id="main.bandwidth">
+        <resource id="OK">Подтвердить</resource>
+        <resource id="BandwidthInfo">Измеренная пропускная способность (Кб/с)</resource>
+        <resource id="MinVal">Минимум</resource>
+        <resource id="MaxVal">Максимум</resource>
+        <resource id="AvgVal">Средняя величина</resource>
+    </resource-map>
+    <resource-map id="main.error">
+        <resource id="Error">Ошибка</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Warning">Предупреждение</resource>
+        <resource id="SessionExpired">Ваша пользовательская сессия истекла. Пожалуйста зарегистрируйтесь заново.</resource>
+        <resource id="InsuficientViewPermissions">Вы не имеете достаточных привелегий для просмотра этой информации</resource>
+        <resource id="InvalidSession">Вы должны быть зарегистрированным для просмотра этой информации</resource>
+        <resource id="InvalidFileURL">Нелься открыть файл по причине неправильного формата запроса</resource>
+    </resource-map>
+    <resource-map id="main.confirmation">
+        <resource id="Confirmation">Подтверждение</resource>
+        <resource id="OK">Подтвердить</resource>
+        <resource id="Yes">Да</resource>
+        <resource id="No">Нет</resource>
+        <resource id="Cancel">Отменить</resource>
+    </resource-map>
+    <resource-map id="main.lockFileExistsDialog">
+        <resource id="lockFileExistsTitle">Файл блокировки обнаружен</resource>
+        <resource id="lockFileExists">Файл блокировки сущестиует!
+      Это может указывать на то, что другой работает проект Onepoint.
+      Щелчок кнопки "Подтвердить" проигнорирует файл блокировки и продолжит запуск проекта
+      Если Вы щелкаете на 'Отменить', Вы выйдитет из проекта Onepoint.</resource>
+    </resource-map>
+    <resource-map id="dialog.error">
+        <resource id="MandatoryValue">&lt;Метка&gt; обязательна</resource>
+        <resource id="IvnalidFormat">Формат &lt;метки&gt; неправильный</resource>
+        <resource id="InternalError">Произошла внутренняя ошибка</resource>
+    </resource-map>
+    <resource-map id="attachments.AttachmentChooser">
+        <resource id="SelectDocument">Выбрать документ</resource>
+        <resource id="Name">Имя</resource>
+        <resource id="Linked">Ссылка</resource>
+        <resource id="Location">Местоположение</resource>
+        <resource id="Select">Выбрать</resource>
+        <resource id="InvalidAttachmentSize">Размер документа превышает максимально допущенный лимит</resource>
+        <resource id="ChooseDocument">Выбрать документ</resource>
+        <resource id="Cancel">Отменить</resource>
+        <resource id="OK">Подтвердить</resource>
+    </resource-map>
+    <resource-map id="calendar.chooser">
+        <resource id="SelectCalendar">(Выбрать календарь)</resource>
+    </resource-map>
+</language-kit>

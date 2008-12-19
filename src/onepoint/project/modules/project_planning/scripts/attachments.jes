@@ -1,0 +1,178 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+/**
+ * Script that handles activity attachments.
+ *
+ * @author Horia Chiorean
+ */
+require "onepoint/project/scripts/error.jes";
+
+import onepoint.express.XValidator;
+import onepoint.express.XDisplay;
+
+function addURL(event) {
+   dialog = XComponent.newDialog();
+   dialog.setText("URL Attachment hinzufügen");
+   form = dialog.loadForm("/modules/project_planning/forms/add_url.oxf.xml");
+   dialog.open();
+}
+
+function addDocument(event) {
+   dialog = XComponent.newDialog();
+   dialog.setText("Dokument Attachment hinzufügen");
+   form = dialog.loadForm("/modules/project_planning/forms/add_document.oxf.xml");
+   dialog.open();
+}
+
+function remove(event) {
+   data_set = XDisplay.getActiveForm().findComponent("AttachmentSet");
+   selected_rows = data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      data_set.removeDataRows(selected_rows);
+      XDisplay.getActiveForm().findComponent("AttachmentList").update();
+   }
+}
+
+function edit(event) {
+   form = XDisplay.getActiveForm();
+   data_set = form.findComponent("AttachmentSet");
+   selected_rows = data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+      isDocument = descriptor.equals("d");
+
+      parameters.name = XValidator.choiceCaption(selected_rows[0].getChild(1).getStringValue());
+      parameters.location = selected_rows[0].getChild(2).getStringValue();
+      dialog = XComponent.newDialog();
+      if (isDocument) {
+         dialog.open("/modules/project_planning/forms/edit_document.oxf.xml", parameters);
+      }
+      else {
+         dialog.open("/modules/project_planning/forms/edit_url.oxf.xml", parameters);
+      }
+   }
+}
+
+function view(event) {
+   form = XDisplay.getActiveForm();
+   data_set = form.findComponent("AttachmentSet");
+   selected_rows = data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      row = selected_rows[0];
+
+      //0 - type
+      data_cell = row.getChild(0);
+      type = data_cell.getStringValue();
+
+      //1 - choice[name, id]
+      data_cell = row.getChild(1);
+      id = XValidator.choiceID(data_cell.getStringValue());
+      name = XValidator.choiceCaption(data_cell.getStringValue());
+
+      //2 - location
+      data_cell = row.getChild(2);
+      location = data_cell.getStringValue();
+
+      if (type == "d") {
+         if (id != "0") {
+            request = new XMessage;
+            request.setAction("PlanningService.prepareAttachment");
+            request.setArgument("attachment_id", id);
+            response = XDisplay.getClient().invokeMethod(request);
+            label = form.getErrorLabel();
+            if (handleError(form, response, label) == true) {
+               attachmentUrl = response.getArgument("attachmentUrl");
+               contentId = response.getArgument("contentId");
+               XDisplay.showDocument(attachmentUrl, contentId);
+            }
+         }
+         else {
+            content = row.getChild(3).getValue();
+            parameters.content = content;
+            parameters.fileName = location;
+
+            request = new XMessage;
+            request.setAction("PlanningService.createTemporaryFile");
+            request.setArgument("parameters", parameters);
+            response = XDisplay.getClient().invokeMethod(request);
+
+            attachmentUrl = response.getArgument("attachmentUrl");
+            contentId = response.getArgument("contentId");
+
+            //add the content id to the component that contains all the ids of the newly created and viewed contents
+            viewedContents = form.findComponent("ViewedNewContents");
+            if(viewedContents != null) {
+               if(viewedContents.getValue() == null) {
+                  viewedContentsList = new ArrayList;
+                  viewedContents.setListValue(viewedContentsList);
+               }
+               viewedContentsList = viewedContents.getValue();
+               if (!viewedContentsList.contains(contentId)) {
+                  viewedContentsList.add(contentId);
+               }
+            }
+
+            row.getChild(3).setValue(contentId);
+            XDisplay.showDocument(attachmentUrl, contentId);
+         }
+      }
+      else {
+         XDisplay.showURL(location, name);
+      }
+   }
+}
+
+function getAttachments() {
+   form = XDisplay.getActiveForm();
+   att = form.findComponent("AttachmentSet");
+   att_array = new ArrayList;
+   i = 0;
+   while (i < att.getChildCount()) {
+      arr = new ArrayList;
+      data_row = att.getChild(i);
+
+      //0 - type
+      type = data_row.getChild(0).getStringValue();
+      arr.add(type);
+
+      //1 - choice
+      data_cell = data_row.getChild(1);
+      choice = data_cell.getStringValue();
+      arr.add(choice);
+
+      //2 - name
+      name = XValidator.choiceCaption(data_cell.getStringValue());
+      arr.add(name);
+
+      //3 - location
+      location = data_row.getChild(2).getStringValue();
+      arr.add(location);
+
+      //for documents only
+      if (type.equals("d")) {
+         //4 - contentId
+         arr.add(data_row.getChild(3).getValue());
+      }
+
+      att_array.add(arr);
+      i++;
+   }
+   return att_array;
+}
+
+function updateAttachmentsSetFromList(list) {
+   form = XDisplay.getActiveForm();
+   att = form.findComponent("AttachmentSet");
+   i = 0;
+   while (i < list.size()) {
+      elementList = list.get(i);
+      dataRow = att.getChild(i);
+      //set the content id (the last element in the list) on the data row (the last cell of the data row)
+      dataCell = dataRow.getChild(dataRow.getChildCount() - 1);
+      dataCell.setValue(elementList.get(elementList.size() - 1));
+      i++;
+   }
+}
+

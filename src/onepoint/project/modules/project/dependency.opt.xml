@@ -1,0 +1,6 @@
+<prototype name="OpDependency" instance-class="onepoint.project.modules.project.OpDependency">
+   <field name="Type" type="Integer" default="0"/>
+   <relationship name="ProjectPlan" type="OpProjectPlan" back-relationship="Dependencies"/>
+   <relationship name="PredecessorActivity" type="OpActivity" back-relationship="SuccessorDependencies"/>
+   <relationship name="SuccessorActivity" type="OpActivity" back-relationship="PredecessorDependencies"/>
+</prototype>

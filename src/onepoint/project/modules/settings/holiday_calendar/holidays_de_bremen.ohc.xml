@@ -1,0 +1,57 @@
+<holiday-calendars location="de_bremen" label="Deutschland (Bremen)">
+   <holiday-calendar year="2008">
+      <holiday date="01-01" name="Neujahr"/>
+      <holiday date="03-21" name="Karfreitag"/>
+      <holiday date="03-24" name="Ostermontag"/>
+      <holiday date="05-01" name="Maifeiertag"/>
+      <holiday date="05-01" name="Christi Himmelfahrt"/>
+      <holiday date="05-12" name="Pfingstmontag"/>
+      <holiday date="10-03" name="Tag der Deutschen Einheit"/>
+      <holiday date="12-25" name="1. Weihnachtstag"/>
+      <holiday date="12-26" name="2. Weihnachtstag"/>
+   </holiday-calendar>
+   <holiday-calendar year="2009">
+      <holiday date="01-01" name="Neujahr"/>
+      <holiday date="04-10" name="Karfreitag"/>
+      <holiday date="04-13" name="Ostermontag"/>
+      <holiday date="05-01" name="Maifeiertag"/>
+      <holiday date="05-21" name="Christi Himmelfahrt"/>
+      <holiday date="06-01" name="Pfingstmontag"/>
+      <holiday date="10-03" name="Tag der Deutschen Einheit"/>
+      <holiday date="12-25" name="1. Weihnachtstag"/>
+      <holiday date="12-26" name="2. Weihnachtstag"/>
+   </holiday-calendar>
+   <holiday-calendar year="2010">
+      <holiday date="01-01" name="Neujahr"/>
+      <holiday date="04-02" name="Karfreitag"/>
+      <holiday date="04-05" name="Ostermontag"/>
+      <holiday date="05-01" name="Maifeiertag"/>
+      <holiday date="05-13" name="Christi Himmelfahrt"/>
+      <holiday date="05-24" name="Pfingstmontag"/>
+      <holiday date="10-03" name="Tag der Deutschen Einheit"/>
+      <holiday date="12-25" name="1. Weihnachtstag"/>
+      <holiday date="12-26" name="2. Weihnachtstag"/>
+   </holiday-calendar>
+   <holiday-calendar year="2011">
+      <holiday date="01-01" name="Neujahr"/>
+      <holiday date="04-22" name="Karfreitag"/>
+      <holiday date="04-25" name="Ostermontag"/>
+      <holiday date="05-01" name="Maifeiertag"/>
+      <holiday date="06-02" name="Christi Himmelfahrt"/>
+      <holiday date="06-13" name="Pfingstmontag"/>
+      <holiday date="10-03" name="Tag der Deutschen Einheit"/>
+      <holiday date="12-25" name="1. Weihnachtstag"/>
+      <holiday date="12-26" name="2. Weihnachtstag"/>
+   </holiday-calendar>
+   <holiday-calendar year="2012">
+      <holiday date="01-01" name="Neujahr"/>
+      <holiday date="04-06" name="Karfreitag"/>
+      <holiday date="04-09" name="Ostermontag"/>
+      <holiday date="05-01" name="Maifeiertag"/>
+      <holiday date="05-17" name="Christi Himmelfahrt"/>
+      <holiday date="05-28" name="Pfingstmontag"/>
+      <holiday date="10-03" name="Tag der Deutschen Einheit"/>
+      <holiday date="12-25" name="1. Weihnachtstag"/>
+      <holiday date="12-26" name="2. Weihnachtstag"/>
+   </holiday-calendar>
+</holiday-calendars>

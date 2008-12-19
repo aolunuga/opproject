@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="fr">
+    <resource-map id="report.work_report">
+        <resource id="PrintTitle">Rapport d'Activité</resource>
+        <resource id="User">Utilisateur</resource>
+        <resource id="Select">Choisir</resource>
+        <resource id="Start">Début</resource>
+        <resource id="Finish">Fin</resource>
+        <resource id="Date">Date</resource>
+        <resource id="Resource">Ressource</resource>
+        <resource id="Hours">Effort (h)</resource>
+        <resource id="Costs">Pers. ({CurrencySymbol})</resource>
+        <resource id="Travel">{Travel} ({CurrencySymbol})</resource>
+        <resource id="Material">{Material} ({CurrencySymbol})</resource>
+        <resource id="External">{External} ({CurrencySymbol})</resource>
+        <resource id="Miscellaneous">{Miscellaneous} ({CurrencySymbol})</resource>
+        <resource id="TotalHours">Effort Total (h)</resource>
+        <resource id="InvalidUser">Merci de choisir un utilisateur</resource>
+        <resource id="SaveCSV">Enregistrer en Tableau...</resource>
+        <resource id="SaveImage">Enregistrer en Image...</resource>
+        <resource id="InvalidStart">La date de début est invalide</resource>
+        <resource id="InvalidFinish">La date de fin est invalide</resource>
+    </resource-map>
+</language-kit>

@@ -1,0 +1,4 @@
+<service name="MindMeisterService" class="onepoint.project.modules.external_applications.MindMeister.OpMindMeisterService" interceptor="onepoint.project.OpServiceInterceptor">
+   <method name="createApplicationToken">
+   </method>
+</service>

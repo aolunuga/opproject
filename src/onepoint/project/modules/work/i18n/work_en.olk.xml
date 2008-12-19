@@ -1,0 +1,234 @@
+<language-kit locale="en">
+   <resource-map id="work.module">
+      <resource id="WorkTool">Work Slips</resource>
+   </resource-map>
+   <resource-map id="work.work_slips">
+      <resource id="NewWorkSlip">New Work Slip</resource>
+      <resource id="Info">Properties</resource>
+      <resource id="Delete">Delete</resource>
+      <resource id="Number">Number</resource>
+      <resource id="Resource">Resource</resource>
+      <resource id="Date">Date</resource>
+      <resource id="TotalEffort">Total Effort</resource>
+
+      <resource id="NewWorkSlipTooltip">Create new work slip</resource>
+      <resource id="InfoTooltip">View meta information for the selected work slip</resource>
+      <resource id="DeleteTooltip">Delete selected work slips</resource>
+
+      <resource id="Time">Time Period</resource>
+      <resource id="CurrentWeek">This Week</resource>
+      <resource id="PreviousWeek">Previous Week</resource>
+      <resource id="CurrentMonth">Current Month</resource>
+      <resource id="PreviousMonth">Previous Month</resource>
+      <resource id="CurrentYear">Current Year</resource>
+      <resource id="All">All</resource>
+      
+      <resource id="Lock">Lock</resource>
+      <resource id="Unlock">Unlock</resource>
+      <resource id="LockTooltip">Lock the selected workslips to enable controlling</resource>
+      <resource id="UnlockTooltip">Unlock the selected workslips to enable editing</resource>
+
+      <resource id="LockTooltip">Lock selected work slips</resource>
+      <resource id="UnlockTooltip">Unlock selected work slips</resource>
+
+      <resource id="TotalEffort">Effort (h)</resource>
+      <resource id="TotalOtherCosts0">{Travel} ({CurrencySymbol})</resource>
+      <resource id="TotalOtherCosts1">{Material} ({CurrencySymbol})</resource>
+      <resource id="TotalOtherCosts2">{External} ({CurrencySymbol})</resource>
+      <resource id="TotalOtherCosts3">{Miscellaneous} ({CurrencySymbol})</resource>
+
+      <resource id="Sunday">Sunday</resource>
+      <resource id="Monday">Monday</resource>
+      <resource id="Tuesday">Tuesday</resource>
+      <resource id="Wednesday">Wednesday</resource>
+      <resource id="Thursday">Thursday</resource>
+      <resource id="Friday">Friday</resource>
+      <resource id="Saturday">Saturday</resource>
+      <resource id="Weekday">Weekday</resource>
+
+      <resource id="State">State</resource>
+      
+   </resource-map>
+   <resource-map id="work.new_work_slip">
+      <resource id="NewWorkSlip">New Work Slip</resource>
+      <resource id="Date">Date</resource>
+      <resource id="Projects">Projects</resource>
+      
+      <resource id="Task">Task</resource>
+      <resource id="Project">Project</resource>
+      <resource id="AssignmentEffort">Planned</resource>
+      <resource id="Resource">Resource</resource>
+      <resource id="Effort">Effort</resource>
+      <resource id="Costs">Costs</resource>
+      <resource id="Worktime">Effort</resource>
+      <resource id="RemainingEffort">Remaining</resource>
+      <resource id="Material">{Material}</resource>
+      <resource id="Travel">{Travel}</resource>
+      <resource id="External">{External}</resource>
+      <resource id="Misc">{Miscellaneous}</resource>
+      <resource id="Comment">Comment</resource>
+      <resource id="Completed">Com.</resource>
+      <resource id="Hours">Hours</resource>
+      <resource id="AddHours">Add Hours Record</resource>
+      <resource id="RemoveHours">Remove Hours Record</resource>
+
+      <resource id="Time">Time Period</resource>
+      <resource id="Start">Start</resource>
+      <resource id="Finish">Finish</resource>
+      <resource id="Duration">Duration</resource>
+      <resource id="AddTime">Add Time Record</resource>
+      <resource id="RemoveTime">Remove Time Record</resource>
+
+      <resource id="CostType">Cost Type</resource>
+      <resource id="BaseCost">Planned</resource>
+      <resource id="ActualCost">Actual</resource>
+      <resource id="RemainingCost">Remaining</resource>
+      <resource id="AddCost">Add Cost Record</resource>
+      <resource id="RemoveCosts">Remove Cost Record</resource>
+      <resource id="ManageAttachmentTooltip">Manage Attachments</resource>
+
+      <resource id="StartBefore">Time period</resource>
+      <resource id="All">All</resource>
+      <resource id="Project">Project</resource>
+      <resource id="NextWeek">Next Week</resource>
+      <resource id="Next2Weeks">Next 2 Weeks</resource>
+      <resource id="NextMonth">Next Month</resource>
+      <resource id="Next2Months">Next 2 Months</resource>
+
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+
+      <!--Errors-->
+      <resource id="ProjectNameException">Invalid Project Name</resource>
+      <resource id="ActivityNameException">Invalid Activity Name</resource>
+      <resource id="ResourceNameException">Invalid Resource Name</resource>
+      <resource id="StartValueException">Start value is invalid</resource>
+      <resource id="FinishValueException">Finish value is invalid</resource>
+      <resource id="DurationValueException">Duration value incorrect</resource>
+      <resource id="IntervalsOverlapException">Duration intervals are overlapped for same assignment</resource>
+      <resource id="ActualEffortException">Actual effort is invalid</resource>
+      <resource id="RemainingEffortException">Remaining effort is invalid</resource>
+      <resource id="DuplicateEffortException">There are at least two work records on the same assignment</resource>
+      <resource id="CostTypeException">Cost type is invalid</resource>
+      <resource id="ActualCostException">Actual cost is invalid</resource>
+      <resource id="RemainingCostException">Remaining cost is invalid</resource>
+      <resource id="NotAllActionsDone">There is at least one open action left</resource>
+
+   </resource-map>
+
+   <resource-map id="work.edit_work_slip">
+      <resource id="EditWorkSlip">Edit Work Slip</resource>
+      <resource id="Date">Date</resource>
+      <resource id="Task">Task</resource>
+      <resource id="Project">Project</resource>
+      <resource id="AssignmentEffort">Planned</resource>
+      <resource id="Resource">Resource</resource>
+      <resource id="Effort">Effort</resource>
+      <resource id="Costs">Costs</resource>
+      <resource id="Worktime">Effort</resource>
+      <resource id="RemainingEffort">Remaining</resource>
+      <resource id="Material">{Material}</resource>
+      <resource id="Travel">{Travel}</resource>
+      <resource id="External">{External}</resource>
+      <resource id="Misc">{Miscellaneous}</resource>
+      <resource id="Comment">Comment</resource>
+      <resource id="Completed">Com.</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+      <resource id="AddWorkSlipActivity">Choose Activities to Add</resource>
+      <resource id="Hours">Hours</resource>
+      <resource id="AddHours">Add Hours Record</resource>
+      <resource id="RemoveHours">Remove Hours Record</resource>
+
+      <resource id="Time">Time</resource>
+      <resource id="Start">Start</resource>
+      <resource id="Finish">Finish</resource>
+      <resource id="Duration">Duration</resource>
+      <resource id="AddTime">Add Time Record</resource>
+      <resource id="RemoveTime">Remove Time Record</resource>
+
+      <resource id="CostType">Cost Type</resource>
+      <resource id="BaseCost">Planned</resource>
+      <resource id="ActualCost">Actual</resource>
+      <resource id="RemainingCost">Remaining</resource>
+      <resource id="AddCost">Add Cost Record</resource>
+      <resource id="RemoveCosts">Remove Cost Record</resource>
+      <resource id="ManageAttachmentTooltip">Manage Attachments</resource>
+
+      <!--Errors-->
+      <resource id="ProjectNameException">Invalid Project Name</resource>
+      <resource id="ActivityNameException">Invalid Activity Name</resource>
+      <resource id="ResourceNameException">Invalid Resource Name</resource>
+      <resource id="StartValueException">Start value is invalid</resource>
+      <resource id="FinishValueException">Finish value is invalid</resource>
+      <resource id="DurationValueException">Duration value incorrect</resource>
+      <resource id="IntervalsOverlapException">Duration intervals are overlapped for same assignment</resource>
+      <resource id="ActualEffortException">Actual effort is invalid</resource>
+      <resource id="RemainingEffortException">Remaining effort is invalid</resource>
+      <resource id="DuplicateEffortException">There are at least two work records on the same assignment</resource>
+      <resource id="CostTypeException">Cost type is invalid</resource>
+      <resource id="ActualCostException">Actual cost is invalid</resource>
+      <resource id="RemainingCostException">Remaining cost is invalid</resource>
+      <resource id="NotAllActionsDone">There is at least one open action left</resource>
+            
+   </resource-map>
+
+   <resource-map id="work.Info">
+      <resource id="WorkInfo">Work Slip Properties</resource>
+   </resource-map>
+
+   <resource-map id="work.manage_attachments">
+      <resource id="ManageAttachments">Manage Attachments</resource>
+      <resource id="AddDocumentAttachmentTooltip">Add document attachment</resource>
+      <resource id="AddLinkAttachmentTooltip">Add link attachment</resource>
+      <resource id="RemoveAttachmentTooltip">Delete attachment</resource>
+      <resource id="ViewAttachmentTooltip">View attachment</resource>
+      <resource id="Title">Title</resource>
+      <resource id="Location">Location</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+
+   <resource-map id="work.error">
+      <resource id="DateMissing">The work slip date was not specified</resource>
+      <resource id="CreatorMissing">The work slip creator was not specified</resource>
+      <resource id="WorkRecordsMissing">The work slip has no valid work or cost records</resource>
+      <resource id="DuplicateDate">A work slip for the specified date exists already</resource>
+      <resource id="IncorrectActualEffort">Incorrect Actual Effort</resource>
+      <resource id="IncorrectRemainingEffort">Incorrect Remaining Effort</resource>
+      <resource id="IncorrectMaterialCosts">Incorrect {Material} Costs</resource>
+      <resource id="IncorrectTravelCosts">Incorrect {Travel} Costs</resource>
+      <resource id="IncorrectExternalCosts">Incorrect {External} Costs</resource>
+      <resource id="IncorrectMiscellaneousCosts">Incorrect {Miscellaneous} Costs</resource>
+      <resource id="StartTimeIsNegative">Negative Start Time</resource>
+      <resource id="FinishTimeIsNegative">Negative Finish Time</resource>
+      <resource id="StartTimeIsTooLarge">Start Time is too large</resource>
+      <resource id="FinishTimeIsTooLarge">Finish Time is too large</resource>      
+      <resource id="StartAfterFinish">Start Time must be before the Finish Time</resource>
+      <resource id="DurationNotValid">Duration is not valid regarding the Start Time and Finish Time</resource>
+      <resource id="ActualCostsNotValid">Incorrect Actual Costs</resource>
+      <resource id="RemainingCostsNotValid">Incorrect Remaining Costs</resource>
+      <resource id="CostTypeNotValid">Incorrect Cost Type</resource>
+      
+      <resource id="WorkSlipNotEditable">Cannot edit Work Slip</resource>
+      <resource id="WorkSlipIsControlled">Work slip is controlled so editing is not possible</resource>
+      <resource id="WorkSlipPermissionDenied">You do not have manager permissions for all the resources of the seleted work slips</resource>
+      
+      <resource id="RemainingCostsOutdated">The remaining costs have changed while you where editing the workslip. Please reenter your data.</resource>
+   </resource-map>
+   <resource-map id="work.delete">
+      <resource id="ConfirmDelete">Delete Work Slips</resource>
+      <resource id="NoSelectionMessage">Please select one or more work slips which should be deleted.</resource>
+      <resource id="ConfirmDeleteOneMessage">Do you really want to delete the selected work slip?</resource>
+      <resource id="ConfirmDeleteMultipleMessage">Do you really want to delete the selected work slips?</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+   <resource-map id="work.costTypes">
+      <resource id="TravelCost">{Travel} Cost ({CurrencySymbol})</resource>
+      <resource id="MaterialCost">{Material} Cost ({CurrencySymbol})</resource>
+      <resource id="ExternalCost">{External} Cost ({CurrencySymbol})</resource>
+      <resource id="MiscellaneousCost">{Miscellaneous} Cost ({CurrencySymbol})</resource>
+   </resource-map>
+
+</language-kit>

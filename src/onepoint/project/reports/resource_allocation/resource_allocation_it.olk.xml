@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="it">
+    <resource-map id="report.resource_allocation">
+        <resource id="Project">Seleziona progetti</resource>
+        <resource id="Select">Seleziona</resource>
+        <resource id="Resource">Risorsa</resource>
+        <resource id="Effort">Impegno</resource>
+        <resource id="TotalEffort">Impegno totale</resource>
+        <resource id="InvalidProject">Seleziona un progetto</resource>
+        <resource id="QuickQueryNotAvailable">(Non è disponibile una query rapida per questo report)</resource>
+    </resource-map>
+</language-kit>

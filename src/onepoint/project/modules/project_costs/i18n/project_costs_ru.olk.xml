@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="ru">
+    <resource-map id="project_costs.module">
+        <resource id="ProjectCostsTool">Затраты</resource>
+    </resource-map>
+    <resource-map id="project_costs.project_costs">
+        <resource id="ProjectCosts">Затраты на проект</resource>
+        <resource id="Print">Печать</resource>
+        <resource id="PrintTooltip">Распечатать этот вид</resource>
+        <resource id="ActivityOrCostType">Деятельность/Вид издержек</resource>
+        <resource id="Base">Базовый ({CurrencySymbol})</resource>
+        <resource id="Actual">Фактический ({CurrencySymbol})</resource>
+        <resource id="Remaining">Остав. ({CurrencySymbol})</resource>
+        <resource id="Projected">Ожидаемый ({CurrencySymbol})</resource>
+        <resource id="Deviation">Отклонение ({CurrencySymbol})</resource>
+        <resource id="PercentageDeviation">Отклонение (%)</resource>
+        <resource id="Personnel">Персонал</resource>
+        <resource id="Travel">{Travel}</resource>
+        <resource id="Material">{Material}</resource>
+        <resource id="External">{External}</resource>
+        <resource id="Miscellaneous">{Miscellaneous}</resource>
+        <resource id="Proceeds">(Доход)</resource>
+        <resource id="SaveCSV">Сохранить как таблицу...</resource>
+        <resource id="SaveImage">Сохранить как изображение...</resource>
+        <resource id="Total">Итого</resource>
+        <resource id="ProjectPlanVersionFilter">Версия</resource>
+    </resource-map>
+</language-kit>

@@ -1,0 +1,84 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+// Controller script for edit_work_slip.oxf.xml
+
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/modules/work/scripts/work_slip_common.jes";
+require "onepoint/project/modules/work/scripts/work_time.jes";
+require "onepoint/project/modules/work/scripts/work_effort.jes";
+require "onepoint/project/modules/work/scripts/work_cost.jes";
+require "onepoint/project/modules/documents/scripts/content.jes";
+
+import onepoint.express.XComponent;
+import onepoint.express.XDisplay;
+import onepoint.express.XValidator;
+import onepoint.service.XMessage;
+
+function ok(event) {
+   form = XDisplay.getActiveForm();
+   editMode = form.findComponent("EditMode").getBooleanValue();
+   if (editMode == true) {
+      work_slip_locator = form.findComponent("WorkSlipIDField").getStringValue();
+
+
+      effort_data_set = form.findComponent("WorkEffortRecordSet");
+      if (!effort_data_set.validate()) {
+         return;
+      }
+      time_data_set = form.findComponent("WorkTimeRecordSet");
+      if (!time_data_set.validate()){
+         return;
+      }
+      costs_data_set = form.findComponent("WorkCostRecordSet");
+      if (!costs_data_set.validate()) {
+         return;
+      }
+
+      data_set = form.findComponent("WorkRecordSet");
+      request = new XMessage;
+      request.setAction("WorkService.editWorkSlip");
+      request.setArgument("work_slip_id", work_slip_locator);
+      request.setArgument("effort_record_set", effort_data_set);
+      request.setArgument("time_record_set", time_data_set);
+      request.setArgument("costs_record_set", costs_data_set);
+      
+      response = XDisplay.getClient().invokeMethod(request);
+      
+      if (response != null && response.getError() != null && response.getArgument("tamperedCosts") != null) {
+	      updateCostsSet(form.findComponent("WorkCostRecordSet"), response.getArgument("tamperedCosts"), response.getError());
+      }
+      else {
+	      if (handleError(form, response, "ErrorLabel") == true) {
+	         XDisplay.getActiveWindow().close();
+	         XDisplay.findFrame("MainFrame").refreshForm();
+	      }
+	      else {
+		      //in case of an error update the attachment set with the values obtained from
+		      //the response (files were replaced by content ids)
+		      responseAttachmentSet = response.getArgument("attachmentSet");
+		      if (responseAttachmentSet != null) {
+		         form.findComponent("WorkCostRecordSet").copyAllChildren(responseAttachmentSet);
+		      }
+	      }
+      }
+   }
+   else {
+      cancel(event);
+   }
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+
+function updateAllViews(){
+   XDisplay.getActiveForm().findComponent("EffortTable").update();
+   XDisplay.getActiveForm().findComponent("CostTable").update();
+}
+
+function getEditActivityForm() {
+   return "/modules/project_planning/forms/edit_activity.oxf.xml";
+}
+

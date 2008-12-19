@@ -1,0 +1,6 @@
+<prototype name="OpActivityWorkBreak" instance-class="onepoint.project.modules.project.OpActivityWorkBreak">
+   <field name="Start" type="Double"/>
+   <field name="Duration" type="Double"/>
+   <relationship name="Activity" type="OpActivity" back-relationship="WorkBreaks"/>
+   <relationship name="ProjectPlan" type="OpProjectPlan" back-relationship="WorkBreaks"/>
+</prototype>

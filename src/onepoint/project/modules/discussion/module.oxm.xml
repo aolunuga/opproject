@@ -1,0 +1,12 @@
+<module name="discussion" caption="Threaded Discussions" version="0.1"
+        class="onepoint.project.modules.discussion.OpDiscussionModule">
+
+   <prototype-files>
+      <prototype-file file-name="/modules/discussion/discussion_group.opt.xml"/>
+      <prototype-file file-name="/modules/discussion/discussion_article.opt.xml"/>
+      <prototype-file file-name="/modules/discussion/discussion_thread.opt.xml"/>
+      <prototype-file file-name="/modules/discussion/discussion_reply.opt.xml"/>
+      <prototype-file file-name="/modules/discussion/discussion_read_article_link.opt.xml"/>
+   </prototype-files>
+
+</module>

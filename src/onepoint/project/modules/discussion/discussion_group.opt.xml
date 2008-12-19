@@ -1,0 +1,8 @@
+<prototype name="OpDiscussionGroup" instance-class="onepoint.project.modules.discussion.OpDiscussionGroup">
+
+   <field name="Name" type="String" mandatory="true" unique="true"/>
+   <field name="Description" type="String"/>
+
+   <relationship name="Project" type="OpProjectNode" back-relationship="Discussions"/>
+   <relationship name="Threads" type="OpDiscussionThread" collection-type="Set" back-relationship="Group" inverse="true" cascade="delete"/>
+</prototype>
