@@ -1,0 +1,8 @@
+<prototype name="OpExtApp" instance-class="onepoint.project.modules.external_applications.OpExternalApplication">
+   <field name="Kind" type="String"/>
+   <field name="Description" type="Text"/>
+   <field name="InstanceName" type="String"/>
+   
+   <relationship name="Users" type="OpExtAppUser" collection-type="Set" back-relationship="Application" inverse="true" cascade="delete"/>
+   <relationship name="Parameters" type="OpExtAppParameter" collection-type="Set" back-relationship="Application" inverse="true" cascade="delete"/>
+</prototype>

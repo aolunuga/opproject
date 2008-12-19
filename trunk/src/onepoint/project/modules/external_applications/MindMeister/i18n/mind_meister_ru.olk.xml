@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="ru">
+    <resource-map id="import_plan.oxf.xml">
+        <resource id="SelectMap">Выберите карту для импорта</resource>
+        <resource id="MindMeisterError">Ошибка получена от MindMeister</resource>
+        <resource id="MapTitel">Наименование карты</resource>
+        <resource id="OK">Подтвердить</resource>
+        <resource id="Cancel">Отменить</resource>
+    </resource-map>
+    <resource-map id="login_wizard.oxf.xml">
+        <resource id="LoginToMindMeister">Вводите в систему к Вашей учетной записи MindMeister</resource>
+        <resource id="ConnectionFailed">Неудачное соединение с MindMeister</resource>
+        <resource id="PleaseLogin">Пожалуйста предоставьте доступ к вашим запомненным картам, затем нажмите подтвердить</resource>
+        <resource id="OK">Подтвердить</resource>
+        <resource id="Cancel">Отменить</resource>
+    </resource-map>
+</language-kit>

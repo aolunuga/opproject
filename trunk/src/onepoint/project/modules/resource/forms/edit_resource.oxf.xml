@@ -1,0 +1,112 @@
+<form width="750" height="450" layout="border" resource-map-ref="resource.EditResource"
+   start-focus-ref="Name" default-button-ref="okButton" text="${EditResource}"
+   provider-class="onepoint.project.modules.resource.forms.OpEditResourceFormProvider"
+   error-label-ref="ErrorLabel" script="/modules/resource/scripts/edit_resource.jes">
+   <panel layout="border">
+      <data-set id="SubTypeSet" />
+      <data-field id="ResourceID" />
+      <data-field id="EditMode" />
+      <data-field id="OriginalAvailable" />
+      <data-field id="OriginalHourlyRate" />
+      <data-field id="OriginalExternalRate" />
+      <data-field id="OriginalInherit" />
+      <data-field id="Confirm" />
+      <data-field id="PoolHourlyRate" />
+      <data-field id="PoolExternalRate" />
+      <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default" />
+      <tab-box id="TabBoxId">
+
+         <tab text="${General}" layout="table" id="GeneralTab">
+            <label x="0" y="0" width="2" text="${Name}"
+               style-ref="label-emphasized-default" />
+            <text-field x="2" y="0" width="3" id="Name" />
+            <label x="0" y="1" width="2" text="${SubType}" id="SubTypeLabel"
+               visible="false" />
+            <choice-field x="2" y="1" width="3" id="SubTypeField"
+               on-value-changed="subTypeChanged" data-set-ref="SubTypeSet"
+               visible="false" />
+            <label x="0" y="2" width="2" text="${Description}" />
+            <text-box x="2" y="2" width="3" id="Description" />
+            <label x="0" y="3" width="2" text="${Available}" />
+            <double-field x="2" y="3" width="3" id="Available" />
+<!--             next field should be a dialog-field -->
+            <label id="ResponsibleUserLabel" x="0" y="4" width="2"
+               text="${ResponsibleUser}" />
+            <action-button x="2" y="4" width="3" id="UserName"
+               edit-mode="false" left-icon="/icons/remove.png"
+               right-icon="/icons/choose_user.png" on-button-pressed="selectUser" />
+             <check-box x="2" y="5" width="3" id="Archived" text="${Archived}"/>
+         </tab>
+
+         <tab text="${HourlyRates}" layout="border" id="HourlyRatesTab">
+            <panel y="-1" layout="table">
+               <check-box x="2" y="0" width="3"
+                  text="${InheritPoolRate}" id="InheritPoolRate"
+                  on-value-changed="inheritPoolRate" />
+               <label x="0" y="1" width="2" text="${HourlyRate}" id="HourlyRateLabel"/>
+               <double-field x="2" y="1" width="3" id="HourlyRate" />
+               <label x="0" y="2" width="2" text="${ExternalRate}" id="ExternalRateLabel"/>
+               <double-field x="2" y="2" width="3"
+                  id="ExternalRate" />
+            </panel>
+         </tab>
+
+         <tab text="${Projects}" layout="border" id="ProjectsTab">
+            <data-set id="AssignedProjectDataSet" />
+            <list-box y="0" id="AssignedProjectListBox"
+               data-set-ref="AssignedProjectDataSet" flexible="true" />
+            <panel id="ProjectToolPanel" y="1" layout="flow"
+               direction="east">
+               <icon-button icon-type="PlusSign"
+                  on-button-pressed="addProject" />
+               <icon-button icon-type="MinusSign"
+                  on-button-pressed="removeProject" />
+            </panel>
+         </tab>
+
+         <tab layout="border" id="customAttributesTab" parent-id="TabBoxId"
+            hidden="true">
+            <scroll-box flexible="true" style-ref="tab-box-default"
+               borderless="true">
+               <panel layout="table" flexible="true" borderless="true"
+                  id="customAttributes" />
+            </scroll-box>
+         </tab>
+
+         <tab text="${Permissions}" layout="border" id="PermissionsTab">
+            <data-set id="PermissionIconSet">
+               <data-row icon="/modules/user/icons/group.png" />
+               <data-row icon="/modules/user/icons/user.png" />
+               <data-row icon="/modules/user/icons/role.png" />
+            </data-set>
+            <data-set id="PermissionSet" />
+            <list-box id="PermissionTree" tree="true"
+               data-set-ref="PermissionSet" icon-set-ref="PermissionIconSet"
+               flexible="true" />
+            <panel id="PermissionToolPanel" y="1" layout="flow"
+               direction="east">
+               <icon-button icon-type="PlusSign"
+                  on-button-pressed="addSubject" />
+               <icon-button icon-type="MinusSign"
+                  on-button-pressed="removeSubject" />
+               <icon-button icon-type="NorthArrow"
+                  on-button-pressed="moveSubjectUp" />
+               <icon-button icon-type="SouthArrow"
+                  on-button-pressed="moveSubjectDown" />
+            </panel>
+         </tab>
+
+      </tab-box>
+
+      <panel y="1" layout="flow" direction="west">
+         <panel layout="border">
+            <button x="0" id="okButton" text="${OK}"
+               on-button-pressed="ok" />
+            <button x="1" id="Cancel" text="${Cancel}"
+               on-button-pressed="cancel" />
+         </panel>
+      </panel>
+
+   </panel>
+
+</form>

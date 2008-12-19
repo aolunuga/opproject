@@ -1,0 +1,6 @@
+<prototype name="OpCustomizable" instance-class="onepoint.project.modules.custom_attribute.OpCustomizable" type="interface">
+<!-- shortcut object directly references the first custom value page
+-->
+  <relationship name="CustomValuePage" type="OpCustomValuePage" transient="true" />
+  <relationship name="CustomValuePages" type="OpCustomValuePage" collection-type="Set" back-relationship="Object" inverse="true" cascade="delete"/>
+</prototype>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="es">
+    <resource-map id="report.project_progress">
+        <resource id="PrintTitle">Progreso del proyecto</resource>
+        <resource id="Project">Proyecto</resource>
+        <resource id="Select">Seleccionar</resource>
+        <resource id="Activity">Actividad</resource>
+        <resource id="PercentComplete">% Compl.</resource>
+        <resource id="BaseEffort">Esfuerzo (P/h)</resource>
+        <resource id="ActualEffort">Esfuerzo (R/h)</resource>
+        <resource id="BaseCosts">Costes (P/{CurrencySymbol})</resource>
+        <resource id="ActualCosts">Costes (R/{CurrencySymbol})</resource>
+        <resource id="InvalidProject">Seleccione un proyecto</resource>
+        <resource id="SaveCSV">Guardar como tabla...</resource>
+        <resource id="SaveImage">Guardar como imagen...</resource>
+    </resource-map>
+</language-kit>

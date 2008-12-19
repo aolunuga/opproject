@@ -1,0 +1,66 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+// Controller script for manage_attachments.oxf.xml
+
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/modules/project_planning/scripts/attachments.jes";
+require "onepoint/project/modules/documents/scripts/content.jes";
+
+import onepoint.express.XComponent;
+import onepoint.express.XDisplay;
+import onepoint.service.XMessage;
+
+function ok(event) {
+   thisDialog = XDisplay.getActiveWindow();
+   thisForm = thisDialog.getChild(1);
+   costRecordIndex = thisForm.findComponent("CostRowIndex").getValue();
+
+   previousDialog = XDisplay.getDefaultDisplay().previousLayer(thisDialog);
+   previousForm = previousDialog.getChild(1);
+   workCostDataSet = previousForm.findComponent("WorkCostRecordSet");
+   validator = workCostDataSet.validator();
+
+   //update attachments
+   attachmentList = getAttachments();
+   workCostDataSet.setDataCellValue(workCostDataSet.getChild(costRecordIndex), 9, attachmentList, previousForm);
+
+   XDisplay.getActiveWindow().close();
+   previousForm.repaint();
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+
+function addURLAttachment(event) {
+  addURL(event);
+}
+
+function addDocumentAttachment(event) {
+   addDocument(event);
+}
+
+function removeAttachments(event) {
+   remove(event);
+}
+
+function viewAttachment(event) {
+  view(event);
+}
+
+function editAttachment(event) {
+  edit(event);
+}
+
+function copyList(event) {
+   thisDialog = XDisplay.getActiveWindow();
+   thisForm = thisDialog.getChild(1);
+   previousDialog = XDisplay.getDefaultDisplay().previousLayer(thisDialog);
+   previousForm = previousDialog.getChild(1);
+
+   //copy the list of newly viewed contents on the previous form
+   copyViewedContents(thisForm, previousForm);
+}
+

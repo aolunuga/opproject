@@ -1,0 +1,75 @@
+<prototype name="OpCustomValuePage" instance-class="onepoint.project.modules.custom_attribute.OpCustomValuePage">
+   <relationship name="Object" type="OpCustomizable" back-relationship="CustomValuePages" /> 
+   <field name="Sequence" type="Integer" mandatory="true" indexed="true"/>
+   <field name="Booleans" type="Integer" />
+   <field name="Number0" type="Long" />
+   <field name="Number1" type="Long" />
+   <field name="Number2" type="Long" />
+   <field name="Number3" type="Long" />
+   <field name="Number4" type="Long" />
+   <field name="Number5" type="Long" />
+   <field name="Number6" type="Long" />
+   <field name="Number7" type="Long" />
+   <field name="Number8" type="Long" />
+   <field name="Number9" type="Long" />
+   <field name="Decimal0" type="Double" />
+   <field name="Decimal1" type="Double" />
+   <field name="Decimal2" type="Double" />
+   <field name="Decimal3" type="Double" />
+   <field name="Decimal4" type="Double" />
+   <field name="Decimal5" type="Double" />
+   <field name="Decimal6" type="Double" />
+   <field name="Decimal7" type="Double" />
+   <field name="Decimal8" type="Double" />
+   <field name="Decimal9" type="Double" />
+   <field name="Date0" type="Long" />
+   <field name="Date1" type="Long" />
+   <field name="Date2" type="Long" />
+   <field name="Date3" type="Long" />
+   <field name="Date4" type="Long" />
+   <field name="Date5" type="Long" />
+   <field name="Date6" type="Long" />
+   <field name="Date7" type="Long" />
+   <field name="Date8" type="Long" />
+   <field name="Date9" type="Long" />
+   <field name="Text0" type="String" indexed="true" />
+   <field name="Text1" type="String" indexed="true" />
+   <field name="Text2" type="String" indexed="true" />
+   <field name="Text3" type="String" indexed="true" />
+   <field name="Text4" type="String" indexed="true" />
+   <field name="Text5" type="String" indexed="true" />
+   <field name="Text6" type="String" indexed="true" />
+   <field name="Text7" type="String" indexed="true" />
+   <field name="Text8" type="String" indexed="true" />
+   <field name="Text9" type="String" indexed="true" />
+   <field name="Choice0" type="String" />
+   <field name="Choice1" type="String" />
+   <field name="Choice2" type="String" />
+   <field name="Choice3" type="String" />
+   <field name="Choice4" type="String" />
+   <field name="Choice5" type="String" />
+   <field name="Choice6" type="String" />
+   <field name="Choice7" type="String" />
+   <field name="Choice8" type="String" />
+   <field name="Choice9" type="String" />
+   <relationship name="Memo0" type="OpCustomTextValue" />
+   <relationship name="Memo1" type="OpCustomTextValue" />
+   <relationship name="Memo2" type="OpCustomTextValue" />
+   <relationship name="Memo3" type="OpCustomTextValue" />
+   <relationship name="Memo4" type="OpCustomTextValue" />
+   <relationship name="Memo5" type="OpCustomTextValue" />
+   <relationship name="Memo6" type="OpCustomTextValue" />
+   <relationship name="Memo7" type="OpCustomTextValue" />
+   <relationship name="Memo8" type="OpCustomTextValue" />
+   <relationship name="Memo9" type="OpCustomTextValue" />
+   <relationship name="Attachment0" type="OpAttachment" />
+   <relationship name="Attachment1" type="OpAttachment" />
+   <relationship name="Attachment2" type="OpAttachment" />
+   <relationship name="Attachment3" type="OpAttachment" />
+   <relationship name="Attachment4" type="OpAttachment" />
+   <relationship name="Attachment5" type="OpAttachment" />
+   <relationship name="Attachment6" type="OpAttachment" />
+   <relationship name="Attachment7" type="OpAttachment" />
+   <relationship name="Attachment8" type="OpAttachment" />
+   <relationship name="Attachment9" type="OpAttachment" />   
+</prototype>

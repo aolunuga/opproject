@@ -1,0 +1,4 @@
+<prototype name="OpProgramLink" instance-class="onepoint.project.modules.project.OpProgramLink">
+   <relationship name="Program" type="OpProjectNode" back-relationship="SubProjects"/>
+   <relationship name="SubProject" type="OpProjectNode" back-relationship="Programs"/>
+</prototype>

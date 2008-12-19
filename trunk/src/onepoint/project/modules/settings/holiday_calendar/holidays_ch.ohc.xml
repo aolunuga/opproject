@@ -1,0 +1,32 @@
+<holiday-calendars location="ch" label="Schweiz">
+   <holiday-calendar year="2008">
+      <holiday date="01-01" name="Neujahr"/>
+      <holiday date="05-01" name="Auffahrt"/>
+      <holiday date="08-01" name="Schweizer Nationalfeiertag"/>
+      <holiday date="12-25" name="Weihnachtstag"/>
+   </holiday-calendar>
+   <holiday-calendar year="2009">
+      <holiday date="01-01" name="Neujahr"/>
+      <holiday date="05-21" name="Auffahrt"/>
+      <holiday date="08-01" name="Schweizer Nationalfeiertag"/>
+      <holiday date="12-25" name="Weihnachtstag"/>
+   </holiday-calendar>
+   <holiday-calendar year="2010">
+      <holiday date="01-01" name="Neujahr"/>
+      <holiday date="05-13" name="Auffahrt"/>
+      <holiday date="08-01" name="Schweizer Nationalfeiertag"/>
+      <holiday date="12-25" name="Weihnachtstag"/>
+   </holiday-calendar>
+   <holiday-calendar year="2011">
+      <holiday date="01-01" name="Neujahr"/>
+      <holiday date="06-02" name="Auffahrt"/>
+      <holiday date="08-01" name="Schweizer Nationalfeiertag"/>
+      <holiday date="12-25" name="Weihnachtstag"/>
+   </holiday-calendar>
+   <holiday-calendar year="2012">
+      <holiday date="01-01" name="Neujahr"/>
+      <holiday date="05-17" name="Auffahrt"/>
+      <holiday date="08-01" name="Schweizer Nationalfeiertag"/>
+      <holiday date="12-25" name="Weihnachtstag"/>
+   </holiday-calendar>
+</holiday-calendars>

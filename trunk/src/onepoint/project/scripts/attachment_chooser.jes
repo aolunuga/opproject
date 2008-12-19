@@ -1,0 +1,91 @@
+/*
+ * Copyright(c) Onepoint Software GmbH 2008. All Rights Reserved.
+ */
+
+// Controller script for document_chooser.oxf.xml
+
+require "onepoint/project/scripts/lazyLoad.jes";
+
+import onepoint.express.XDisplay;
+
+function ok(event) {
+   form = XDisplay.getActiveForm();
+   location = form.findComponent("Location").getStringValue();
+   name = form.findComponent("Name").getStringValue();
+   if (name == null) {
+      name = location;
+   }
+   parameters = form.findComponent("Parameters").getValue();
+   maxAttachmentSizeBytes = form.findComponent("MaxAttachmentSize").getLongValue();
+
+   //full document path
+   document_path = form.findComponent("DocumentPathField").getStringValue();
+   file = null;
+   if (document_path != null) {
+      file = File.create(document_path);
+      if (file.length() > maxAttachmentSizeBytes) {
+         error_label = form.findComponent("ErrorLabel");
+         error_label.setText(form.findComponent("InvalidAttachmentSize").getText());
+         error_label.setVisible(true);
+         form.doLayout();
+         form.repaint();
+         return;
+      }
+   }
+   actionHandler = form.findComponent("ActionHandler").getStringValue();
+
+   if (actionHandler != null) {
+      XDisplay.getActiveWindow().close();
+      arguments[0] = name;
+      arguments[1] = location;
+      arguments[2] = file;
+      arguments[3] = parameters;
+      XDisplay.getActiveWindow().currentForm().invokeFunction(actionHandler, arguments);
+   }
+   else {
+      XDisplay.getActiveWindow().close();
+   }
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+
+function select(event) {   
+   form = XDisplay.getActiveForm();
+   title = form.findComponent("DialogTitle").getText();
+   document_path = XDisplay.showFileDialog(title, true, null, null, true);
+   if (document_path != null) {
+      document_path_field = XDisplay.getActiveForm().findComponent("DocumentPathField");
+      document_path_field.setStringValue(document_path);
+
+      location = XDisplay.getActiveForm().findComponent("Location");
+      location.setStringValue(File.getDocumentLocation(document_path));
+      location.update();
+
+      name = XDisplay.getActiveForm().findComponent("Name");
+      nameValue = name.getStringValue();
+      if (nameValue == null) {
+         name.setStringValue(File.getDocumentLocation(document_path));
+         name.update();
+      }
+   }
+}
+
+function linkedChanged(event) {
+   form = XDisplay.getActiveForm();
+   source = event.event_source;
+   isLinked = source.getValue();
+
+   locationComponent = form.findComponent("Location");
+   if (isLinked) {
+      locationComponent.setStringValue("http://");
+   }
+   else {
+      locationComponent.setStringValue(null);
+   }
+   locationComponent.setEnabled(isLinked);
+   selectButton = form.findComponent("SelectButton");
+   selectButton.setEnabled(!isLinked);
+   form.update();
+}

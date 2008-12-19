@@ -1,0 +1,12 @@
+<prototype name="OpContent" instance-class="onepoint.project.modules.documents.OpContent" batch-size="0">
+   <field name="RefCount" type="Integer"/>
+   <field name="MediaType" type="String"/>
+   <field name="Size" type="Long"/>
+   <field name="Stream" type="Content" column="op_bytes" update="false" lazy="true"/>
+   <!-- fixme should be replaced by OpContentable with hibernate any type!  -->
+   <relationship name="Attachments" collection-type="Set" type="OpAttachment" back-relationship="Content" inverse="true"/>
+   <relationship name="AttachmentVersions" collection-type="Set" type="OpAttachmentVersion" back-relationship="Content" inverse="true"/>
+   <relationship name="Documents" collection-type="Set" type="OpDocument" back-relationship="Content" inverse="true"/>
+   <relationship name="DocumentNodes" collection-type="Set" type="OpDocumentNode" back-relationship="Content" inverse="true"/>
+   <relationship name="Settings" collection-type="Set" type="OpSetting" back-relationship="Content" inverse="true" />
+</prototype>

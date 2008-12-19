@@ -1,0 +1,115 @@
+// Controller script for saving a component as an image
+
+import
+onepoint.service.XMessage;
+import
+onepoint.express.XDisplay;
+import
+onepoint.express.XComponent;
+
+/**
+ * Saves the given component as an image file.
+ *
+ * @param component Component to save.
+ * @param title Save As Image Dialog title
+ */
+function saveAsImage(component, title) {
+   // obtain the savedImageFormat user preference
+   defaultValue = getImageExtensionUserPreference();
+
+   // create the list of file filters
+   filters = new HashMap;
+   formatsMap = getSupportedFormatsMap();
+   keyList = formatsMap.keyList();
+   i = 0;
+   while (i < keyList.size()) {
+      formatKey = keyList.get(i);
+      filters.put(formatsMap.get(formatKey), "*." + formatKey);
+      i++;
+   }
+
+   component.saveAsImage(title, defaultValue, filters);
+}
+
+/**
+ * Gets the default image format from the user preferences to be used when saving an image.
+ */
+function getImageExtensionUserPreference() {
+   // obtain the savedImageFormat user preference
+   defaultValue = "png";
+
+   request = new XMessage;
+   requestData.preference = "SavedImageFormat";
+   request.setAction("PreferencesService.getPreference");
+   request.setArgument("preferences", requestData);
+
+   response = XDisplay.getClient().invokeMethod(request);
+   if (response != null) {
+      error = response.getError();
+      if (error == null) {
+         preferenceValue = response.getArgument("preference");
+         if (preferenceValue != null) {
+            map = new HashMap;
+            map.put(preferenceValue, "");
+            supportedFormats = XDisplay.filterSupportedFileFormats(map, false, true);
+            if (supportedFormats.get(preferenceValue) != null) {
+               defaultValue = preferenceValue;
+            }
+         }
+      }
+   }
+
+   return defaultValue;
+}
+
+
+/**
+ * Gets all the supported image formats.
+ */
+function getSupportedFormatsMap() {
+   request = new XMessage;
+   request.setAction("PreferencesService.getImageFormatMap");
+   response = XDisplay.getClient().invokeMethod(request);
+   imageFormats = response.getArgument("imageFormats");
+   supportedFormatsMap = XDisplay.filterSupportedFileFormats(imageFormats, false, true);
+   return supportedFormatsMap;
+}
+
+/**
+ * Adds a new entry (= a list containing the human readable extension and the actual extension)
+ * to the given extension list.
+ *
+ * @param extensionList
+ * @param humanReadableExtension
+ * @param fileExtension
+ */
+function addExtensionToList(extensionList, humanReadableExtension, fileExtension) {
+   extList = new ArrayList;
+   extList.add(humanReadableExtension);
+   extList.add(fileExtension);
+   extensionList.add(extList);
+}
+
+/**
+ * Fills the given data set with the supported image formats.
+ * Also sets as selected the default one.
+ * 
+ * @param dataSet
+ */
+function fillExtensionDataSet(dataSet) {
+   formatsMap = getSupportedFormatsMap();
+   keyList = formatsMap.keyList();
+   defaultValue = getImageExtensionUserPreference();
+
+   i = 0;
+   while (i < keyList.size()) {
+      formatKey = keyList.get(i);
+      dataRow = dataSet.newDataRow();
+      dataRow.setValue(XValidator.choice(formatKey, formatsMap.get(formatKey)));
+      if (formatKey.equals(defaultValue)) {
+         dataRow.setSelected(true);
+      }
+      dataSet.addDataRow(dataRow);
+      i++;
+   }
+}

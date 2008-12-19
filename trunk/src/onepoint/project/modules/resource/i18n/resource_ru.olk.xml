@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="ru">
+    <resource-map id="resource.module">
+        <resource id="AdministrationTool">Управление ресурсами</resource>
+        <resource id="ResourcesToolGroup">Ресурсы</resource>
+    </resource-map>
+    <resource-map id="resource.resources">
+        <resource id="NewPool">Новое объединение</resource>
+        <resource id="NewResource">Новый ресурс</resource>
+        <resource id="Properties">Свойства</resource>
+        <resource id="Move">Переместить</resource>
+        <resource id="Delete">Удалить</resource>
+        <resource id="AssignToProject">Присвоить проекту</resource>
+        <resource id="ImportUser">Импорт пользователей</resource>
+        <resource id="Name">Наименование</resource>
+        <resource id="Description">Описание</resource>
+        <resource id="NewPoolTooltip">Создать новое объединение ресурсов</resource>
+        <resource id="NewResourceTooltip">Создать новый ресурс</resource>
+        <resource id="InfoTooltip">Показать мета-данные для указанного ресурса или объединения</resource>
+        <resource id="MoveTooltip">Переместить указанный ресурс или объединение в другое объединение</resource>
+        <resource id="DeleteTooltip">Удалить указанный ресурс или объединение</resource>
+        <resource id="AssignToProjectTooltip">Присвоить указанный ресурс проекту</resource>
+        <resource id="ImportUsersTooltip">Импортировать пользователя как ресурс</resource>
+    </resource-map>
+    <resource-map id="resource.NewPool">
+        <resource id="NewPool">Новое объединение</resource>
+        <resource id="General">Основные</resource>
+        <resource id="Permissions">Разрешения</resource>
+        <resource id="Name">Наименование</resource>
+        <resource id="SubType">Тип</resource>
+        <resource id="Description">Описание</resource>
+        <resource id="HourlyRate">Часовая ставка</resource>
+        <resource id="ExternalRate">Bнешний часовая ставка</resource>
+        <resource id="OK">Подтвердить</resource>
+        <resource id="Cancel">Отменить</resource>
+    </resource-map>
+    <resource-map id="resource.EditPool">
+        <resource id="EditPool">Отредактировать объединение</resource>
+        <resource id="General">Основные</resource>
+        <resource id="Permissions">Разрешения</resource>
+        <resource id="ApplyPermissionsRecursively">Применить изменения к суб- объединениям и ресурсам</resource>
+        <resource id="Name">Наименование</resource>
+        <resource id="SubType">Тип</resource>
+        <resource id="Description">Описание</resource>
+        <resource id="HourlyRate">Часовая ставка</resource>
+        <resource id="ExternalRate">Bнешняя часовая ставка</resource>
+        <resource id="OK">Подтвердить</resource>
+        <resource id="Cancel">Отменить</resource>
+    </resource-map>
+    <resource-map id="resource.Info">
+        <resource id="InfoPool">Свойства объединения</resource>
+        <resource id="InfoResource">Свойства ресурса</resource>
+    </resource-map>
+    <resource-map id="resource.NewResource">
+        <resource id="HourlyRates">Почасовые ставки</resource>
+        <resource id="NewResource">Новый ресурс</resource>
+        <resource id="General">Основные</resource>
+        <resource id="Projects">Проекты</resource>
+        <resource id="Permissions">Разрешения</resource>
+        <resource id="Name">Наименование</resource>
+        <resource id="SubType">Тип</resource>
+        <resource id="Description">Описание</resource>
+        <resource id="Available">Доступность (%)</resource>
+        <resource id="InheritPoolRate">Аннулировать почасовую ставку объединения</resource>
+        <resource id="ResponsibleUser">Ответственный пользователь</resource>
+        <resource id="SelectUser">Выбрать</resource>
+        <resource id="Pool">Объединение</resource>
+        <resource id="HourlyRate">Bнутренняя часовая ставка</resource>
+        <resource id="ExternalRate">Bнешняя часовая ставка</resource>
+        <resource id="Archived">Архивированный</resource>
+        <resource id="OK">Подтвердить</resource>
+        <resource id="Cancel">Отменить</resource>
+    </resource-map>
+    <resource-map id="resource.EditResource">
+        <resource id="HourlyRates">Почасовые ставки</resource>
+        <resource id="EditResource">Изменить ресурс</resource>
+        <resource id="General">Основные</resource>
+        <resource id="Projects">Проекты</resource>
+        <resource id="Permissions">Разрешения</resource>
+        <resource id="Name">Наименование</resource>
+        <resource id="SubType">Тип</resource>
+        <resource id="Description">Описание</resource>
+        <resource id="Available">Доступность (%)</resource>
+        <resource id="HourlyRate">Часовая ставка</resource>
+        <resource id="ExternalRate">Bнешняя часовая ставка</resource>
+        <resource id="InheritPoolRate">Аннулировать почасавую ставку объединения</resource>
+        <resource id="ResponsibleUser">Ответственный пользователь</resource>
+        <resource id="SelectUser">Выбрать</resource>
+        <resource id="Pool">объединение</resource>
+        <resource id="Archived">Архивированный</resource>
+        <resource id="OK">Подтвердить</resource>
+        <resource id="Cancel">Отменить</resource>
+    </resource-map>
+    <resource-map id="resource.ImportUser">
+        <resource id="ImportUser">Импорт пользователя</resource>
+        <resource id="General">Основные</resource>
+        <resource id="Projects">Проекты</resource>
+        <resource id="NameFormat">Формат наименования</resource>
+        <resource id="Available">Доступность (%)</resource>
+        <resource id="HourlyRate">Часовая ставка</resource>
+        <resource id="ExternalRate">Bнешняя часовая ставка</resource>
+        <resource id="InheritPoolRate">Аннулировать почасовую ставку объединения</resource>
+        <resource id="Pool">Объединение</resource>
+        <resource id="OK">Подтвердить</resource>
+        <resource id="Cancel">Отменить</resource>
+    </resource-map>
+    <resource-map id="resource.ResourceChooser">
+        <resource id="SelectResource">Выберите ресурс или объединение</resource>
+        <resource id="SelectPool">Выберите объединение</resource>
+        <resource id="OK">Подтвердить</resource>
+        <resource id="Cancel">Отменить</resource>
+    </resource-map>
+    <resource-map id="resource.objects">
+        <resource id="RootResourcePoolName">Корневое объединение ресурсов</resource>
+        <resource id="RootResourcePoolDescription">Корневое объединение ресурсов является главным узлом в ирархии ресурсов</resource>
+        <resource id="NotAssignedDisplayName">Не присвоено</resource>
+    </resource-map>
+    <resource-map id="resource.add_project">
+        <resource id="AddProject">Добавить проект</resource>
+        <resource id="OK">Подтвердить</resource>
+        <resource id="Cancel">Отменить</resource>
+    </resource-map>
+    <resource-map id="resource.error">
+        <resource id="ResourceNameNotSpecified">Не указано наименование ресурса</resource>
+        <resource id="ResourceNameNotUnique">Данное наименование ресурса уже существует</resource>
+        <resource id="ResourceNameNotValid">Указанное наименование ресурса неверно</resource>
+        <resource id="UserIDNotSpecified">Не указан пользователь</resource>
+        <resource id="PoolNameNotUnique">Данное наименование объединения уже существует</resource>
+        <resource id="PoolNameNotSpecified">Не указано наименование объединения</resource>
+        <resource id="AvailabilityNotValid">Данная доступность неверна</resource>
+        <resource id="HourlyRateNotValid">Данная часовая ставка неверна</resource>
+        <resource id="ExternalRateNotValid">Данная внешняя часовая ставка неверна</resource>
+        <resource id="NameFormatNotSpecified">Формат имени не указан</resource>
+        <resource id="NameFormatNotValid">Введенный формат имени неверен</resource>
+        <resource id="ResourceNotFound">Ресурс не был найден</resource>
+        <resource id="PoolNotFound">Объединение не был найденр</resource>
+        <resource id="UpdateAccessDenied">У вас нет достаточных прав для изменения данного ресурса или объединения</resource>
+        <resource id="AssignAccessDenied">У вас нет достаточных прав для присвоений ресурсов к проекту</resource>
+        <resource id="ResourceAssignmentWarning">Не удалось присвоить все указанные ресурсы к проекту</resource>
+        <resource id="ManagerAccessDenied">Для данной операции необходим уровень доступа менеджера</resource>
+        <resource id="DeleteResourceAssignmentsDenied">Ресурс не может быть удален, так как он уже используется в планах проектов</resource>
+        <resource id="DeletePoolResourceAssignmentsDenied">Объединение не может быть удаленр, так как его ресурсы уже используются в планах проектов</resource>
+        <resource id="ActivityAssignmentsExistError">Ресурс не может быть удален из проекта, так как он уже присвоен одному или нескольким проектным действиям</resource>
+        <resource id="LoopAssignmentError">Это присвоение может вызвать замкнутую цепь</resource>
+        <resource id="ActivityAssignmentVersionsExistError">Ресурс не может быть удален из проекта потому, что он присвоен одному или нескольким действиям версий проекта</resource>
+        <resource id="ResponsibleActivitiesExistError">Ресурс не может быть удален из проекта, потому что он подотчетен некоторым действиям проекта</resource>
+        <resource id="ResponsibleActivityVersionsExistError">Ресурс не может быть удален из проекта потому, что он подотчетен некоторым действиям версий проекта</resource>
+        <resource id="InvalidUserLevelError">Ответственный пользователь имеет неверный пользовательский уровень</resource>
+        <resource id="AbsenceReasonInUse">Недоступные типы, которые используюися, не могут быть удалены</resource>
+    </resource-map>
+    <resource-map id="resource.delete">
+        <resource id="ConfirmDelete">Удалить ресурсы или объединения</resource>
+        <resource id="NoSelectionMessage">Пожалуйста, укажите ресурсы или объединения, которые вы хотите удалить</resource>
+        <resource id="ConfirmDeleteOneMessage">Вы действительно хотите удалить данный ресурс или объединение?</resource>
+        <resource id="ConfirmDeleteMultipleMessage">Вы действительно хотите удалить данные ресурсы или объединения?</resource>
+        <resource id="OK">Подтвердить</resource>
+        <resource id="Cancel">Отменить</resource>
+    </resource-map>
+    <resource-map id="resource.change">
+        <resource id="ConfirmChange">Скорректировать ресурс</resource>
+        <resource id="ConfirmChangeHR">Изменение часовой ставки данного и/или внешний часовая ставка ресурса вызовет пересчет затрат в планах связанных проектов</resource>
+        <resource id="ConfirmChangeAvailable">Изменение доступности данного ресурса вызовет перепроверку планов связанных проектов</resource>
+        <resource id="ConfirmPoolChange">Изменение объединения</resource>
+        <resource id="ConfirmPoolChangeHR">Изменение часовой ставки и/или внешней часовой ставки ресурсов данного объединения вызовет пересчет затрат в планах связанных проектов</resource>
+        <resource id="OK">Подтвердить</resource>
+        <resource id="Cancel">Отменить</resource>
+    </resource-map>
+</language-kit>

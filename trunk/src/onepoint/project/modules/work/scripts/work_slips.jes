@@ -1,0 +1,145 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+// Controller script for work_slips.oxf.xml
+
+require "onepoint/project/scripts/error.jes";
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XValidator;
+
+function newWS(activitiesToFill) {
+   dateUntilChooser = XDisplay.getActiveForm().findComponent("");
+   dialog = XComponent.newDialog("NewWorkSlipDlg");
+   
+   parameters.start_before_id = "n2w";
+   if (activitiesToFill != null) {
+      parameters.activitiesToFill = activitiesToFill;
+   }
+   form = getNewWorkSlipForm();
+   dialog.open(form, parameters);
+}
+
+
+function newWorkSlip(event) {
+   newWS(null);
+}
+
+function edit(event) {
+   data_set = XDisplay.getActiveForm().findComponent("WorkSlipSet");
+   if (data_set != null) {
+      selected_rows = data_set.selectedRows();
+      if (selected_rows.size() > 0) {
+         stringEditMode = selected_rows[0].getChild(2).getStringValue();
+         Console.println("stringEditMode: "+selected_rows[0]);
+         edit_mode = XValidator.choiceID(stringEditMode) == "0";
+
+         editWS(selected_rows[0].getStringValue(), edit_mode, null);
+      }
+   }
+}
+
+function editWS(workSlipId, edit_mode, activitiesToFill) {
+   parameters.WorkSlipID = workSlipId;
+   if (activitiesToFill != null) {
+      parameters.activitiesToFill = activitiesToFill;
+   }
+   parameters.edit_mode = edit_mode;
+   dialog = XComponent.newDialog("EditWorkSlipDlg");
+   form = getEditWorkSlipForm();
+   dialog.open(form, parameters);
+}
+
+function getEditWorkSlipForm() {
+   return "/modules/work/forms/edit_work_slip.oxf.xml";
+}
+
+function getNewWorkSlipForm() {
+	return "/modules/work/forms/new_work_slip.oxf.xml";
+}
+
+function delete(event) {
+   data_set = XDisplay.getActiveForm().findComponent("WorkSlipSet");
+   selected_rows = data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      parameters.work_slips = selected_rows;
+      dialog = XComponent.newDialog();
+      dialog.open("/modules/work/forms/confirm_work_delete.oxf.xml", parameters);
+   }
+}
+
+function selectionChanged(event) {
+   form = XDisplay.getActiveForm();
+   infoButton = form.findComponent("InfoWorkSlip");
+   infoButton.setEnabled(true);
+   deleteButton = form.findComponent("DeleteWorkSlip");
+   deleteButton.setEnabled(true);
+   
+   // enable those buttons...
+   data_set = XDisplay.getActiveForm().findComponent("WorkSlipSet");
+   selected_rows = data_set.selectedRows();
+
+   form.repaint();
+}
+
+function filterChanged(event) {
+   form = XDisplay.getActiveForm();
+
+   period_choice_field = form.findComponent("PeriodChooser");
+   period_choice_id = XValidator.choiceID(period_choice_field.getStringValue());
+
+   parameters.period_choice_id = period_choice_id;
+   XDisplay.findFrame("MainFrame").refreshForm(parameters);
+}
+
+function lock(event) {
+   Console.println("lock...");
+   data_set = XDisplay.getActiveForm().findComponent("WorkSlipSet");
+   selected_rows = data_set.selectedRows();
+   
+   request = new XMessage;
+   request.setAction("WorkService.changeWorkSlipState");
+   request.setArgument("work_slip_set", selected_rows);
+   request.setArgument("work_slip_state", 1);
+
+   response = XDisplay.getClient().invokeMethod(request);
+
+   if (handleResponse(response, "MainFrame", "")) {
+     XDisplay.findFrame("MainFrame").refreshForm(parameters);
+   }
+}
+
+function unlock(event) {
+   Console.println("unlock...");
+   data_set = XDisplay.getActiveForm().findComponent("WorkSlipSet");
+   selected_rows = data_set.selectedRows();
+
+   request = new XMessage;
+   request.setAction("WorkService.changeWorkSlipState");
+   request.setArgument("work_slip_set", selected_rows);
+   request.setArgument("work_slip_state", 0);
+
+   response = XDisplay.getClient().invokeMethod(request);
+
+   if (handleResponse(response, "MainFrame", "")) {
+     XDisplay.findFrame("MainFrame").refreshForm(parameters);
+   }
+}
+
+function changeWorkSlipState(event) {
+   data_set = XDisplay.getActiveForm().findComponent("WorkSlipSet");
+   selected_rows = data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+			request = new XMessage;
+			request.setAction("WorkService.changeWorkSlipState");
+			request.setArgument("work_slip_id", selected_rows[0].getStringValue());
+      state_choice_id = Integer.parseInt(XValidator.choiceID(selected_rows[0].getChild(2).getStringValue()));
+      
+      request.setArgument("work_slip_state", state_choice_id);
+
+			response = XDisplay.getClient().invokeMethod(request);
+   }
+}

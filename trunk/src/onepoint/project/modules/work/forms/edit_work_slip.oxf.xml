@@ -1,0 +1,169 @@
+<form id="EditWorkSlipForm" layout="border" width="900" height="540" text="${EditWorkSlip}" resource-map-ref="work.edit_work_slip"
+      provider-class="onepoint.project.modules.work.forms.OpEditWorkSlipFormProvider"
+      script="/modules/work/scripts/edit_work_slip.jes"
+      error-label-ref="ErrorLabel" on-unload="clearContents"
+      default-button-ref="okButton">
+   <!-- Maybe have a white background (border element w/white background) for the user data -->
+
+   <!--Errors-->
+   <data-field id="ProjectNameException" text="${ProjectNameException}"/>
+   <data-field id="ActivityNameException" text="${ActivityNameException}"/>
+   <data-field id="ResourceNameException" text="${ResourceNameException}"/>
+
+   <data-field id="StartValueException" text="${StartValueException}"/>
+   <data-field id="FinishValueException" text="${FinishValueException}"/>
+   <data-field id="DurationValueException" text="${DurationValueException}"/>
+   <data-field id="IntervalsOverlapException" text="${IntervalsOverlapException}"/>
+
+   <data-field id="CostTypeException" text="${CostTypeException}"/>
+   <data-field id="ActualEffortException" text="${ActualEffortException}"/>
+   <data-field id="RemainingEffortException" text="${RemainingEffortException}"/>
+   <data-field id="DuplicateEffortException" text="${DuplicateEffortException}"/>
+
+   <data-field id="ActualCostException" text="${ActualCostException}"/>
+   <data-field id="RemainingCostException" text="${RemainingCostException}"/>
+   <data-field id="NotAllActionsDone" text="${NotAllActionsDone}"/>
+   <data-field id="WorkSlipIDField"/>
+   <data-field id="EditMode"/>
+   <data-set id="WorkRecordSet"/>
+
+   <data-field id="ViewedNewContents"/>
+
+   <data-set id="TimeActivitySet"/>
+   <data-set id="TimeResourceSet"/>
+   <data-set id="TimeProjectSet"/>
+   <data-set id="EffortActivitySet"/>
+   <data-set id="EffortResourceSet"/>
+   <data-set id="EffortProjectSet"/>
+   <data-set id="CostActivitySet"/>
+   <data-set id="CostResourceSet"/>
+   <data-set id="CostProjectSet"/>
+
+   <data-set id="WorkEffortRecordSet" validator-class="onepoint.project.modules.work.validators.OpWorkEffortValidator"/>
+   <data-set id="WorkTimeRecordSet" validator-class="onepoint.project.modules.work.validators.OpWorkTimeValidator"/>
+   <data-set id="WorkCostRecordSet" validator-class="onepoint.project.modules.work.validators.OpWorkCostValidator"/>
+
+   <data-set id="IndicatorIconSet">
+      <data-row/>
+      <data-row icon="/modules/project_planning/icons/attachment.png"/>
+   </data-set>
+
+   <data-set id="CostTypesSet"/>
+
+   <data-field id="AssignmentMap"/>
+   <data-field id="TimeTrackingOn"/>
+   <data-field id="Pulsing"/>
+
+   <panel layout="border">
+
+      <panel layout="table" y="-1">
+         <label x="0" y="0" width="10" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+         <label x="0" y="1" width="2" text="${Date}"/>
+         <date-field x="2" y="1" width="3" id="DateField" enabled="false"/>         
+      </panel>
+
+      <data-set id="ActionsIconSet">
+         <data-row icon="/icons/default.png" />
+         <data-row icon="/icons/inprogress.png" />
+         <data-row icon="/icons/completed.png" />
+      </data-set>
+
+      <panel layout="border">
+
+         <tab-box id="WorkSlipsTabBox" flexible="true">
+
+         <tab id="TimeTab" text="${Time}" layout="border">
+            <table-box id="TimeTable" data-set-ref="WorkTimeRecordSet" edit-mode="true" on-double-click="editActivity" auto-grow="consecutive">
+               <table-column width="100" text="${Project}" data-column-index="0" value-type="Choice" data-set-ref="TimeProjectSet"/>
+               <table-column width="100" text="${Task}" data-column-index="1" value-type="Choice" data-set-ref="TimeActivitySet" on-activate="filterActivitiesTime"/>
+               <table-column width="100" text="${Resource}" id="TimeResourceColumn" data-column-index="2" value-type="Choice" data-set-ref="TimeResourceSet" on-activate="filterResourcesTime"/>
+               <table-column width="100" text="${Start}" data-column-index="3" value-type="Time" sortable="true"/>
+               <table-column width="70" text="${Finish}" data-column-index="4" value-type="Time" sortable="true"/>
+               <table-column width="80" text="${Duration}" data-column-index="5" value-type="Time" sortable="true"/>
+            </table-box>
+            <panel y="1" layout="flow" direction="east" visible="true">
+               <button id="AddTimeButton" style-ref="icon-button-default" icon="/icons/plus_s.png" on-button-pressed="addTimeRow" tooltip="${AddTime}"/>
+               <button id="RemoveTimeButton" style-ref="icon-button-default" icon="/icons/minus_s.png" on-button-pressed="removeTimeRows" tooltip="${RemoveTime}"/>
+            </panel>
+         </tab>
+
+         <tab id="HoursTab" text="${Hours}" layout="border">
+            <data-set id="WorkEffortRecordFooterSet">
+               <data-row>
+                  <data-cell/>
+                  <data-cell/>
+                  <data-cell/>
+                  <data-cell id="WorkEffortRecordFooterSet[3]" double-value="1"/>
+                  <data-cell id="WorkEffortRecordFooterSet[4]" double-value="1"/>
+                  <data-cell id="WorkEffortRecordFooterSet[5]" double-value="1"/>
+                  <data-cell/>
+                  <data-cell/>
+               </data-row>
+            </data-set>
+            
+            <table-box id="EffortTable" data-set-ref="WorkEffortRecordSet" edit-mode="true" on-double-click="editActivity" auto-grow="consecutive" 
+                  on-row-select="hoursSelectionChanged" footer-data-set-ref="WorkEffortRecordFooterSet">
+               <table-column width="100" text="${Project}" id="HoursProjectColumn" data-column-index="0" value-type="Choice" data-set-ref="EffortProjectSet" footer-data-set-ref="WorkEffortRecordFooterSet"/>
+               <table-column width="100" text="${Task}" id="HoursTaskColumn" data-column-index="1" value-type="Choice" data-set-ref="EffortActivitySet" on-activate="filterActivitiesEffort"/>
+               <table-column width="100" text="${Resource}" id="HoursResourceColumn" data-column-index="2" value-type="Choice" data-set-ref="EffortResourceSet" on-activate="filterResourcesEffort"/>
+               <table-column width="70" text="${AssignmentEffort}" id="HoursPlannedColumn" data-column-index="3" value-type="Double"/>
+               <table-column width="70" text="${Worktime}" id="HoursEffortColumn" data-column-index="4" value-type="Duration" display-unit="Minutes" sortable="true"/>
+               <table-column width="70" text="${RemainingEffort}" data-column-index="5" value-type="Duration" display-unit="Minutes" sortable="true"/>
+               <table-column width="40" text="${Completed}" data-column-index="6" value-type="Boolean" sortable="false"/>
+               <table-column width="80" text="${Comment}" data-column-index="7" value-type="String"/>
+               <table-column text="" width="16" data-column-index="13" value-type="IndicatorList" icon-set-ref="ActionsIconSet"/>
+            </table-box>
+            <panel y="1" layout="flow" direction="east" visible="true">
+               <button id="AddHoursButton" style-ref="icon-button-default" icon="/icons/plus_s.png" on-button-pressed="addHours" tooltip="${AddHours}"/>
+               <button id="RemoveHoursButton" style-ref="icon-button-default" icon="/icons/minus_s.png" on-button-pressed="removeHours" tooltip="${RemoveHours}"/>
+            </panel>
+         </tab>
+
+         <tab id="CostTab" text="${Costs}" layout="border">
+            <data-set id="WorkCostsRecordFooterSet">
+               <data-row>
+                  <data-cell/>
+                  <data-cell/>
+                  <data-cell/>
+                  <data-cell/>
+                  <data-cell/>
+                  <data-cell id="WorkCostsRecordFooterSet[5]" double-value="1"/>
+                  <data-cell id="WorkCostsRecordFooterSet[6]" double-value="1"/>
+                  <data-cell id="WorkCostsRecordFooterSet[7]" double-value="1"/>
+                  <data-cell/>
+               </data-row>
+            </data-set>
+            
+            <table-box id="CostTable" data-set-ref="WorkCostRecordSet" edit-mode="true" auto-grow="consecutive"
+                   on-double-click="manageAttachments" footer-data-set-ref="WorkCostsRecordFooterSet">
+               <table-column width="30" text="" data-column-index="3" value-type="IndicatorList" icon-set-ref="IndicatorIconSet"/>
+               <table-column width="100" text="${Project}" data-column-index="0" value-type="Choice" data-set-ref="CostProjectSet"/>
+               <table-column width="100" text="${Task}" data-column-index="1" value-type="Choice" data-set-ref="CostActivitySet" on-activate="filterActivitiesCost"/>
+               <table-column width="100" text="${Resource}" id="CostsResourceColumn" data-column-index="2" value-type="Choice" data-set-ref="CostResourceSet" on-activate="filterResourcesCost"/>
+               <table-column width="100" text="${CostType}" data-column-index="4" value-type="Choice" data-set-ref="CostTypesSet"/>
+               <table-column width="80" text="${BaseCost}" data-column-index="5" value-type="Double" sortable="true"/>
+               <table-column width="70" text="${ActualCost}" data-column-index="6" value-type="Double" sortable="true"/>
+               <table-column width="70" text="${RemainingCost}" data-column-index="7" value-type="Double" sortable="true"/>
+               <table-column width="70" text="${Comment}" data-column-index="8" value-type="String"/>
+            </table-box>
+            <panel y="1" layout="flow" direction="east" visible="true">
+               <button id="AddCostButton" style-ref="icon-button-default" icon="/icons/plus_s.png" on-button-pressed="addCostRow" tooltip="${AddCost}"/>
+               <button id="RemoveCostButton" style-ref="icon-button-default" icon="/icons/minus_s.png" on-button-pressed="removeCostRows" tooltip="${RemoveCosts}"/>
+               <button id="AttachmentButton" style-ref="icon-button-default" icon="/modules/project_planning/icons/document.png" on-button-pressed="manageAttachments" tooltip="${ManageAttachmentTooltip}"/>
+            </panel>
+         </tab>
+
+      </tab-box>	   
+		  
+	</panel>
+	   
+   <panel y="1" layout="flow" direction="west">
+      <panel layout="border">
+         <button x="0" id="okButton" text="${OK}" on-button-pressed="ok"/>
+         <button x="1" id="Cancel" text="${Cancel}" on-button-pressed="cancel"/>
+      </panel>
+   </panel>
+
+   </panel>
+
+</form>

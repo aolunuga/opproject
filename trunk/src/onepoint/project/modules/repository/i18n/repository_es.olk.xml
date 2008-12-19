@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="es">
+    <resource-map id="repository.module">
+        <resource id="RepositoryTool">Repositorio</resource>
+    </resource-map>
+    <resource-map id="repository.main">
+        <resource id="Backup">Crear copia de seguridad</resource>
+        <resource id="BackupTooltip">Crear copia de seguridad del repositorio</resource>
+        <resource id="Restore">Recuperar</resource>
+        <resource id="RestoreTooltip">Recuperar el repositorio</resource>
+        <resource id="Reset">Borrar</resource>
+        <resource id="ResetTooltip">Borrar repositorio entero</resource>
+        <resource id="UserGroupsCount">Grupos de usuarios:</resource>
+        <resource id="UsersCount">Usuarios:</resource>
+        <resource id="PortfoliosCount">Portafolios de proyectos:</resource>
+        <resource id="TemplatesCount">Plantillas de proyectos:</resource>
+        <resource id="ProjectsCount">Proyectos:</resource>
+        <resource id="PoolsCount">Pools de recursos:</resource>
+        <resource id="ResourcesCount">Recursos:</resource>
+        <resource id="ReportsCount">Informes archivados:</resource>
+    </resource-map>
+    <resource-map id="repository.restore_file_list">
+        <resource id="RestoreFile">Seleccione archivo para recuperar</resource>
+        <resource id="RestoreConfirmationSuccessfull">La recuperación se ha realizado con éxito. Pulse OK para reiniciar la sesión</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Cancel">Cancelar</resource>
+    </resource-map>
+    <resource-map id="repository.backup_confirmation">
+        <resource id="BackupConfirmation">Copia de seguridad completada</resource>
+        <resource id="BackupConfirmationMessage">Copia de seguridad completada con éxito bajo</resource>
+        <resource id="OK">OK</resource>
+    </resource-map>
+    <resource-map id="repository.success_confirmation">
+        <resource id="SuccessConfirmation">Confirmación</resource>
+        <resource id="OK">OK</resource>
+    </resource-map>
+    <resource-map id="repository.reset_confirmation">
+        <resource id="ResetConfirmation">Confirmar reinicio</resource>
+        <resource id="ResetConfirmationSuccessfull">La base de datos se ha reiniciado con éxito. Pulse OK para reiniciar todas las sesiones de usuarios.</resource>
+        <resource id="AdminPasswordRequest">Introduzca la contraseña del administrador: </resource>
+        <resource id="SimpleConfirmMessage">¿Está seguro de que quiere reiniciar la base de datos?</resource>
+        <resource id="Cancel">Cancelar</resource>
+        <resource id="OK">OK</resource>
+    </resource-map>
+    <resource-map id="repository.restore_confirmation">
+        <resource id="RestoreConfirmation">Confirmar recuperación</resource>
+        <resource id="AdminPasswordRequest">Introduzca la contraseña del administrador: </resource>
+        <resource id="SimpleConfirmMessage">¿Está seguro de que quiere recuperar una copia de seguridad?</resource>
+        <resource id="Cancel">Cancelar</resource>
+        <resource id="OK">OK</resource>
+    </resource-map>
+    <resource-map id="repository.error">
+        <resource id="BackupError">Se ha producido un error al crear una copia de seguridad. Compruebe el registro de actividades para detalles.</resource>
+        <resource id="RestoreError">Se ha producido un error durante la recuperación. Compruebe el registro de actividades para detalles.</resource>
+        <resource id="ResetError">Se ha producido un error durante el reinicio. Compruebe el registro de actividades para detalles.</resource>
+        <resource id="BackupDirectoryError">No se ha podido crear o acceder el/al directorio de copias de seguridad</resource>
+        <resource id="InsuficientPermissions">Usted no tiene las autorizaciones necesarias para esta operación</resource>
+        <resource id="InvalidAdminPassword">La contraseña introducida no es correcta</resource>
+    </resource-map>
+</language-kit>

@@ -1,0 +1,4 @@
+<applications>
+   <application name="MindMeister" description="onepoint/project/modules/external_applications/MindMeister/application.oxa.xml"/>
+   <application name="MS-Project" description="onepoint/project/modules/external_applications/MSProject/application.oxa.xml"/>
+</applications>

@@ -1,0 +1,9 @@
+<module name="clients" caption="Client Database" version="0.1"
+        class="onepoint.project.modules.clients.OpClientsModule">
+
+   <prototype-files>
+      <prototype-file file-name="/modules/clients/client.opt.xml"/>
+      <prototype-file file-name="/modules/clients/country.opt.xml"/>
+   </prototype-files>
+
+</module>

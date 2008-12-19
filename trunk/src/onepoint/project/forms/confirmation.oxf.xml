@@ -1,0 +1,21 @@
+<form width="240" height="144" layout="border" resource-map-ref="main.confirmation"
+   text="${Confirmation}" provider-class="onepoint.project.forms.OpConfirmationFormProvider"
+   script="/scripts/showConfirmation.jes">
+  
+
+   <data-field id="FrameName"/>
+   <data-field id="CallbackName"/>
+   <data-field id="CallbackParameters"/>
+   <data-field id="ActionName"/>
+
+   <panel y="0" layout="border" style-ref="border-panel-default">
+      <label y="0" id="Message" style-ref="label-error-default" />
+
+      <panel y="1" layout="table" width="3" id="buttonPanel">
+         <button id="OKButton" text="${OK}" on-button-pressed="action" />
+         <button id="YesButton" text="${Yes}" on-button-pressed="action" />
+         <button id="NoButton" text="${No}" on-button-pressed="action" />
+         <button id="CancelButton" text="${Cancel}" on-button-pressed="action" />
+      </panel>
+   </panel>
+</form>

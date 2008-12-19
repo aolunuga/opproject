@@ -1,0 +1,208 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+// Controller script for edit_resource.oxf.xml
+
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/scripts/commonDialog.jes";
+require "onepoint/project/modules/user/scripts/permissions_tab.jes";
+require "onepoint/project/modules/user/scripts/open_subject_chooser.jes";
+require "onepoint/project/modules/project/scripts/open_project_chooser.jes";
+
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.service.XMessage;
+import onepoint.express.XValidator;
+
+function ok(event) {
+   form = XDisplay.getActiveForm();
+   edit_mode = form.findComponent("EditMode").getBooleanValue();
+   if (edit_mode) {
+      ok_edit(event);
+   } else {
+      cancel(event);
+   }
+}
+
+function ok_edit(event) {
+   // Gather resource-data
+   form = XDisplay.getActiveForm();
+   available = form.findComponent("Available").getDoubleValue();
+   hourlyRate = form.findComponent("HourlyRate").getDoubleValue();
+   externalRate = form.findComponent("ExternalRate").getDoubleValue();
+   inheritFromPoolRate = !form.findComponent("InheritPoolRate").getBooleanValue();
+   originalInherit = !form.findComponent("OriginalInherit").getBooleanValue();
+   originalHourlyRate = form.findComponent("OriginalHourlyRate").getDoubleValue();
+   originalExternalRate = form.findComponent("OriginalExternalRate").getDoubleValue();
+   originalAvailable = form.findComponent("OriginalAvailable").getDoubleValue();
+
+   resource_id = form.findComponent("ResourceID").getStringValue();
+   resource_data.Name = form.findComponent("Name").getStringValue();
+   resource_data.CustomTypeLocator = form.findComponent("SubTypeField").getStringValue();
+   resource_data.Description = form.findComponent("Description").getStringValue();
+   resource_data.Available = form.findComponent("Available").getDoubleValue();
+   resource_data.HourlyRate = form.findComponent("HourlyRate").getDoubleValue();
+   resource_data.ExternalRate = form.findComponent("ExternalRate").getDoubleValue();
+   resource_data.InheritPoolRate = !form.findComponent("InheritPoolRate").getBooleanValue();
+   resource_data.Archived = form.findComponent("Archived").getBooleanValue();
+   userChoice = form.findComponent("UserName").getStringValue();
+   if (userChoice != null) {
+      resource_data.UserID = XValidator.choiceID(userChoice);
+   }
+   else {
+      resource_data.UserID = null;
+   }
+
+   assigned_project_data_set = form.findComponent("AssignedProjectDataSet");
+   i = 0;
+   while (i < assigned_project_data_set.getChildCount()) {
+      assigned_projects[i] = assigned_project_data_set.getChild(i).getStringValue();
+      i++;
+   }
+   resource_data.Projects = assigned_projects;
+   resource_data.PermissionSet = form.findComponent("PermissionSet");
+
+   resource_data = prepareParameters(resource_data);
+   saveChanges = true;
+
+   //check extended hourly rates
+   resource_id = form.findComponent("ResourceID").getStringValue();
+   if (checkExtendedHourlyRates(resource_data, resource_id)) {
+      return;
+   }
+   
+   if (hourlyRate != originalHourlyRate || externalRate != originalExternalRate
+        || originalInherit != inheritFromPoolRate || available != originalAvailable){
+      //display confirm dialogue if resource is assigned on an activity
+      request = new XMessage;
+      request.setAction("ResourceService.hasAssignments");
+      request.setArgument("resource_id", resource_id);
+      request = addHourlyRatesToRequest(resource_data, request);
+      //advanced functionality for hourly rate periods
+      request = prepareHourlyRatesSet(request);
+      if(originalInherit != inheritFromPoolRate){
+         request.setArgument("checkInherit", true);
+         request.setArgument("newHourlyRate", hourlyRate);
+         request.setArgument("newExternalRate", externalRate);
+         request.setArgument("originalHourlyRate", originalHourlyRate);
+         request.setArgument("originalExternalRate", originalExternalRate);        
+      }
+      addAdditionalArguments(request);
+      response = XDisplay.getClient().invokeMethod(request);
+      hasAssignments = response.getArgument("Assignments");      
+      if (hasAssignments){
+         //display
+         dialog = XComponent.newDialog();
+         parameters.resource_id = resource_id;
+         parameters.resource_data = resource_data;
+         if (hourlyRate != originalHourlyRate || externalRate != originalExternalRate || inheritFromPoolRate != originalInherit){
+            parameters.changed = "firstTab";
+         }
+         else {
+            parameters.changed = "availability";
+         }
+         dialog.open("/modules/resource/forms/confirm_resource_change.oxf.xml", parameters);
+         return;
+      }
+   }
+
+   request = new XMessage;
+   request.setAction("ResourceService.updateResource");
+   request.setArgument("resource_id", resource_id);
+   request.setArgument("resource_data", resource_data);
+   addAdditionalArguments(request);
+
+   response = XDisplay.getClient().invokeMethod(request);
+
+   if (handleDialogError(form, response, "ErrorLabel") == true) {
+      XDisplay.getActiveWindow().close();
+      XDisplay.findFrame("MainFrame").refreshForm();
+   }
+}
+
+//do nothing ... advanced functionality
+function checkExtendedHourlyRates(resource_data, resource_id){
+   return false;
+}
+
+//do nothing ... advanced functionality
+function addHourlyRatesToRequest(resource_data, request){
+   return request;
+}
+
+function addAdditionalArguments(request) {
+}
+
+function subTypeChanged(event) {
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+
+function selectUser(event) {
+   openSubjectChooser(XDisplay.getActiveWindow().getID(), "addResourceSubject", true, false, null, false, null);
+}
+
+function addResourceSubject(subject) {
+   form = XDisplay.getActiveForm();
+   user_name_field = form.findComponent("UserName");
+   user_name_field.setStringValue(subject);
+   user_name_field.update();
+}
+
+function addProject(event) {
+   form = XDisplay.getActiveForm();
+   assignedProjects = form.findComponent("AssignedProjectDataSet");
+   i = 0;
+   while (i < assignedProjects.getChildCount()) {
+      assignedDataRow = assignedProjects.getChild(i);
+      filteredIds[i] = XValidator.choiceID(assignedDataRow.getStringValue());
+      i++;
+   }
+
+   openProjectChooser("MainFrame", "assignToProject_NewEdit", null, null, true, false, false, filteredIds, true, null);
+}
+
+
+function removeProject(event) {
+   form = XDisplay.getActiveForm();
+   assigned_project_data_set = form.findComponent("AssignedProjectDataSet");
+   selected_rows = assigned_project_data_set.selectedRows();
+   assigned_project_data_set.removeDataRows(selected_rows);
+   // Update assigned project list
+   assigned_project_list_box = form.findComponent("AssignedProjectListBox");
+   assigned_project_list_box.update();
+}
+
+function inheritPoolRate(event) {
+   form = XDisplay.getActiveForm();
+   source = event.event_source;
+   shouldOverride = source.getValue();
+   poolHourlyRate = form.findComponent("PoolHourlyRate").getDoubleValue();
+   poolExternalRate = form.findComponent("PoolExternalRate").getDoubleValue();
+   hourlyRateField = form.findComponent("HourlyRate");
+   externalRateField = form.findComponent("ExternalRate");
+   if (shouldOverride == true) {
+      hourlyRateField.setEnabled(true);
+      externalRateField.setEnabled(true);
+   }
+   else {
+      hourlyRateField.setEnabled(false);
+      hourlyRateField.setDoubleValue(poolHourlyRate);
+      externalRateField.setEnabled(false);
+      externalRateField.setDoubleValue(poolExternalRate);
+   }
+   form.update();
+}
+
+//do nothing ... advanced feature
+function prepareParameters(resource_data) {
+   return resource_data;
+}
+
+//do nothing ... advanced feature
+function prepareHourlyRatesSet(request) {
+   return request;
+}

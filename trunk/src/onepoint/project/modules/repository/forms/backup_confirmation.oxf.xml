@@ -1,0 +1,12 @@
+<form width="450" height="80"
+      layout="border" resource-map-ref="repository.backup_confirmation"
+      text="${BackupConfirmation}"
+      provider-class="onepoint.project.modules.repository.forms.OpBackupConfirmationFormProvider"
+      script="/modules/repository/scripts/backup_confirmation.jes">
+   <panel y="0" layout="border">
+      <label y="0" id="BackupConfirmationMessage" text="${BackupConfirmationMessage}"/>
+      <panel y="1" width="3" layout="table">
+         <button x = "1" id="OKButton" text="${OK}" on-button-pressed="ok"/>
+      </panel>
+   </panel>
+</form>

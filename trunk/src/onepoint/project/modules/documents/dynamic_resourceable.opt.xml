@@ -1,0 +1,3 @@
+<prototype name="OpDynamicResourceable" instance-class="onepoint.project.modules.documents.OpDynamicResourceable"  type="interface">
+	<relationship name="DynamicResources" type="OpDynamicResource" collection-type="Set" back-relationship="Object" inverse="true" cascade="delete"/>
+</prototype>

@@ -1,0 +1,9 @@
+<prototype name="OpActionVersion" instance-class="onepoint.project.modules.project.OpActionVersion">
+   <field name="Name" type="String"/>
+   <field name="Description" type="Text"/>
+   <field name="Deleted" type="Boolean" />
+   <field name="Status" type="Integer" />
+   <relationship name="Activity" type="OpActivityVersion" back-relationship="Actions"/>
+   <relationship name="ActionType" type="OpActionType" back-relationship="ActionVersions"/>
+   <relationship name="Action" type="OpAction" back-relationship="ActionVersions"/>
+</prototype>

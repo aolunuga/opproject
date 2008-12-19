@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="es">
+    <resource-map id="project_costs.module">
+        <resource id="ProjectCostsTool">Costes</resource>
+    </resource-map>
+    <resource-map id="project_costs.project_costs">
+        <resource id="ProjectCosts">Costes del proyecto</resource>
+        <resource id="Print">Imprimir</resource>
+        <resource id="PrintTooltip">Imprimir esta vista</resource>
+        <resource id="ActivityOrCostType">Actividad/tipo de costes</resource>
+        <resource id="Base">Plan ({CurrencySymbol})</resource>
+        <resource id="Actual">Real ({CurrencySymbol})</resource>
+        <resource id="Remaining">Resto ({CurrencySymbol})</resource>
+        <resource id="Projected">Previsto ({CurrencySymbol})</resource>
+        <resource id="Deviation">Desviación ({CurrencySymbol})</resource>
+        <resource id="PercentageDeviation">Desviación (%)</resource>
+        <resource id="Personnel">Personal</resource>
+        <resource id="Travel">{Travel}</resource>
+        <resource id="Material">{Material}</resource>
+        <resource id="External">{External}</resource>
+        <resource id="Miscellaneous">{Miscellaneous}</resource>
+        <resource id="Proceeds">(Ingresos)</resource>
+        <resource id="SaveCSV">Guardar como Tabla...</resource>
+        <resource id="SaveImage">Guardar como imagen...</resource>
+        <resource id="Total">Total</resource>
+        <resource id="ProjectPlanVersionFilter">Versión</resource>
+    </resource-map>
+</language-kit>

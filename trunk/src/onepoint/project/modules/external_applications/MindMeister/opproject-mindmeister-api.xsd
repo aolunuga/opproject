@@ -1,0 +1,237 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+   <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+         Lightweight MindMeister API schema (c) 2008 Onepoint Software
+         GmbH
+      </xsd:documentation>
+   </xsd:annotation>
+
+
+   <xsd:element name="rsp">
+      <xsd:complexType>
+
+         <xsd:sequence>
+
+            <!-- mm.maps.getList -->
+            <xsd:element
+               name="maps"
+               minOccurs="0"
+               maxOccurs="1">
+               <xsd:complexType>
+                  <xsd:sequence>
+                     <xsd:element
+                        name="map"
+                        minOccurs="0"
+                        maxOccurs="unbounded">
+                        <xsd:complexType>
+                           <xsd:attribute
+                              name="id"
+                              type="xsd:positiveInteger"
+                              use="required" />
+                           <xsd:attribute
+                              name="title"
+                              type="xsd:string"
+                              use="required" />
+                        </xsd:complexType>
+                     </xsd:element>
+                  </xsd:sequence>
+               </xsd:complexType>
+            </xsd:element>
+
+            <!-- Error -->
+            <xsd:element
+               name="err"
+               minOccurs="0"
+               maxOccurs="1">
+               <xsd:complexType>
+                  <xsd:attribute
+                     name="code"
+                     type="xsd:positiveInteger"
+                     use="required" />
+                  <xsd:attribute
+                     name="msg"
+                     type="xsd:string"
+                     use="required" />
+               </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element
+               name="frob"
+               minOccurs="0"
+               maxOccurs="1"
+               type="xsd:string">
+            </xsd:element>
+
+            <xsd:element
+               name="auth"
+               minOccurs="0"
+               maxOccurs="1">
+               <xsd:complexType>
+                  <xsd:sequence>
+                     <xsd:element
+                        name="token"
+                        minOccurs="1"
+                        maxOccurs="1"
+                        type="xsd:string" />
+                     <xsd:element
+                        name="perms"
+                        minOccurs="1"
+                        maxOccurs="1"
+                        type="xsd:string" />
+                     <xsd:element
+                        name="user"
+                        minOccurs="1"
+                        maxOccurs="1">
+                        <xsd:complexType>
+                           <xsd:attribute
+                              name="id"
+                              type="xsd:string" />
+                           <xsd:attribute
+                              name="username"
+                              type="xsd:string" />
+                           <xsd:attribute
+                              name="fullname"
+                              type="xsd:string" />
+                        </xsd:complexType>
+                     </xsd:element>
+                  </xsd:sequence>
+               </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element
+               name="ideas"
+               minOccurs="0"
+               maxOccurs="1">
+               <xsd:complexType>
+                  <xsd:sequence>
+                     <xsd:element
+                        name="idea"
+                        minOccurs="0"
+                        maxOccurs="unbounded">
+                        <xsd:complexType>
+                           <xsd:sequence>
+                              <xsd:element
+                                 name="id"
+                                 minOccurs="1"
+                                 maxOccurs="1"
+                                 type="xsd:positiveInteger" />
+                              <xsd:element
+                                 name="parent"
+                                 minOccurs="0"
+                                 maxOccurs="1"
+                                 type="xsd:positiveInteger" />
+                              <xsd:element
+                                 name="title"
+                                 minOccurs="1"
+                                 maxOccurs="1"
+                                 type="xsd:string" />
+                              <xsd:element
+                                 name="note"
+                                 minOccurs="0"
+                                 maxOccurs="1"
+                                 type="xsd:string" />
+                              <xsd:element
+                                 name="closed"
+                                 minOccurs="1"
+                                 maxOccurs="1"
+                                 type="xsd:boolean" />
+                              <xsd:element
+                                 name="link"
+                                 minOccurs="0"
+                                 maxOccurs="unbounded"
+                                 type="xsd:positiveInteger" />
+                              <xsd:element
+                                 name="task"
+                                 minOccurs="1"
+                                 maxOccurs="1">
+                                 <xsd:complexType>
+                                    <xsd:sequence
+                                       minOccurs="0"
+                                       maxOccurs="1">
+                                       <xsd:element
+                                          name="due"
+                                          minOccurs="1"
+                                          maxOccurs="1"
+                                          type="xsd:string" />
+                                       <xsd:element
+                                          name="resource"
+                                          minOccurs="1"
+                                          maxOccurs="1"
+                                          type="xsd:string" />
+                                    </xsd:sequence>
+                                 </xsd:complexType>
+                              </xsd:element>
+                              <xsd:element
+                                 name="attachments"
+                                 minOccurs="0"
+                                 maxOccurs="1">
+                                 <xsd:complexType>
+                                    <xsd:sequence
+                                       minOccurs="0"
+                                       maxOccurs="1">
+                                       <xsd:element
+                                          name="attachment"
+                                          minOccurs="0"
+                                          maxOccurs="unbounded">
+                                          <xsd:complexType>
+                                             <xsd:sequence>
+                                                <xsd:element
+                                                   name="contenttype"
+                                                   minOccurs="1"
+                                                   maxOccurs="1"
+                                                   type="xsd:string" />
+                                                <xsd:element
+                                                   name="url"
+                                                   minOccurs="1"
+                                                   maxOccurs="1"
+                                                   type="xsd:string" />
+                                                <xsd:element
+                                                   name="filename"
+                                                   minOccurs="1"
+                                                   maxOccurs="1"
+                                                   type="xsd:string" />
+                                                <xsd:element
+                                                   name="createdat"
+                                                   minOccurs="1"
+                                                   maxOccurs="1"
+                                                   type="xsd:dateTime" />
+                                                <xsd:element
+                                                   name="size"
+                                                   minOccurs="1"
+                                                   maxOccurs="1"
+                                                   type="xsd:positiveInteger" />
+                                                <xsd:element
+                                                   name="id"
+                                                   minOccurs="1"
+                                                   maxOccurs="1"
+                                                   type="xsd:positiveInteger" />
+                                                <xsd:element
+                                                   name="owner"
+                                                   minOccurs="1"
+                                                   maxOccurs="1"
+                                                   type="xsd:positiveInteger" />
+                                             </xsd:sequence>
+                                          </xsd:complexType>
+                                       </xsd:element>
+                                    </xsd:sequence>
+                                 </xsd:complexType>
+                              </xsd:element>
+                           </xsd:sequence>
+                        </xsd:complexType>
+                     </xsd:element>
+                  </xsd:sequence>
+               </xsd:complexType>
+            </xsd:element>
+
+
+         </xsd:sequence>
+
+         <xsd:attribute
+            name="stat"
+            type="xsd:string" />
+
+      </xsd:complexType>
+
+   </xsd:element>
+</xsd:schema>

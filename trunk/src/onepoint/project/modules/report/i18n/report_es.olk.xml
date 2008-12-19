@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="es">
+    <resource-map id="report.module">
+        <resource id="QueryTool">Consultas</resource>
+        <resource id="ReportsToolGroup">INFORMES</resource>
+    </resource-map>
+    <resource-map id="report.report">
+        <resource id="ReportNavigator">NAVEGADOR DE INFORMES</resource>
+        <resource id="RunQuery">Consulta rápida</resource>
+        <resource id="CreateReport">Crear informe</resource>
+        <resource id="SendReport">Enviar informe</resource>
+        <resource id="ResetQuery">Reiniciar consulta</resource>
+        <resource id="Print">Imprimir</resource>
+        <resource id="ProjectEffort">Esfuerzo del proyecto</resource>
+        <resource id="ProjectCosts">Costes del proyecto</resource>
+        <resource id="ResourceEfforts">Esfuerzos de recursos</resource>
+        <resource id="ResourceCosts">Costes de recursos</resource>
+        <resource id="WorkHours">Horas de trabajo</resource>
+        <resource id="DaysPerProject">Días por proyecto (I)</resource>
+        <resource id="ProjectProgress">Progreso del proyecto (I)</resource>
+        <resource id="QuickQueryTooltip">Iniciar consulta rápida</resource>
+        <resource id="CreateReportTooltip">Crear y mostrar el informe seleccionado</resource>
+        <resource id="ResetQueryTooltip">Reiniciar formulario de consulta</resource>
+        <resource id="PrintTooltip">Imprimir esta vista</resource>
+        <resource id="SendReportTooltip">Enviar informe seleccionado por la web</resource>
+    </resource-map>
+    <resource-map id="report.error">
+        <resource id="ValueConversionException">Se ha producido un error de conversión de valores</resource>
+        <resource id="CouldNotExecuteReportSQL">La instrucción SQL del informe no ha podido ser ejecutada</resource>
+        <resource id="JasperCanNotBuildFilledReport">Jasper no ha podido crear el informe rellenado</resource>
+        <resource id="JasperCanNotExportReport">Jasper no ha podido exportar el informe</resource>
+        <resource id="InvalidReportFormat">El formato del informe solicitado no se soporta</resource>
+        <resource id="CreateReportException">Se ha producido un error al intentar crear el informe</resource>
+        <resource id="SaveReportException">Se ha producido un error al intentar guardar el informe</resource>
+        <resource id="SendReportException">Se ha producido un error al intentar enviar el informe</resource>
+        <resource id="InvalidProject">Seleccione un proyecto</resource>
+        <resource id="PermissionDenied">Permiso denegado</resource>
+    </resource-map>
+</language-kit>

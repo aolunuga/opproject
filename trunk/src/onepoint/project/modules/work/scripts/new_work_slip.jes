@@ -1,0 +1,82 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+// Controller script for new_time_sheet.oxf.xml
+
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/modules/work/scripts/work_slip_common.jes";
+require "onepoint/project/modules/work/scripts/work_time.jes";
+require "onepoint/project/modules/work/scripts/work_effort.jes";
+require "onepoint/project/modules/work/scripts/work_cost.jes";
+require "onepoint/project/modules/documents/scripts/content.jes";
+
+import onepoint.express.XComponent;
+import onepoint.express.XDisplay;
+import onepoint.service.XMessage;
+import onepoint.express.XValidator;
+
+function ok(event) {
+   form = XDisplay.getActiveForm();
+   effort_data_set = form.findComponent("WorkEffortRecordSet");
+   if (!effort_data_set.validate()) {
+      return;
+   }
+   time_data_set = form.findComponent("WorkTimeRecordSet");
+   if (!time_data_set.validate()){
+      return;
+   }
+   costs_data_set = form.findComponent("WorkCostRecordSet");
+   if (!costs_data_set.validate()) {
+      return;
+   }
+   start = form.findComponent("StartField").getDateValue();
+   request = new XMessage;
+   request.setAction("WorkService.insertWorkSlip");
+   request.setArgument("start", start);
+   request.setArgument("effort_record_set", effort_data_set);
+   request.setArgument("time_record_set", time_data_set);
+   request.setArgument("costs_record_set", costs_data_set);
+   response = XDisplay.getClient().invokeMethod(request);
+
+   if (response != null && response.getError() != null && response.getArgument("tamperedCosts") != null) {
+      updateCostsSet(form.findComponent("WorkCostRecordSet"), response.getArgument("tamperedCosts"), response.getError());
+   }
+   else {
+	   if (handleError(form, response, "ErrorLabel") == true) {
+	        XDisplay.getActiveWindow().close();
+	        XDisplay.findFrame("MainFrame").refreshForm();
+	   }
+	   else {
+	      //in case of an error update the attachment set with the values obtained from
+	      //the response (files were replaced by content ids)
+	      responseAttachmentSet = response.getArgument("attachmentSet");
+	      if (responseAttachmentSet != null) {
+	         form.findComponent("WorkCostRecordSet").copyAllChildren(responseAttachmentSet);
+	      }
+	   }
+	}
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+
+function filterChanged(event){
+   form = XDisplay.getActiveForm();
+   start_choice_field = form.findComponent("StartTimeChooser");
+   start_choice_id = XValidator.choiceID(start_choice_field.getStringValue());
+
+   project_choice_field = form.findComponent("ProjectChooser");
+   project_choice_id = XValidator.choiceID(project_choice_field.getStringValue());
+
+   parameters.project_choice_id = project_choice_id;
+   parameters.start_before_id = start_choice_id;
+
+   parameters.StartField = form.findComponent("StartField").getDateValue();
+   parameters.WorkEffortRecordSet = form.findComponent("WorkEffortRecordSet");
+   parameters.WorkTimeRecordSet = form.findComponent("WorkTimeRecordSet");
+   parameters.WorkCostRecordSet = form.findComponent("WorkCostRecordSet");
+//   parameters.
+   XDisplay.getActiveWindow().refreshDialog(parameters);
+}

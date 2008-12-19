@@ -1,0 +1,55 @@
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/scripts/commonDialog.jes";
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XValidator;
+
+function ok(event) {
+   Console.println("Authentication completed?!?");
+   form = XDisplay.getActiveForm();
+   dialogContent = new HashMap;
+   readDialogContent(form, form.findComponent("DialogMap"), dialogContent);
+   
+   request = new XMessage;
+   request.setAction("MindMeisterService.createApplicationToken");
+   request.setArgument("dialogContent", dialogContent);
+   client = XDisplay.getClient();
+   response = client.invokeMethod(request);
+   if (handleError(form, response, "ErrorLabel")) {
+      Console.println("Token created...");
+      callingFrame = XDisplay.findFrame(form.findComponent("CallingFrame").getStringValue()); 
+	   method = form.findComponent("SuccessMethod").getStringValue();
+
+      p[0] = response.getArgument("token");
+      XDisplay.getActiveWindow().close();
+      
+      callingForm = callingFrame.currentForm();
+      callingForm.invokeFunction(method, p);
+      callingFrame.repaint();
+      
+      XDisplay.resetCursor();
+      return;
+   }
+}
+
+function cancel(event) {
+   form = XDisplay.getActiveForm();
+	callingFrame = XDisplay.findFrame(form.findComponent("CallingFrame").getStringValue()); 
+	method = form.findComponent("CancelMethod").getStringValue();
+	
+   XDisplay.resetCursor();
+	XDisplay.getActiveWindow().close();
+	
+	callingForm = callingFrame.currentForm();
+	callingForm.invokeFunction(method, null);
+	callingFrame.repaint();
+}
+
+function openAuthURL(event) {
+   form = XDisplay.getActiveForm();
+   authUrl = form.findComponent("AuthURL").getStringValue();
+   Console.println("Connecting to: " + authUrl);
+   XDisplay.showURL(authUrl, "MindMeister login");   
+}

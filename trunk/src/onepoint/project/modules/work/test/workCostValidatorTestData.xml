@@ -1,0 +1,177 @@
+<!--
+
+Work Cost Structure [property_index, property_type]:
+
+1) Project Name - String (choice: project_locator['project name'])
+2) Activity Name - String (choice: activity_locator['activity name'])
+3) Resource Name - String (choice: resource_locator['resource name'])
+4) Icon Indicator - int
+5) Cost Type - String (choice: cost_type['cost name'])
+6) Base Costs - double
+7) Actual Costs - double
+8) Remaining Costs - double
+9) Comments - String
+10) Attachments - List<List>
+11) Original Remaining Cost - double
+12) Activity Type - byte
+13) Actual Remaining Sum - double
+
+Data set records:
+1)Project   ActivityOne    ResourceOne    TravelCost           50    25    5
+2)Project   ActivityOne    ResourceOne    MaterialCost         30    20    10
+3)Project   ActivityOne    ResourceTwo    TravelCost           50    20    5
+4)Project   ActivityTwo    ResourceOne    ExternalCost         60    15    45
+5)Project   ActivityTwo    ResourceTwo    MaterialCost         75    20    55
+6)Project   ActivityOne    ResourceOne    ExternalCost         100   50    7
+7)Project   ActivityOne    ResourceOne    ExternalCost         100   5     7
+8)Project   ActivityOne    ResourceTwo    ExternalCost         100   55    7
+9)Project   ActivityTwo    ResourceTwo    MiscellaneousCost    20    5     15  
+
+
+-->
+<form>  
+
+   <data-set id="CostActivitySet"/>
+   <data-set id="CostResourceSet"/>
+   <data-set id="CostProjectSet"/>
+
+   <data-field id="AssignmentMap"/>
+
+   <data-set>
+      <data-row>
+         <data-cell enabled="true" string-value="OpProjectNode.xid.10['Project']"/>
+         <data-cell enabled="true" string-value="OpActivity.xid.1['ActivityOne']"/>
+         <data-cell enabled="true" string-value="OpResource.xid.1['ResourceOne']"/>
+         <data-cell enabled="true" int-value="1"/>
+         <data-cell enabled="true" string-value="2['TravelCost']"/>
+         <data-cell enabled="true" double-value="50.0"/>
+         <data-cell enabled="true" double-value="25.0"/>
+         <data-cell enabled="true" double-value="5.0"/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" list-value=""/>
+         <data-cell enabled="true" double-value="5.0"/>
+         <data-cell enabled="true" byte-value="0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+      </data-row>
+      <data-row>
+         <data-cell enabled="true" string-value="OpProjectNode.xid.10['Project']"/>
+         <data-cell enabled="true" string-value="OpActivity.xid.1['ActivityOne']"/>
+         <data-cell enabled="true" string-value="OpResource.xid.1['ResourceOne']"/>
+         <data-cell enabled="true" int-value="1"/>
+         <data-cell enabled="true" string-value="3['MaterialCost']"/>
+         <data-cell enabled="true" double-value="30.0"/>
+         <data-cell enabled="true" double-value="20.0"/>
+         <data-cell enabled="true" double-value="10.0"/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" list-value=""/>
+         <data-cell enabled="true" double-value="10.0"/>
+         <data-cell enabled="true" byte-value="0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+      </data-row>
+      <data-row>
+         <data-cell enabled="true" string-value="OpProjectNode.xid.10['Project']"/>
+         <data-cell enabled="true" string-value="OpActivity.xid.1['ActivityOne']"/>
+         <data-cell enabled="true" string-value="OpResource.xid.2['ResourceTwo']"/>
+         <data-cell enabled="true" int-value="1"/>
+         <data-cell enabled="true" string-value="2['TravelCost']"/>
+         <data-cell enabled="true" double-value="50.0"/>
+         <data-cell enabled="true" double-value="20.0"/>
+         <data-cell enabled="true" double-value="5.0"/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" list-value=""/>
+         <data-cell enabled="true" double-value="5.0"/>
+         <data-cell enabled="true" byte-value="0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+      </data-row>
+      <data-row>
+         <data-cell enabled="true" string-value="OpProjectNode.xid.10['Project']"/>
+         <data-cell enabled="true" string-value="OpActivity.xid.2['ActivityTwo']"/>
+         <data-cell enabled="true" string-value="OpResource.xid.1['ResourceOne']"/>
+         <data-cell enabled="true" int-value="1"/>
+         <data-cell enabled="true" string-value="4['ExternalCost']"/>
+         <data-cell enabled="true" double-value="60.0"/>
+         <data-cell enabled="true" double-value="15.0"/>
+         <data-cell enabled="true" double-value="45.0"/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" list-value=""/>
+         <data-cell enabled="true" double-value="45.0"/>
+         <data-cell enabled="true" byte-value="0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+      </data-row>
+      <data-row>
+         <data-cell enabled="true" string-value="OpProjectNode.xid.10['Project']"/>
+         <data-cell enabled="true" string-value="OpActivity.xid.2['ActivityTwo']"/>
+         <data-cell enabled="true" string-value="OpResource.xid.2['ResourceTwo']"/>
+         <data-cell enabled="true" int-value="1"/>
+         <data-cell enabled="true" string-value="3['MaterialCost']"/>
+         <data-cell enabled="true" double-value="70.0"/>
+         <data-cell enabled="true" double-value="20.0"/>
+         <data-cell enabled="true" double-value="55.0"/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" list-value=""/>
+         <data-cell enabled="true" double-value="55.0"/>
+         <data-cell enabled="true" byte-value="0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+      </data-row>
+      <data-row>
+         <data-cell enabled="true" string-value="OpProjectNode.xid.10['Project']"/>
+         <data-cell enabled="true" string-value="OpActivity.xid.1['ActivityOne']"/>
+         <data-cell enabled="true" string-value="OpResource.xid.1['ResourceOne']"/>
+         <data-cell enabled="true" int-value="1"/>
+         <data-cell enabled="true" string-value="4['ExternalCost']"/>
+         <data-cell enabled="true" double-value="100.0"/>
+         <data-cell enabled="true" double-value="50.0"/>
+         <data-cell enabled="true" double-value="7.0"/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" list-value=""/>
+         <data-cell enabled="true" double-value="50.0"/>
+         <data-cell enabled="true" byte-value="0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+      </data-row>
+      <data-row>
+         <data-cell enabled="true" string-value="OpProjectNode.xid.10['Project']"/>
+         <data-cell enabled="true" string-value="OpActivity.xid.1['ActivityOne']"/>
+         <data-cell enabled="true" string-value="OpResource.xid.1['ResourceOne']"/>
+         <data-cell enabled="true" int-value="1"/>
+         <data-cell enabled="true" string-value="4['ExternalCost']"/>
+         <data-cell enabled="true" double-value="100.0"/>
+         <data-cell enabled="true" double-value="5.0"/>
+         <data-cell enabled="true" double-value="7.0"/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" list-value=""/>
+         <data-cell enabled="true" double-value="50.0"/>
+         <data-cell enabled="true" byte-value="0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+      </data-row>
+      <data-row>
+         <data-cell enabled="true" string-value="OpProjectNode.xid.10['Project']"/>
+         <data-cell enabled="true" string-value="OpActivity.xid.1['ActivityOne']"/>
+         <data-cell enabled="true" string-value="OpResource.xid.2['ResourceTwo']"/>
+         <data-cell enabled="true" int-value="1"/>
+         <data-cell enabled="true" string-value="4['ExternalCost']"/>
+         <data-cell enabled="true" double-value="100.0"/>
+         <data-cell enabled="true" double-value="55.0"/>
+         <data-cell enabled="true" double-value="7.0"/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" list-value=""/>
+         <data-cell enabled="true" double-value="50.0"/>
+         <data-cell enabled="true" byte-value="0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+      </data-row>
+      <data-row>
+         <data-cell enabled="true" string-value="OpProjectNode.xid.10['Project']"/>
+         <data-cell enabled="true" string-value="OpActivity.xid.2['ActivityTwo']"/>
+         <data-cell enabled="true" string-value="OpResource.xid.2['ResourceTwo']"/>
+         <data-cell enabled="true" int-value="1"/>
+         <data-cell enabled="true" string-value="5['MiscellaneousCost']"/>
+         <data-cell enabled="true" double-value="20.0"/>
+         <data-cell enabled="true" double-value="5.0"/>
+         <data-cell enabled="true" double-value="15.0"/>
+         <data-cell enabled="true" string-value=""/>
+         <data-cell enabled="true" list-value=""/>
+         <data-cell enabled="true" double-value="15.0"/>
+         <data-cell enabled="true" byte-value="0"/>
+         <data-cell enabled="true" double-value="0.0"/>
+      </data-row>
+   </data-set>
+</form>

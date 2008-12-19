@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="es">
+    <resource-map id="resource_utilization.module">
+        <resource id="UtilizationTool">Utilización</resource>
+    </resource-map>
+    <resource-map id="resource_utilization.overview">
+        <resource id="FrameTitle">Utilización del recurso</resource>
+        <resource id="Print">Imprimir</resource>
+        <resource id="PrintTooltip">Imprimir esta vista</resource>
+        <resource id="ChangeTimeUnit">Unidad de tiempo</resource>
+        <resource id="Days">Días</resource>
+        <resource id="Weeks">Semanas</resource>
+        <resource id="Months">Meses</resource>
+        <resource id="Project">Project Types</resource>
+        <resource id="Probability">Probabilidad</resource>
+        <resource id="All">Todos</resource>
+        <resource id="Decided">Decidido (100%)</resource>
+        <resource id="Forecast">Pronóstico (99%)</resource>
+        <resource id="Pipeline">Pipeline (75%)</resource>
+        <resource id="Upside">Hacia arriba (50%)</resource>
+        <resource id="SaveImage">Guardar como imagen...</resource>
+        <resource id="PrintTitle">Utilización del recurso</resource>
+        <resource id="HighlyUnderused">Muy infrautilizado</resource>
+        <resource id="Underused">Infrautilizado</resource>
+        <resource id="Normalused">Buena utilización</resource>
+        <resource id="Overused">Sobrecargado</resource>
+        <resource id="HighlyOverused">Muy sobrecargado</resource>
+        <resource id="Absence">No disponible</resource>
+    </resource-map>
+    <resource-map id="resource_utilization.details">
+        <resource id="ProjectName">Proyecto</resource>
+        <resource id="ActivityName">Actividad</resource>
+        <resource id="ActivitySequence">Núm.</resource>
+        <resource id="Start">Inicio</resource>
+        <resource id="Finish">Fin</resource>
+        <resource id="Assigned">Asignado (%)</resource>
+        <resource id="Probability">Prob. (%)</resource>
+        <resource id="Effort">Esfuerzo (h)</resource>
+        <resource id="Total">TOTAL</resource>
+    </resource-map>
+    <resource-map id="pool_utilization.details">
+        <resource id="ResourceName">Recurso</resource>
+        <resource id="Assigned">% Asignado</resource>
+        <resource id="Effort">Esfuerzo (h)</resource>
+        <resource id="Total">TOTAL</resource>
+    </resource-map>
+</language-kit>

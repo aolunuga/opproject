@@ -1,0 +1,11 @@
+<form width="400" height="80" layout="border" default-button-ref="OKButton"
+      resource-map-ref="settings.calendar_change" text="${ConfirmChange}"
+      script="/modules/settings/scripts/confirm_calendar_change.jes">
+   <panel y="0" layout="border">
+   <label y="0" text="${ConfirmCalendarChange}"/>
+   <panel y="1" layout="flow" direction="west">
+      <button id="CancelButton" text="${Cancel}" on-button-pressed="cancel"/>
+      <button id="OKButton" text="${OK}" on-button-pressed="ok"/>
+   </panel>
+   </panel>
+</form>

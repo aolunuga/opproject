@@ -1,0 +1,33 @@
+<prototype name="OpProjectNode" instance-class="onepoint.project.modules.project.OpProjectNode" implements="OpCustomizable, OpLockable, OpPermissionable">
+   <field name="Name" type="String" mandatory="true" unique="true"/>
+   <field name="Type" type="Byte" mandatory="true"/>
+   <field name="Description" type="Text"/>
+   <field name="Start" type="Date"/>
+   <field name="Finish" type="Date"/>
+   <field name="Budget" type="Double"/>
+   <field name="Priority" type="Integer"/>
+   <field name="Probability" type="Integer"/>
+   <field name="Archived" type="Boolean"/>
+
+   <relationship name="CustomType" type="OpCustomType"/>
+   <relationship name="SuperNode" type="OpProjectNode" back-relationship="SubNodes" recursive="true"/>
+   <relationship name="SubNodes" type="OpProjectNode" collection-type="Set" back-relationship="SuperNode" inverse="true"/>
+   <relationship name="TemplateNode" type="OpProjectNode" back-relationship="InstanceNodes" recursive="true"/>
+   <relationship name="InstanceNodes" type="OpProjectNode" collection-type="Set" back-relationship="TemplateNode" inverse="true"/>
+   <relationship name="Plan" type="OpProjectPlan" back-relationship="ProjectNode" inverse="true" cascade="delete"/>
+   <relationship name="Assignments" type="OpProjectNodeAssignment" collection-type="Set" back-relationship="ProjectNode" inverse="true" cascade="delete"/>
+   <relationship name="Goals" type="OpGoal" collection-type="Set" back-relationship="ProjectNode" inverse="true" cascade="delete"/>
+   <relationship name="ToDos" type="OpToDo" collection-type="Set" back-relationship="ProjectNode" inverse="true" cascade="delete"/>
+   <relationship name="Status" type="OpProjectStatus" back-relationship="Projects"/>
+   <relationship name="Attachments" type="OpAttachment" collection-type="Set" back-relationship="ProjectNode" inverse="true" cascade="all"/>
+   <relationship name="Reports" type="OpReport" collection-type="Set" back-relationship="Project" inverse="true"/>
+   <relationship name="Folders" type="OpFolder" collection-type="Set" back-relationship="ProjectNode" inverse="true" cascade="all"/>
+   <relationship name="Customer" type="OpCustomer" back-relationship="Projects"/>
+   <relationship name="Discussions" type="OpDiscussionGroup" collection-type="Set" back-relationship="Project" inverse="true" cascade="all"/>
+   <relationship name="SubProjects" type="OpProgramLink" collection-type="Set" back-relationship="Program" inverse="true"/>
+   <relationship name="Programs" type="OpProgramLink" collection-type="Set" back-relationship="SubProject" inverse="true" cascade="delete"/>
+   <relationship name="ProgramActivityVersions" type="OpActivityVersion" collection-type="Set" back-relationship="SubProject" inverse="true"/>
+
+   <!-- DEPRECATED! -->
+   <relationship name="ProgramActivities" type="OpActivity" collection-type="Set" back-relationship="SubProject" inverse="true"/>
+</prototype>

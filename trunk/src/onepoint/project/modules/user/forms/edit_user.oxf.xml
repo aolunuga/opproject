@@ -1,0 +1,44 @@
+<form width="750" height="450" layout="border" text="${EditUser}" start-focus-ref="Name" default-button-ref="okButton" resource-map-ref="user.edit_user" provider-class="onepoint.project.modules.user.forms.OpEditUserFormProvider" script="/modules/user/scripts/edit_user.jes">
+   <!-- Maybe have a white background (border element w/white background) for the user data -->
+   <panel y="0" layout="border">
+   <data-field id="UserID"/>
+   <data-field id="EditMode"/>
+   <data-set id="UserLanguageDataSet"/>
+   <data-set id="UserLevelDataSet"/>
+   <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+   <tab-box y="0">
+   <tab text="${General}" layout="table" id="GeneralTab">
+      <label x="0" y="0" width="2" text="${Login}" style-ref="label-emphasized-default" /><text-field x="2" y="0" width="3" id="Name"/>
+      <label x="0" y="1" width="2" text="${Firstname}"/><text-field x="2" y="1" width="3" id="FirstName"/>
+      <label x="0" y="2" width="2" text="${Lastname}"/><text-field x="2" y="2" width="3" id="LastName"/>
+      <label x="0" y="3" width="2" id="PasswordLabel" text="${Password}"/><text-field x="2" y="3" width="3" id="Password" secret="true"/>
+      <label x="0" y="4" width="2" id="PasswordRetypedLabel" text="${PasswordRetyped}"/><text-field x="2" y="4" width="3" id="PasswordRetyped" secret="true"/>
+      <label x="0" y="5" width="2" text="${UserLevel}"/><choice-field x="2" y="5" width="3" id="UserLevel" data-set-ref="UserLevelDataSet"/>
+      <label x="0" y="6" width="2" text="${Description}"/><text-box x="2" y="6" width="3" id="Description"/>
+      <label x="0" y="7" width="2" text="${UserLanguage}"/><choice-field x="2" y="7" width="3" id="UserLanguage" data-set-ref="UserLanguageDataSet"/>
+   </tab>
+   <tab text="${Contact}" layout="table" id="ContactTab">
+      <label x="0" y="0" width="2" text="${EMail}"/><text-field x="2" y="0" width="3" id="EMail"/>
+      <label x="0" y="1" width="2" text="${Phone}"/><text-field x="2" y="1" width="3" id="Phone"/>
+      <label x="0" y="2" width="2" text="${Mobile}"/><text-field x="2" y="2" width="3" id="Mobile"/>
+      <label x="0" y="3" width="2" text="${Fax}"/><text-field x="2" y="3" width="3" id="Fax"/>
+   </tab>
+   <tab text="${Groups}" layout="border" id="GroupsTab">
+      <data-set id="AssignedGroupDataSet"/>
+      <list-box y="0" id="AssignedGroupListBox" data-set-ref="AssignedGroupDataSet" flexible="true"/>
+      <panel id="GroupToolPanel" y="1" layout="flow" direction="east">
+         <icon-button id = "AddToGroupButton" icon-type="PlusSign" on-button-pressed="addGroup"/>
+         <icon-button id = "RemoveFromGroupButton" icon-type="MinusSign" on-button-pressed="removeGroup"/>
+      </panel>
+   </tab>
+   </tab-box>
+
+   <panel y="1" layout="flow" direction="west">
+	  <panel layout="border">
+      <button x="0" id="okButton" text="${OK}" on-button-pressed="ok"/>
+      <button x="1" id="Cancel" text="${Cancel}" on-button-pressed="cancel"/>
+	  </panel>
+   </panel>
+
+   </panel>
+</form>

@@ -1,0 +1,16 @@
+<language-kit locale="en">
+   <resource-map id="import_plan.oxf.xml">
+      <resource id="SelectMap">Select a Map to Import</resource>
+      <resource id="MindMeisterError">MindMeister gave an Error</resource>
+      <resource id="MapTitel">Map Title</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+   <resource-map id="login_wizard.oxf.xml">
+      <resource id="LoginToMindMeister">Login to Your MindMeister Account</resource>
+      <resource id="ConnectionFailed">MindMeister Connection Failed</resource>
+      <resource id="PleaseLogin">Please grant access to your mind maps, then press OK</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+</language-kit>

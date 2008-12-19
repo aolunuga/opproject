@@ -1,0 +1,7 @@
+// Controller script for edit_url.oxf.xml
+
+require "onepoint/project/modules/project_planning/scripts/add_url.jes";
+
+function ok(event) {
+   addOrUpdate(false);
+}

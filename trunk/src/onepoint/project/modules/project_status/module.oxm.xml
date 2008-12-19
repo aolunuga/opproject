@@ -1,0 +1,18 @@
+<module name="project_status" caption="ProjectStatus" version="0.1"
+        class="onepoint.project.modules.project_status.OpProjectStatusModule">
+   <service-files>
+      <service-file file-name="/modules/project_status/project_status_service.osd.xml"/>
+   </service-files>
+   <language-kit-paths>
+      <language-kit-path path="/modules/project_status/i18n"/>
+   </language-kit-paths>
+   <tool-groups>
+      <tool-group name="customize" caption="${Customize}" sequence="0" category="system" administrator-only="true" />      
+   </tool-groups>
+   
+   <tools>
+      <tool name="project_status" caption="${ProjectStatusTool}" group-ref="customize"
+            icon="/modules/project_status/icons/project_status_tool.png" sequence="80"
+            start-form="/modules/project_status/forms/project_status.oxf.xml"/>
+   </tools>
+</module>

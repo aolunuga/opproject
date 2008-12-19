@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="ru">
+    <resource-map id="report.module">
+        <resource id="QueryTool">Запросы</resource>
+        <resource id="ReportsToolGroup">Отчеты</resource>
+    </resource-map>
+    <resource-map id="report.report">
+        <resource id="ReportNavigator">НАВИГАТОР ОТЧЕТА</resource>
+        <resource id="RunQuery">Быстрый запрос</resource>
+        <resource id="CreateReport">Создавать отчет</resource>
+        <resource id="SendReport">Отправить отчет</resource>
+        <resource id="ResetQuery">Восстановить запрос</resource>
+        <resource id="Print">Распечатать</resource>
+        <resource id="ProjectEffort">Объём работ проекта</resource>
+        <resource id="ProjectCosts">Проектные затраты</resource>
+        <resource id="ResourceEfforts">Объём работ ресурсов</resource>
+        <resource id="ResourceCosts">Ресурсные затраты</resource>
+        <resource id="WorkHours">Рабочие часы</resource>
+        <resource id="DaysPerProject">Дни на проект (Р)</resource>
+        <resource id="ProjectProgress">Проектный прогресс (Р)</resource>
+        <resource id="QuickQueryTooltip">Выполнить быстрый запрос</resource>
+        <resource id="CreateReportTooltip">Создать и открыть указанный отчет</resource>
+        <resource id="ResetQueryTooltip">Восстановить форму запроса</resource>
+        <resource id="PrintTooltip">Распечатать данное представление</resource>
+        <resource id="SendReportTooltip">Отправить выбранный отчет по сети</resource>
+    </resource-map>
+    <resource-map id="report.error">
+        <resource id="ValueConversionException">Ошибка преобразования значения</resource>
+        <resource id="CouldNotExecuteReportSQL">SQL запрос данного отчета не может быть выполнен</resource>
+        <resource id="JasperCanNotBuildFilledReport">Jasper не мог сформировать заполненный отчет</resource>
+        <resource id="JasperCanNotExportReport">Библиотека Jasper не может экспортировать отчет</resource>
+        <resource id="InvalidReportFormat">Запрошенный формат отчета не поддерживается</resource>
+        <resource id="CreateReportException">Произошла ошибка во время создания отчета</resource>
+        <resource id="SaveReportException">Произошла ошибка во время сохранения отчета</resource>
+        <resource id="SendReportException">Произошла ошибка во время отправки отчета</resource>
+        <resource id="InvalidProject">Пожалуйста выбирете проект</resource>
+        <resource id="PermissionDenied">Отказано в разрешении</resource>
+    </resource-map>
+</language-kit>

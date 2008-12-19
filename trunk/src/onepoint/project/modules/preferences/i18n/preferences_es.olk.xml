@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="es">
+    <resource-map id="preferences.module">
+        <resource id="PreferencesTool">Preferencias</resource>
+    </resource-map>
+    <resource-map id="preferences.preferences">
+        <resource id="Preferences">Preferencias</resource>
+        <resource id="UserLanguage">Idioma</resource>
+        <resource id="Password">Contraseña</resource>
+        <resource id="PasswordRetyped">Introduzca de nuevo la contraseña</resource>
+        <resource id="Save">Guardar preferencias</resource>
+        <resource id="SaveTooltip">Guardar preferencias del usuario</resource>
+        <resource id="ShowResourceHours">Mostrar la asignación de los recursos en horas</resource>
+        <resource id="SavedImageFormat">Formato de imagen por defecto</resource>
+        <resource id="ImportExportLanguage">MS Project Locale</resource>
+    </resource-map>
+    <resource-map id="preferences.error">
+        <resource id="EmptyPassword">Introduzca contraseña</resource>
+        <resource id="PasswordMissmatch">Contraseña incorrecta</resource>
+    </resource-map>
+</language-kit>

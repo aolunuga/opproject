@@ -1,0 +1,97 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+//Controler script for common methods in new/edit work slip
+
+require "onepoint/project/scripts/error.jes";
+
+import onepoint.express.XComponent;
+import onepoint.express.XDisplay;
+import onepoint.express.XValidator;
+
+function addHours(event) {
+   form = XDisplay.getActiveForm();
+   workEffortRecordSet = form.findComponent("WorkEffortRecordSet");
+   dataRow = workEffortRecordSet.newDataRow();  
+   workEffortRecordSet.addDataRow(dataRow);
+   form.findComponent("EffortTable").update();
+}
+
+function removeHours(event) {
+   form = XDisplay.getActiveForm();
+   workEffortRecordSet = form.findComponent("WorkEffortRecordSet");
+   selectedRows = workEffortRecordSet.selectedRows();
+   if (selectedRows.size() > 0) {
+      workEffortRecordSet.removeDataRows(selectedRows);
+      form.findComponent("EffortTable").update();
+   }
+}
+
+function filterActivitiesEffort(event) {
+   table_cell = event.event_source;
+   form = XDisplay.getActiveForm();
+   workTimeRecordSet = form.findComponent("WorkEffortRecordSet");
+   table_row = table_cell.getParent();
+   workTimeRecordSet.filterActivities(table_row.getDataComponent());
+   updateActivityAdditional(table_row);
+}
+
+function updateActivityAdditional(activity) {
+}
+
+function filterResourcesEffort(event) {
+   table_cell = event.event_source;
+   form = XDisplay.getActiveForm();
+   workTimeRecordSet = form.findComponent("WorkEffortRecordSet");
+   table_row = table_cell.getParent();
+   workTimeRecordSet.filterResources(table_row.getDataComponent());
+}
+
+function hoursSelectionChanged(event) {
+   // Console.println("EVENT: " + event);
+   form = event.sourceForm;
+   if (form == null) {
+      return;
+   }
+   effortActivities = form.findComponent("EffortActivitySet");
+   // Console.println("EffortActivitySet: " + effortActivities);
+   
+   // find our row in effortActivities ->enable hours '-' button!
+   selectedRows = form.findComponent("WorkEffortRecordSet").selectedRows();
+   j = 0;
+   // Console.println("SEL: " + selectedRows + " j:" + j + " size:" + selectedRows.size());
+   while (j < selectedRows.size()) {
+      row = selectedRows[j];
+	   i = 0;
+      found = false;
+	   while (i < effortActivities.getChildCount() && !found) {
+	      actLoc = XValidator.choiceID(effortActivities.getChild(i).getStringValue());
+	      if (row.getChildCount() > 1 && row.getChild(1) != null && row.getChild(1).getStringValue() != null) {
+	        rowLoc = XValidator.choiceID(row.getChild(1).getStringValue());
+	      }
+         // Console.println("Act:" + actLoc + " Row:" + rowLoc);
+         if (rowLoc == null) { // ATTN: jes has no short-circiut-evaluation for boolean expressions!
+           found = true;
+           i = effortActivities.getChildCount();
+         }
+         else {
+	         if (actLoc == rowLoc) {
+	           found = true;
+	           i = effortActivities.getChildCount();
+	         }
+         }
+	      i++;
+	   }
+	   if (!found) {
+	     button = form.findComponent("RemoveHoursButton");
+	     button.setVisible(false);
+	     form.update();
+	     return;
+	   }
+	   j++;
+	}
+   button = form.findComponent("RemoveHoursButton");
+   button.setVisible(true);
+   form.update();
+}

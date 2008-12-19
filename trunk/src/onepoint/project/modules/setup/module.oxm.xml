@@ -1,0 +1,5 @@
+<module name="setup" caption="Setup" version="0.1" class="onepoint.project.modules.setup.OpSetupModule">
+   <service-files>
+      <service-file file-name="/modules/setup/setup_service.osd.xml"/>
+   </service-files>
+</module>

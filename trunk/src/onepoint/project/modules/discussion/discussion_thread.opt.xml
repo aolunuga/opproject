@@ -1,0 +1,6 @@
+<prototype name="OpDiscussionThread" instance-class="onepoint.project.modules.discussion.OpDiscussionThread" super-type="OpDiscussionArticle">
+
+   <relationship name="Group" type="OpDiscussionGroup" back-relationship="Threads"/>
+   <relationship name="FollowUps" type="OpDiscussionReply" collection-type="Set" back-relationship="Thread" inverse="true" cascade="delete"/>
+   
+</prototype>

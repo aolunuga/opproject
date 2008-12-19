@@ -1,0 +1,14 @@
+/*
+ * Copyright(c) Onepoint Software GmbH 2008. All Rights Reserved.
+ */
+
+// Utitility function for opening a generic document chooser
+
+import onepoint.express.XComponent;
+
+function openAttachmentChooser(parameters) {
+   // Open document chooser dialog w/calling frame and resource field as parameters
+   
+   dialog = XComponent.newDialog();
+   dialog.open("/forms/attachment_chooser.oxf.xml", parameters);
+}

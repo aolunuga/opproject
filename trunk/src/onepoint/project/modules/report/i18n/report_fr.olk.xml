@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="fr">
+    <resource-map id="report.module">
+        <resource id="QueryTool">Requêtes</resource>
+        <resource id="ReportsToolGroup">RAPPORTS</resource>
+    </resource-map>
+    <resource-map id="report.report">
+        <resource id="ReportNavigator">NAVIGATEUR DE RAPPORT</resource>
+        <resource id="RunQuery">Requêtes Rapides</resource>
+        <resource id="CreateReport">Creer Requêtes</resource>
+        <resource id="SendReport">Envoyer le rapport</resource>
+        <resource id="ResetQuery">Reinitialiser Requêtes</resource>
+        <resource id="Print">Imprimer</resource>
+        <resource id="ProjectEffort">Effort Projet</resource>
+        <resource id="ProjectCosts">Coûts Projet</resource>
+        <resource id="ResourceEfforts">Efforts Ressource</resource>
+        <resource id="ResourceCosts">Coûts Ressource</resource>
+        <resource id="WorkHours">Heures de Travail</resource>
+        <resource id="DaysPerProject">Jours par projet (R)</resource>
+        <resource id="ProjectProgress">Pogression Projet (R)</resource>
+        <resource id="QuickQueryTooltip">Lancer une requête rapide</resource>
+        <resource id="CreateReportTooltip">Creer et voir le rapport choisi</resource>
+        <resource id="ResetQueryTooltip">Reinitialiser le formulaire de requête</resource>
+        <resource id="PrintTooltip">Imprimer cette vue</resource>
+        <resource id="SendReportTooltip">envoyer le rapport</resource>
+    </resource-map>
+    <resource-map id="report.error">
+        <resource id="ValueConversionException">Une exception de conversion de valeur s'est produite</resource>
+        <resource id="CouldNotExecuteReportSQL">Le rapport de la requête SQL n'a pas pu être exécuté</resource>
+        <resource id="JasperCanNotBuildFilledReport">Japser n'a pu remplir le rapport</resource>
+        <resource id="JasperCanNotExportReport">Jasper n'a pu exporter le rapport</resource>
+        <resource id="InvalidReportFormat">Le format de la requete n'est pas supporte</resource>
+        <resource id="CreateReportException">Une erreur s'est produite lors de la tentative de creation du rapport</resource>
+        <resource id="SaveReportException">Une erreur est survenue lors la sauvegarde</resource>
+        <resource id="SendReportException">Une erreur est survenue lors de l'envoi du fichier</resource>
+        <resource id="InvalidProject">Veuillez choisir un projet</resource>
+        <resource id="PermissionDenied">Autorisation refusee</resource>
+    </resource-map>
+</language-kit>

@@ -1,0 +1,202 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+
+function readDialogContent(dialog, mappingsDataSet, dialogContent) {
+   i = 0;
+   while (i < mappingsDataSet.getChildCount()) {
+      fn = mappingsDataSet.getChild(i).getStringValue();
+      if (mappingsDataSet.getChild(i).getChildCount() > 0) {
+         fid = mappingsDataSet.getChild(i).getChild(0).getStringValue();
+         component = dialog.findComponent(fid);
+         if (component != null) {
+            val = component.getValue();
+            if (component.getComponentType() == XComponent.CHOICE_FIELD) {
+               val = XValidator.choiceID(val);
+            }
+            dialogContent.put(fn, val);
+         }
+         else {
+            Console.println("WARNING: none-existent component: " + fid);
+         }
+      }
+      i++;
+   }
+}
+
+function readSetContent(dataSet, mappingsDataSet, setContent) {
+   i = 0;
+   while (i < dataSet.getChildCount()) {
+      rowContent = new HashMap;
+      readRowContent(dataSet.getChild(i), mappingsDataSet, rowContent);
+      setContent.add(rowContent);
+      i++;
+   }
+}
+
+function readRowContent(dataRow, mappingsDataSet, rowContent) {
+   Console.println("Reading Column: " + dataRow);
+   i = 0;
+   while (i < mappingsDataSet.getChildCount()) {
+      fn = mappingsDataSet.getChild(i).getStringValue();
+      if (mappingsDataSet.getChild(i).getChildCount() > 0) {
+         idx = mappingsDataSet.getChild(i).getChild(0).getIntValue();
+         read = false;
+         if (idx >= 0 && idx < dataRow.getChildCount()) {
+	         cell = dataRow.getChild(idx);
+	         if (cell != null) {
+	            rowContent.put(fn, cell.getValue());
+	         }
+	         else {
+               Console.println("WARNING: null column: " + idx);
+	         }
+	         read = true;
+         }
+         if (idx == -1) {
+            rowContent.put(fn, dataRow.getValue());
+            read = true;
+         }
+         if (idx == -2) {
+            rowContent.put(fn, dataRow.getOutlineLevel());
+            read = true;
+         }
+         if (idx == -3) {
+            rowContent.put(fn, dataRow.getExpanded());
+            read = true;
+         }
+         if (!read) {
+            Console.println("WARNING: none existent column: " + idx);
+         }
+      }
+      i++;
+   }
+}
+
+function writeListContent(dataList, mappingsDataSet, setContent) {
+   i = 0;
+   while (i < dataList.size()) {
+      row = setContent.newDataRow();
+      writeRowContent(dataList.get(i), mappingsDataSet, row);
+      setContent.addChild(row);
+      i++;
+   }
+}
+
+function writeRowContent(sourceMap, mappingsDataSet, destinationRow) {
+   i = 0;
+   while (i < mappingsDataSet.getChildCount()) {
+      fn = mappingsDataSet.getChild(i).getStringValue();
+      if (mappingsDataSet.getChild(i).getChildCount() > 0) {
+         idx = mappingsDataSet.getChild(i).getChild(0).getIntValue();
+         Console.println("WARNING1: none-existent column: " + idx);
+         Console.println("WARNING2: none-existent column: " + sourceMap);
+         if (idx >= 0 && idx < sourceMap.size()) {
+            pos = destinationRow.getChildCount();
+            while (pos <= idx) {
+               cell = XComponent.newDataCell();
+               destinationRow.addChild(cell);
+               pos++;
+            }
+            cell = destinationRow.getChild(idx);
+            if (cell != null) {
+               cell.setValue(sourceMap.get(fn));
+            }
+            else {
+               Console.println("WARNING: null column: " + idx);
+            }
+         }
+         else {
+            Console.println("WARNING: none-existent column: " + idx);
+         }
+      }
+      i++;
+   }
+}
+
+function setupFormElements(form, permissionsMap, userAccessLevel, editMode) {
+   fieldNames = permissionsMap.keyList();
+   i = 0;
+   while (i < fieldNames.size()) {
+      // Console.println("ElementAccess:" + fieldNames[i]);
+      element = form.findComponent(fieldNames[i]);
+      if (element != null) {
+	      elementMap = permissionsMap.get(fieldNames[i]);
+	      permission = elementMap.get(userAccessLevel);
+	      if (permission == null) {
+	         permission = "-";
+	      }
+	      if (editMode && permission == "w") {
+	         element.setHidden(false);
+	         element.setEditMode(true);
+	         element.setEnabled(true);
+	      }
+	      if (permission == "r") {
+	         element.setHidden(false);
+	         element.setEditMode(false);
+	         element.setEnabled(false);
+	      }
+	      if (permission == "-") {
+	         element.setHidden(true);
+	         element.setEditMode(false);
+	         element.setEnabled(false);
+	      }
+	      element.update();
+      }
+      i++;
+   }
+}
+
+function handleDialogError(form, response, label) {
+   if (handleError(form, response, label)) {
+      return true;
+   }
+   error_label = form.findComponent(label);
+   errorText = error_label.getText();
+   labelId = response.getArgument("invalidFieldLabelId");
+   tableColumnIdx = response.getArgument("invalidTableColumn");
+   if (labelId != null) {
+      Console.println("ERROR_COMPONENT: " + form.findComponent(labelId));
+      fieldLabel = form.findComponent(labelId).getText();
+   }
+   else {
+      if (tableColumnIdx != null) {
+         // find the column header...
+         
+      }
+   }
+   Console.println("Label: " + fieldLabel);
+   error_label.setText(errorText.replaceAll("<LABEL>", fieldLabel));
+   
+   return false;
+}
+
+function ADMINISTRATOR_ACCESS_LEVEL() {
+   return Byte.parseByte("64");
+}
+function MANAGER_ACCESS_LEVEL() {
+   return Byte.parseByte("16");
+}
+function CONTRIBUTOR_ACCESS_LEVEL() {
+   return Byte.parseByte("4");
+}
+function OBSERVER_ACCESS_LEVEL() {
+   return Byte.parseByte("2");
+}
+function NO_ACCESS_LEVEL() {
+   return Byte.parseByte("0");
+}
+
+// usefull, if parameter names are the same as field-Ids:
+function readDialogFields(dialog, mappingsDataSet, fieldMap) {
+   i = 0;
+   while (i < mappingsDataSet.getChildCount()) {
+      fn = mappingsDataSet.getChild(i).getStringValue();
+      if (mappingsDataSet.getChild(i).getChildCount() > 0) {
+         fid = mappingsDataSet.getChild(i).getChild(0).getStringValue();
+         fieldMap.put(fid, dialog.findComponent(fid).getValue());
+      }
+      i++;
+   }
+}

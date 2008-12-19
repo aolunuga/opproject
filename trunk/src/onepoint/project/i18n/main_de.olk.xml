@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<language-kit locale="de">
+    <resource-map id="main.login">
+        <resource id="Login">Benutzername</resource>
+        <resource id="Password">Passwort</resource>
+        <resource id="Remember">Auf diesem Computer merken</resource>
+        <resource id="OK">OK</resource>
+    </resource-map>
+    <resource-map id="main.levels">
+        <resource id="runLevel0">Konfigurationsdatei konnte nicht geladen werden</resource>
+        <resource id="runLevel1">Registrierte Module konnten nicht geladen werden</resource>
+        <resource id="runLevel2">Keine Verbindung zur Datenbank</resource>
+        <resource id="runLevel3">Ablagestruktur konnte nicht eingerichtet werden</resource>
+        <resource id="runLevel4">Datenbankschema konnte nicht auf den neuesten Stand gebracht werden</resource>
+        <resource id="runLevel5">Registrierte Module konnten nicht gestartet werden</resource>
+    </resource-map>
+    <resource-map id="main.header">
+        <resource id="ClearResourceCache">Ressourcen-Cache leeren</resource>
+        <resource id="ClearImageCache">Bilder-Cache leeren</resource>
+        <resource id="GetBandwidthInfo">Bandbreiten-Information anzeigen</resource>
+        <resource id="SignOff">Abmelden</resource>
+        <resource id="SystemSettingsToolTip">Systemeinstellungen</resource>
+        <resource id="Quit">Beenden</resource>
+    </resource-map>
+    <resource-map id="main.dock">
+        <resource id="ToolDock">TOOL-DOCK</resource>
+    </resource-map>
+    <resource-map id="main.about">
+        <resource id="OK">OK</resource>
+        <resource id="About">Über Onepoint Project</resource>
+        <resource id="Version">Version:</resource>
+        <resource id="Build">Erstellt am:</resource>
+        <resource id="CurrentVersion">aktuellste Version:</resource>
+    </resource-map>
+    <resource-map id="main.bandwidth">
+        <resource id="OK">OK</resource>
+        <resource id="BandwidthInfo">Gemessene Bandbreite (Kb/s)</resource>
+        <resource id="MinVal">Minimum</resource>
+        <resource id="MaxVal">Maximum</resource>
+        <resource id="AvgVal">Durchschnitt</resource>
+    </resource-map>
+    <resource-map id="main.error">
+        <resource id="Error">Fehler</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Warning">Warnung</resource>
+        <resource id="SessionExpired">Ihre Benutzersitzung ist abgelaufen. Bitte melden Sie sich neu an.</resource>
+        <resource id="InsuficientViewPermissions">Sie haben nicht die notwendigen Zugriffsrechte, um diese Information einzusehen</resource>
+        <resource id="InvalidSession">Sie müssen sich anmelden um diese Information einsehen zu dürfen</resource>
+        <resource id="InvalidFileURL">Datei konnte nicht geöffnet werden, da die Anfrage das falsche Format hat</resource>
+    </resource-map>
+    <resource-map id="main.confirmation">
+        <resource id="Confirmation">Bestätigung</resource>
+        <resource id="OK">OK</resource>
+        <resource id="Yes">Ja</resource>
+        <resource id="No">Nein</resource>
+        <resource id="Cancel">Abbrechen</resource>
+    </resource-map>
+    <resource-map id="main.lockFileExistsDialog">
+        <resource id="lockFileExistsTitle">Lockfile existiert</resource>
+        <resource id="lockFileExists">Ein Lockfile existiert!
+      Dies kann darauf hinweisen das ein weiteres Onepoint Project Programm läuft.
+      Wählen Sie 'OK' um das Lockfile zu ignorieren und Onepoint Project zu starten.
+      Wenn Sie 'Abbrechen' wählen wird Onepoint Project beendet.</resource>
+    </resource-map>
+    <resource-map id="dialog.error">
+        <resource id="MandatoryValue">&lt;LABEL&gt; muss ausgefüllt sein</resource>
+        <resource id="IvnalidFormat">Das Wert von &lt;LABEL&gt; ist nicht korrekt</resource>
+        <resource id="InternalError">Ein interner Fehler ist aufgetreten</resource>
+    </resource-map>
+    <resource-map id="attachments.AttachmentChooser">
+        <resource id="SelectDocument">Dokument auswählen</resource>
+        <resource id="Name">Name</resource>
+        <resource id="Linked">Link</resource>
+        <resource id="Location">Ziel</resource>
+        <resource id="Select">Auswählen</resource>
+        <resource id="InvalidAttachmentSize">Das Dokument ist größer als die eingestellte Maximalgröße</resource>
+        <resource id="ChooseDocument">Dokument auswählen</resource>
+        <resource id="Cancel">Abbrechen</resource>
+        <resource id="OK">OK</resource>
+    </resource-map>
+    <resource-map id="calendar.chooser">
+        <resource id="SelectCalendar">(Kalender auswählen)</resource>
+    </resource-map>
+</language-kit>

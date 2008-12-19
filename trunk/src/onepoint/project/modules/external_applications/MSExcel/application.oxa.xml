@@ -1,0 +1,4 @@
+<application type="Microsoft Excel File">
+   <main-class name="onepoint.project.modules.external_applications.MSExcel.OpMSExcelApplication"/>
+   <project-plan-import form="/modules/project_planning/forms/confirm_import_excel.oxf.xml" default="true"/>
+</application>

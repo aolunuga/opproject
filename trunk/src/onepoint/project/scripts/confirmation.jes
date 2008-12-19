@@ -1,0 +1,31 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+// helper function for error handling
+
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.service.XMessage;
+import onepoint.express.XExtendedComponent;
+
+
+/**
+ * Shows a warning from the given response.
+ */
+function showConfirmationDialog(frame, title, message, option, callback) {
+   if (response != null) {
+     error = response.getError();
+     if (error != null) {
+       parameters.message = message;
+       parameters.title = title;
+       parameters.frame = frame;
+//       parameters.parameters = args;
+       parameters.option = option;
+       parameters.callback = callback;
+       dialog = XComponent.newDialog();
+       dialog.open("/forms/confirmation.oxf.xml", parameters);
+     }
+   }
+}
+

@@ -1,0 +1,28 @@
+<form layout="border" resource-map-ref="resource_utilization.details" provider-class="onepoint.project.modules.resource_utilization.forms.OpResourceUtilizationDetailsFormProvider">
+  <data-set id="UtilizationDataSet"/>
+   <panel layout="border" style-ref="border-panel-default">
+	  <panel layout="border">
+         <data-set id="DetailsFooterDataSet">
+          <data-row id="sum-row">
+            <data-cell string-value="${Total}"/>
+            <data-cell/>
+            <data-cell/>
+            <data-cell/>
+            <data-cell id="DetailsFooterDataSet[5]" double-value="1"/>
+            <data-cell id="DetailsFooterDataSet[6]" double-value="1"/>
+            <data-cell/>
+          </data-row>
+         </data-set>
+     
+         <table-box id="UtilizationTable" data-set-ref="UtilizationDataSet" y="0" footer-data-set-ref="DetailsFooterDataSet">
+            <table-column width="220" text="${ActivityName}" data-column-index="1"/>
+            <table-column width="100" text="${ProjectName}" data-column-index="0"/>
+            <table-column width="70" text="${Start}" value-type="Date" data-column-index="3" />
+            <table-column width="70" text="${Finish}" value-type="Date" data-column-index="4"/>
+            <table-column width="90" text="${Effort}" value-type="Double" data-column-index="5"/>
+            <table-column width="60" text="${Assigned}" value-type="PercentageBar" data-column-index="6"/>
+            <table-column width="60" text="${Probability}" value-type="Double" data-column-index="7"/>
+         </table-box>
+	  </panel>
+  </panel>
+</form>
