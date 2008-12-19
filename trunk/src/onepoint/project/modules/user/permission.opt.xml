@@ -1,6 +1,0 @@
-<prototype name="OpPermission" instance-class="onepoint.project.modules.user.OpPermission" super-type="OpObject">
-   <relationship name="Object" type="OpObject" back-relationship="Permissions"/>
-   <relationship name="Subject" type="OpSubject" back-relationship="OwnedPermissions"/>
-   <field name="AccessLevel" type="Byte"/>
-   <field name="SystemManaged" type="Boolean"/>
-</prototype>

@@ -1,6 +1,0 @@
-<prototype name="OpTestPrototype" >
-   <field name="Field1" type="String"/>
-   <field name="Field2" type="Integer"/>
-   <relationship name="Relationship1" type="Type1" />
-   <relationship name="Relationship2" type="Type2" />
-</prototype>

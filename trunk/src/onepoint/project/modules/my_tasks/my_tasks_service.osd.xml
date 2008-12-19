@@ -1,6 +1,0 @@
-<service name="MyTasksService" class="onepoint.project.modules.my_tasks.OpMyTasksService"
-         interceptor="onepoint.project.modules.documents.OpContentCheckServiceInterceptor">
-   <method name="addAdhocTask" contentCheck="true"/>
-   <method name="updateAdhocTask" contentCheck="true"/>
-   <method name="deleteAdhocTask"/>
-</service>
