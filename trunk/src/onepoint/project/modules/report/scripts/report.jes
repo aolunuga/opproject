@@ -76,10 +76,12 @@ function createReport(event) {
    queryFrame = XDisplay.findFrame("QueryFrame");
    if (queryFrame.getChildCount() > 0) {
       queryForm = queryFrame.getChild(0);
+      Console.println("REPORT.createReport(e) :: "+queryForm);
 
       XDisplay.setWaitingCursor();
       request = queryForm.invokeFunction("createRequest");
       if (request == null) {
+         Console.println("could nor create Request: "+request);
          return;
       }
       //set the action name

@@ -215,8 +215,12 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
          byte[] bytes = (byte[]) response.getArgument("bytes_array");
          assertNotNull(bytes);
 
-         deleteAllObjects(OpAssignmentIfc.ASSIGNMENT);
-         deleteAllObjects(OpActivity.ACTIVITY);
+         broker.close();
+         broker = session.newBroker();
+         t = broker.newTransaction();
+         deleteAllObjects(broker, OpAssignmentIfc.ASSIGNMENT);
+         deleteAllObjects(broker, OpActivity.ACTIVITY);
+         t.commit();
 
          // FIXME(dfreis Jan 25, 2008 11:16:31 PM) should not do that
          broker.close();

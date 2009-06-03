@@ -85,6 +85,7 @@ public class OpReportService extends OpProjectService {
    public final static String JARFILE = "jarfile";
    public final static String PARAMETERS = "parameters";
    public final static String FORMATS = "formats";
+   public final static String FORMAT = "format";
    public final static String QUERY_MAP = "query";
    public final static String QUERY_STRING = "queryString";
    public final static String QUERY_PARAMS = "queryParams";
@@ -217,14 +218,17 @@ public class OpReportService extends OpProjectService {
     * @return XMessage with possible error
     */
    private XMessage checkUserLevel(OpProjectSession session) {
-      OpBroker broker = session.newBroker();
-      OpUser user = session.user(broker);
       XMessage response = new XMessage();
-      if (user.getLevel() < OpUser.MANAGER_USER_LEVEL) {
-         XError error = session.newError(ERROR_MAP, OpReportError.PERMISSION_DENIED);
-         response.setError(error);
+      OpBroker broker = session.newBroker();
+      try {
+         OpUser user = session.user(broker);
+         if (user.getLevel() < OpUser.MANAGER_USER_LEVEL) {
+            XError error = session.newError(ERROR_MAP, OpReportError.PERMISSION_DENIED);
+            response.setError(error);
+         }
+      } finally {
+         broker.close();
       }
-      broker.close();
       return response;
    }
    
@@ -423,6 +427,7 @@ public class OpReportService extends OpProjectService {
          response.setArgument(CONTENT_ID, contentLocator);
          response.setArgument(REPORT_TYPE_ID, reportTypeLocator);
          response.setArgument(REPORT_NAME, name);
+         response.setArgument(FORMAT, format);
          if (projectLocator != null) {
             response.setArgument(PROJECT_CHOICE, projectLocator);
          }
@@ -482,16 +487,33 @@ public class OpReportService extends OpProjectService {
    private JasperPrint createJasperPrint(OpProjectSession session, XMessage request) {
       String name = (String) (request.getArgument(NAME));
       Map parameters = (Map) (request.getArgument(PARAMETERS));
+      Map subReportData = (Map) request.getArgument(SUBREPORT_DATA);
+      Map queryMap = (Map) request.getArgument(QUERY_MAP);
+      //get the report fields
+      Map reportFields = (Map) request.getArgument(FIELDS);
+      //get the resource map for the report
+      String resourceMapId = (String) request.getArgument(RESOURCE_MAP_ID);
+      Map reportParam = (Map) request.getArgument(REPORT_PARAMETERS);
+      String dataSourceClass = (String) request.getArgument(REPORT_DATA_SOURCE);
+
+      return createJasperPrint(session, name, parameters, subReportData,
+            queryMap, reportFields, resourceMapId, reportParam, dataSourceClass);
+   }
+
+   private JasperPrint createJasperPrint(OpProjectSession session, String name,
+         Map parameters, Map subReportData, Map queryMap, Map reportFields,
+         String resourceMapId, Map reportParam, String dataSourceClass) {
       // copy parameters set to not affect request content.
       parameters = parameters != null ? new HashMap(parameters) : null;
+      
 
       //create the report query
       OpBroker broker = session.newBroker();
       try {
          if (parameters != null) {
-            Map subReportData = (Map) request.getArgument(SUBREPORT_DATA);
+//            parameters.putAll(reportParam);
             if (subReportData != null) {
-               putSubreportParameters(subReportData, parameters, broker, session);
+               putSubreportParameters(subReportData, parameters, reportParam, broker, session);
             }
             //make sure the day work time is taken from the system settings
             String dayWorkTime = (String) parameters.remove(DAY_WORK_TIME);
@@ -501,7 +523,6 @@ public class OpReportService extends OpProjectService {
          }
 
 
-         Map queryMap = (Map) request.getArgument(QUERY_MAP);
          OpQuery reportQuery = null;
          if (queryMap != null) {
             reportQuery = createReportQuery(broker, queryMap);
@@ -511,52 +532,15 @@ public class OpReportService extends OpProjectService {
             }
          }
 
-         //get the report fields
-         Map reportFields = (Map) request.getArgument(FIELDS);
 
-         //get the resource map for the report
-         String resourceMapId = (String) request.getArgument(RESOURCE_MAP_ID);
          XLocalizer localizer = null;
          if (resourceMapId != null) {
             localizer = new XLocalizer();
             localizer.setResourceMap(session.getLocale().getResourceMap(resourceMapId));
          }
 
-         Map reportParam = (Map) request.getArgument(REPORT_PARAMETERS);
-
-         //create the report data-source
-         OpReportDataSource ds;
-         String dataSourceClass = (String) request.getArgument(REPORT_DATA_SOURCE);
-         if (dataSourceClass == null) {
-            //defauld data source
-            ds = new OpReportDataSource();
-         }
-         else {
-            //custom data source
-            OpReportManager xrm = OpReportManager.getReportManager(session);
-            ds = xrm.getDataSourceClass(dataSourceClass);
-            if (ds == null) {
-               logger.error("Cannot load the provided data source class");
-               return null;
-
-            }
-         }
-
-         //set the available information on the data source class
-         ds.setBrokerAndSession(broker, session);
-         if (reportFields != null) {
-            ds.setReportFields(reportFields);
-         }
-         if (reportQuery != null) {
-            ds.setQueryIterator(broker.iterate(reportQuery));
-         }
-         if (localizer != null) {
-            ds.setLocalizer(localizer);
-         }
-         if (reportParam != null) {
-            ds.setParameters(reportParam);
-         }
-
+         OpReportDataSource ds = createDataSource(session, reportFields,
+               reportParam, dataSourceClass, broker, reportQuery, localizer);
 
          JasperReport jasperReport = null;
          OpReportManager xrm = OpReportManager.getReportManager(session);
@@ -607,6 +591,10 @@ public class OpReportService extends OpProjectService {
          if (parameters == null) {
             parameters = new HashMap();
          }
+         Map reportParams = ds.getReportParameters();
+         if (reportParams != null) {
+            parameters.putAll(reportParams);
+         }
          Map cleanedReportParameters;
 
          try {
@@ -626,6 +614,44 @@ public class OpReportService extends OpProjectService {
          broker.close();
       }
       return null;
+   }
+
+   private OpReportDataSource createDataSource(OpProjectSession session,
+         Map reportFields, Map reportParam, String dataSourceClass,
+         OpBroker broker, OpQuery reportQuery, XLocalizer localizer) {
+      //create the report data-source
+      OpReportDataSource ds;
+      if (dataSourceClass == null) {
+         //defauld data source
+         ds = new OpReportDataSource();
+      }
+      else {
+         //custom data source
+         OpReportManager xrm = OpReportManager.getReportManager(session);
+         ds = xrm.getDataSourceClass(dataSourceClass);
+         if (ds == null) {
+            logger.error("Cannot load the provided data source class");
+            return null;
+
+         }
+      }
+
+      //set the available information on the data source class
+      ds.setBrokerAndSession(broker, session);
+      if (reportParam != null) {
+         ds.setParameters(reportParam);
+      }
+      if (reportFields != null) {
+         ds.setReportFields(reportFields);
+      }
+      if (reportQuery != null) {
+         ds.setQueryIterator(broker.iterate(reportQuery));
+      }
+      if (localizer != null) {
+         ds.setLocalizer(localizer);
+      }
+      ds.init();
+      return ds;
    }
 
    /**
@@ -691,13 +717,15 @@ public class OpReportService extends OpProjectService {
     *
     * @param subReportData a <code>Map</code> of (String, Map(fields, queryMap, resourceMapId)) representing subreport data.
     * @param parametersMap a <code>Map</code> of (String, Object) pairs.
+    * @param reportParam 
     * @param broker        a <code>OpBroker</code> used for performing business operations.
     * @param session       a <code>OpProjectSession</code> representing the application session.
     */
-   private void putSubreportParameters(Map subReportData, Map parametersMap, OpBroker broker, OpProjectSession session) {
+   private void putSubreportParameters(Map subReportData, Map parametersMap, Map reportParams, OpBroker broker, OpProjectSession session) {
       for (Object o : subReportData.keySet()) {
          String subReportDatasourceName = (String) o;
-         Map subReportMap = (Map) subReportData.get(subReportDatasourceName);
+         Object value = subReportData.get(subReportDatasourceName);
+         Map subReportMap = (Map) value;
 
          //subreport fields
          Map subReportFields = (Map) subReportMap.get(FIELDS);
@@ -705,10 +733,11 @@ public class OpReportService extends OpProjectService {
          //subreport query map
          Map subReportQueryMap = (Map) subReportMap.get(QUERY_MAP);
          if (subReportQueryMap == null) {
-            logger.error("Cannot create data source for sub report parameter " + subReportDatasourceName);
-            continue;
+            subReportQueryMap = new HashMap();
+//            logger.error("Cannot create data source for sub report parameter " + subReportDatasourceName);
+//            continue;
          }
-         OpQuery subReportQuery = createReportQuery(broker, subReportQueryMap);
+         OpQuery subReportQuery = subReportQueryMap.isEmpty() ? null : createReportQuery(broker, subReportQueryMap);
 
          //subreport language resources
          String resourceMapId = (String) subReportMap.get(RESOURCE_MAP_ID);
@@ -718,9 +747,15 @@ public class OpReportService extends OpProjectService {
             localizer.setResourceMap(session.getLocale().getResourceMap(resourceMapId));
          }
 
-         OpReportDataSource subReportDs = new OpReportDataSource(subReportFields, broker.iterate(subReportQuery),
-              localizer);
-         parametersMap.put(subReportDatasourceName, subReportDs);
+//         OpReportDataSource subReportDs = subReportQuery == null ? null : new OpReportDataSource(subReportFields, broker.iterate(subReportQuery),
+//              localizer);
+//         if (value instanceof String) {
+         String subDataSourceClass = (String) subReportMap.get(REPORT_DATA_SOURCE);
+         OpReportDataSource subReportDS = createDataSource(session, subReportFields,
+               reportParams, subDataSourceClass, broker, subReportQuery, localizer);
+//         }
+  
+         parametersMap.put(subReportDatasourceName, subReportDS);
       }
    }
 

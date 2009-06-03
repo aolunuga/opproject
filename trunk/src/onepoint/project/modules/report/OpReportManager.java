@@ -4,6 +4,35 @@
 
 package onepoint.project.modules.report;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
+import java.util.jar.Attributes.Name;
+
 import onepoint.express.server.XExpressSession;
 import onepoint.express.server.XResourceInterceptor;
 import onepoint.log.XLog;
@@ -14,17 +43,6 @@ import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLanguageKit;
 import onepoint.resource.XLocaleManager;
 import onepoint.util.XEnvironmentManager;
-
-import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.*;
-import java.util.jar.Attributes;
-import java.util.jar.Attributes.Name;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
 
 public class OpReportManager implements XResourceInterceptor {
 
@@ -498,6 +516,7 @@ public class OpReportManager implements XResourceInterceptor {
       File[] f = reportsDir.listFiles(new ReportFilter());
       HashMap temp = (HashMap) jasperReports.clone();
       for (int i = 0; i < f.length; i++) {
+// fixme: didi         temp.remove(f[i].getAbsolutePath());
          temp.remove(f[i].getName());
       }
       if (temp.size() > 0) {
@@ -905,6 +924,7 @@ public class OpReportManager implements XResourceInterceptor {
          this.registerLanguageKits(jarsWorkDir);
 
          // as everything went ok, we now can add stuff to the cache.
+// fixme: didi         jasperReports.put(jarFilePath.getAbsolutePath(), reportDescription);
          jasperReports.put(name, reportDescription);
       }
       catch (IOException ioe) {

@@ -96,6 +96,14 @@ public class OpUser extends OpSubject {
       return password;
    }
 
+   public boolean isEmptyPassword() {
+      return isEmptyPassword(password);
+   }
+
+   public static boolean isEmptyPassword(String password) {
+      return BLANK_PASSWORD.equals(password);
+   }
+
    public OpContact createContact() {
       contact = new OpContact();
       contact.setUser(this);

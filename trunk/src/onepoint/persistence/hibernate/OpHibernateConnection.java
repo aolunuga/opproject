@@ -245,7 +245,7 @@ public class OpHibernateConnection extends OpConnection {
                   if (field.getTypeID() == OpType.STRING || field.getTypeID() == OpType.TEXT) {
                      defaultValue = "'"+defaultValue+"'";
                   }
-                  setNullValuesToDefault(broker, prototype.getName(), member.getName(), defaultValue);
+                  setNullValuesToDefault(broker, prototype.getInstanceClass().getName(), member.getName(), defaultValue);
                }
             }
          }
@@ -277,14 +277,26 @@ public class OpHibernateConnection extends OpConnection {
 		  boolean autoCommit = connection.getAutoCommit();
 		  connection.setAutoCommit(false);
 		  DatabaseMetaData meta = connection.getMetaData();
-		  List<String> script = updater.generateDropExportedFKConstraints("op_object", "op_id", meta);
+        List<String> script = updater.generateDropExportedKeysConstraints("op_object", "op_id", meta);
+        execute(connection, script);
+        meta = connection.getMetaData();
+		  script = updater.generateDropExportedFKConstraints("op_object", "op_id", meta);
 		  execute(connection, script);
-
+        meta = connection.getMetaData();
+		  script = updater.generateDropExportedKeysConstraints("op_object", "op_customvaluepage", meta);
+        execute(connection, script);
+        meta = connection.getMetaData();
 		  script = updater.generateDropExportedFKConstraints("op_object", "op_customvaluepage", meta);
-		  script.addAll(updater.generateDropExportedFKConstraints("op_object", "op_object", meta));
-//		  if (source.existsTable("op_object")) {
+        execute(connection, script);
+        meta = connection.getMetaData();
+		  script = updater.generateDropExportedKeysConstraints("op_object", "op_object", meta);
+        execute(connection, script);
+        meta = connection.getMetaData();
+        script = updater.generateDropExportedFKConstraints("op_object", "op_object", meta);
+        execute(connection, script);
+        meta = connection.getMetaData();
+		  script = new ArrayList<String>(1);
 		  script.add(updater.getStatement().getDropTableStatement("op_object"));
-//		  }
 		  execute(connection, script);
 
 		  connection.commit();
@@ -293,7 +305,6 @@ public class OpHibernateConnection extends OpConnection {
 	  catch (SQLException exc) {
 		  logger.error(exc.getMessage(), exc);
 	  }
-	   
    }
    /**
     * @param configuration
@@ -617,6 +628,18 @@ public class OpHibernateConnection extends OpConnection {
          // *** TODO: Throw OpPersistenceException
       }
       return null;
+   }
+
+   @Override
+   public OpScrollableResults scroll(OpQuery query) throws OpDataException {
+      try {
+         // Note: Query.iterate() would query each object/row subsequently (n fetches)
+         OpHibernateScrollableResults scroller = new OpHibernateScrollableResults(((OpHibernateQuery) query).getQuery().scroll());
+         return scroller;
+      }
+      catch (HibernateException e) {
+         throw new OpDataException(e);
+      }
    }
 
    public int execute(OpQuery query) {

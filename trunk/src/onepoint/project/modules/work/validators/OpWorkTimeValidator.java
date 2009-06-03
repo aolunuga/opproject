@@ -68,14 +68,14 @@ public class OpWorkTimeValidator extends OpWorkValidator {
             throw new XValidationException(FINISH_VALUE_EXCEPTION);
          }
          int finishMinutes = ((Integer) getValue(row, FINISH_INDEX)).intValue();
-         if (finishMinutes <= 0 || finishMinutes > OpProjectCalendar.MINUTES_PER_DAY || finishMinutes < startMinutes) {
+         if (finishMinutes < 0 || finishMinutes > OpProjectCalendar.MINUTES_PER_DAY || finishMinutes < startMinutes) {
             throw new XValidationException(FINISH_VALUE_EXCEPTION);
          }
          if (getValue(row, DURATION_INDEX) == null) {
             throw new XValidationException(DURATION_VALUE_EXCEPTION);
          }
          int durationMinutes = getDuration(row);
-         if (durationMinutes <= 0 || durationMinutes > OpProjectCalendar.MINUTES_PER_DAY) {
+         if (durationMinutes < 0 || durationMinutes > OpProjectCalendar.MINUTES_PER_DAY) {
             throw new XValidationException(DURATION_VALUE_EXCEPTION);
          }
          if (finishMinutes - startMinutes != durationMinutes) {

@@ -30,8 +30,6 @@ import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.custom_attribute.OpCustomType;
-import onepoint.project.modules.project_costs.OpProjectCostsDataSetFactory;
-import onepoint.project.modules.project_resources.OpProjectResourceDataSetFactory;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.user.OpLock;
 import onepoint.project.modules.user.OpPermission;
@@ -696,7 +694,7 @@ public final class OpProjectDataSetFactory {
          //6 - Completed
          dataCell = new XComponent(XComponent.DATA_CELL);
          if (isOfType(dataRow, PROJECT_DESCRIPTOR)) {
-            double value = getCompletedValue(broker, projectNode.getId(), activityTypes);
+            double value = getCompletedValue(broker, projectNode, activityTypes);
             dataCell.setDoubleValue(value);
          }
          dataRow.addChild(dataCell);
@@ -704,7 +702,7 @@ public final class OpProjectDataSetFactory {
          //7 - Resources
          dataCell = new XComponent(XComponent.DATA_CELL);
          if (isOfType(dataRow, PROJECT_DESCRIPTOR)) {
-            double value = getResourcesValue(broker, projectNode.getId(), activityTypes);
+            double value = getResourcesValue(broker, projectNode, activityTypes);
             dataCell.setDoubleValue(value);
          }
          dataRow.addChild(dataCell);
@@ -712,7 +710,7 @@ public final class OpProjectDataSetFactory {
          //8 - Costs
          dataCell = new XComponent(XComponent.DATA_CELL);
          if (isOfType(dataRow, PROJECT_DESCRIPTOR)) {
-            double value = getCostsValue(broker, projectNode.getId(), activityTypes);
+            double value = getCostsValue(broker, projectNode, activityTypes);
             dataCell.setDoubleValue(value);
          }
          dataRow.addChild(dataCell);
@@ -739,15 +737,8 @@ public final class OpProjectDataSetFactory {
          }
          //for regular projects calculate the values of the cells
          else {
-            XComponent effortDataSet = new XComponent(XComponent.DATA_SET);
-            OpProjectResourceDataSetFactory.fillEffortDataSet(session, broker, projectNode, 0, effortDataSet, false);
-
-            XComponent costDataSet = new XComponent(XComponent.DATA_SET);
-            OpProjectCostsDataSetFactory.fillCostsDataSet(session, broker, projectNode, 0, costDataSet, null);
-
-            addProjectCostAndEffortCells(dataRow, effortDataSet, costDataSet);
+            addProjectCostAndEffortCells(dataRow, projectNode.getPlan().getBaseVersion(), null);
          }
-
          //23 - Archived
          Boolean archived = projectNode.getArchived();
          dataCell = new XComponent(XComponent.DATA_CELL);
@@ -784,30 +775,8 @@ public final class OpProjectDataSetFactory {
     * @param activityTypes a <code>List</code> of <code>int</code> representing the types of activities to take into account.
     * @return a <code>double</code> value representing the completness of the project.
     */
-   public static double getCompletedValue(OpBroker broker, long projectId, List activityTypes) {
-      StringBuffer queryBuffer = new StringBuffer("select sum(activity.Complete * activity.Duration),  sum(activity.Duration)");
-      queryBuffer.append(" from OpProjectNode as project inner join project.Plan as plan inner join plan.Activities as activity");
-      queryBuffer.append(" where project.id = :projectId and activity.OutlineLevel = 0 and activity.Type in (:activityTypes) and activity.Deleted = false group by project.id");
-      OpQuery query = broker.newQuery(queryBuffer.toString());
-      query.setLong("projectId", projectId);
-      query.setCollection("activityTypes", activityTypes);
-      Object[] record;
-      for (Iterator completes = broker.iterate(query); completes.hasNext();) {
-         record = (Object[]) completes.next();
-         Double sum1 = (Double) record[0];
-         Double sum2 = (Double) record[1];
-         if (sum1 != null && sum2 != null) {
-            double value = Double.MAX_VALUE;
-            if (sum1.doubleValue() == 0 && sum2.doubleValue() == 0) {
-               value = 0;
-            }
-            else if (sum2.doubleValue() != 0) {
-               value = sum1.doubleValue() / sum2.doubleValue();
-            }
-            return value;
-         }
-      }
-      return 0;
+   public static double getCompletedValue(OpBroker broker, OpProjectNode projectNode, List activityTypes) {
+      return projectNode.getPlan().getComplete();
    }
 
    /**
@@ -818,29 +787,8 @@ public final class OpProjectDataSetFactory {
     * @param activityTypes a <code>List</code> of <code>int</code> representing the types of activities to take into account.
     * @return a <code>double</code> representing the value of the efforts of the resources assigned on the project.
     */
-   public static double getResourcesValue(OpBroker broker, long projectId, List activityTypes) {
-      StringBuffer queryBuffer = new StringBuffer("select sum(activity.ActualEffort), sum(activity.BaseEffort)");
-      queryBuffer.append(" from OpProjectNode as project inner join project.Plan as plan inner join plan.Activities as activity");
-      queryBuffer.append(" where project.id = :projectId  and activity.OutlineLevel = 0 and activity.Type in (:activityTypes) and activity.Deleted = false group by project.id");
-      OpQuery query = broker.newQuery(queryBuffer.toString());
-      query.setLong("projectId", projectId);
-      query.setCollection("activityTypes", activityTypes);
-      for (Iterator resources = broker.iterate(query); resources.hasNext();) {
-         Object[] record = (Object[]) resources.next();
-         Double sum1 = (Double) record[0];
-         Double sum2 = (Double) record[1];
-         if (sum1 != null && sum2 != null) {
-            double value = Double.MAX_VALUE;
-            if (sum1.doubleValue() == 0 && sum2.doubleValue() == 0) {
-               value = 0;
-            }
-            else if (sum2.doubleValue() != 0) {
-               value = sum1.doubleValue() / sum2.doubleValue() * 100;
-            }
-            return value;
-         }
-      }
-      return 0;
+   public static double getResourcesValue(OpBroker broker, OpProjectNode projectNode, List activityTypes) {
+      return projectNode.getPlan().getBaseEffort() != 0d ? projectNode.getPlan().getActualEffort() / projectNode.getPlan().getBaseEffort() * 100 : 0d;
    }
 
    /**
@@ -851,31 +799,17 @@ public final class OpProjectDataSetFactory {
     * @param activityTypes a <code>List</code> of <code>int</code> representing the types of activities to take into account.
     * @return a <code>double</code> representing the value of the efforts of the resources assigned on the project.
     */
-   public static double getCostsValue(OpBroker broker, long projectId, List activityTypes) {
-      StringBuffer queryBuffer = new StringBuffer("select sum(activity.ActualPersonnelCosts + activity.ActualTravelCosts + activity.ActualMaterialCosts + activity.ActualExternalCosts + activity.ActualMiscellaneousCosts)");
-      queryBuffer.append(" , sum(activity.BasePersonnelCosts + activity.BaseTravelCosts + activity.BaseMaterialCosts + activity.BaseExternalCosts + activity.BaseMiscellaneousCosts)");
-      queryBuffer.append(" from OpProjectNode as project inner join project.Plan as plan inner join plan.Activities as activity");
-      queryBuffer.append(" where project.id  = :projectId and activity.OutlineLevel = 0 and activity.Type in (:activityTypes) group by project.id");
-
-      OpQuery query = broker.newQuery(queryBuffer.toString());
-      query.setLong("projectId", projectId);
-      query.setCollection("activityTypes", activityTypes);
-      for (Iterator costs = broker.iterate(query); costs.hasNext();) {
-         Object[] record = (Object[]) costs.next();
-         Double sum1 = (Double) record[0];
-         Double sum2 = (Double) record[1];
-         if (sum1 != null && sum2 != null) {
-            double value = Double.MAX_VALUE;
-            if (sum1.doubleValue() == 0 && sum2.doubleValue() == 0) {
-               value = 0;
-            }
-            else if (sum2.doubleValue() != 0) {
-               value = sum1.doubleValue() / sum2.doubleValue() * 100;
-            }
-            return value;
-         }
-      }
-      return 0;
+   public static double getCostsValue(OpBroker broker, OpProjectNode projectNode, List activityTypes) {
+      OpProjectPlan plan = projectNode.getPlan();
+      double actualCostsSum = plan.getActualExternalCosts()
+      + plan.getActualMaterialCosts()
+      + plan.getActualMiscellaneousCosts()
+      + plan.getActualPersonnelCosts() + plan.getActualTravelCosts();
+      double baseCostsSum = plan.getBaseExternalCosts()
+      + plan.getBaseMaterialCosts()
+      + plan.getBaseMiscellaneousCosts()
+      + plan.getBasePersonnelCosts() + plan.getBaseTravelCosts();
+      return baseCostsSum != 0d ? actualCostsSum / baseCostsSum * 100d : 0d;
    }
 
    /**
@@ -1180,85 +1114,83 @@ public final class OpProjectDataSetFactory {
          dataRow.addChild(dataCell);
       }
    }
+   
+   public static XComponent setDoubleValueInRow(XComponent dataRow, int cellIdx,
+         double d) {
+      return setDataCellValueInRow(dataRow, cellIdx, new Double(d), true);
+   }
 
-   /**
-    * Adds 12 cells to the dataRow parameter. These cells will contain information about the efforts and costs regarding
-    * the project that is being represented by the dataRow parameter.
-    *
-    * @param dataRow       - the <code>XComponent</code> data row to which the cells are added
-    * @param effortDataSet - the <code>XComponent</code> data set from which the information about the efforts is taken
-    * @param costDataSet   - the <code>XComponent</code> data set from which the information about the costs is taken.
-    */
-   private static void addProjectCostAndEffortCells(XComponent dataRow, XComponent effortDataSet, XComponent costDataSet) {
-      //11 - base effort
+      
+   public static XComponent setDataCellValueInRow(XComponent dataRow, int cellIdx,
+         Object value, boolean showField) {
+      if (cellIdx >= dataRow.getChildCount()) {
+         for (int k = dataRow.getChildCount() - 1; k < cellIdx; k++) {
+            dataRow.addChild(new XComponent(XComponent.DATA_CELL));
+         }
+      }
+      XComponent cell = null; 
+      if (cellIdx < 0) {
+         cell = new XComponent(XComponent.DATA_CELL);
+      }
+      else {
+         cell = (XComponent) dataRow.getChild(cellIdx);
+      }
+      cell.setValue(showField ? value : null);
+      return cell;
+   }
+
+   private static int getIdx(int[] indexMap, int idx) {
+      if (indexMap == null || idx >= indexMap.length || idx < 0) {
+         return idx;
+      }
+      return indexMap[idx];
+   }
+
+   private static void addProjectCostAndEffortCells(XComponent dataRow, OpProjectPlanVersion planV, int [] indexMap) {
+      int offset = dataRow.getChildCount();
+      if (planV == null) {
+         for (int i = 0; i < 12; i++) {
+            dataRow.addChild(createDoubleDataCell(0d));
+         }
+         return;
+      }
+      OpProjectPlan plan = planV.getProjectPlan();
+      double baseCosts = planV.getBasePersonnelCosts()
+            + planV.getBaseExternalCosts() + planV.getBaseMaterialCosts()
+            + planV.getBaseMiscellaneousCosts() + planV.getBaseTravelCosts();
+      double actualCosts = planV.getActualPersonnelCosts()
+            + planV.getActualExternalCosts() + planV.getActualMaterialCosts()
+            + planV.getActualMiscellaneousCosts()
+            + planV.getActualTravelCosts();
+      double remainingCosts = planV.getRemainingPersonnelCosts()
+            + planV.getRemainingExternalCosts()
+            + planV.getRemainingMaterialCosts()
+            + planV.getRemainingMiscellaneousCosts()
+            + planV.getRemainingTravelCosts();
+      double costsDeviation = (actualCosts + remainingCosts) - baseCosts;
+      double costsPredicted = actualCosts + remainingCosts;
+      double effortDeviation = (plan.getActualEffort() + plan.getOpenEffort()) - planV.getBaseEffort();
+      double effortPredicted = plan.getActualEffort() + plan.getOpenEffort();
+
+      setDoubleValueInRow(dataRow, getIdx(indexMap, 0) + offset, planV.getBaseEffort());
+      setDoubleValueInRow(dataRow, getIdx(indexMap, 1) + offset, plan.getActualEffort());
+      setDoubleValueInRow(dataRow, getIdx(indexMap, 2) + offset, plan.getActualEffort() + plan.getOpenEffort());
+      setDoubleValueInRow(dataRow, getIdx(indexMap, 3) + offset, planV.getBaseEffort() - plan.getActualEffort());
+      setDoubleValueInRow(dataRow, getIdx(indexMap, 4) + offset, baseCosts);
+      setDoubleValueInRow(dataRow, getIdx(indexMap, 5) + offset, actualCosts);
+      setDoubleValueInRow(dataRow, getIdx(indexMap, 6) + offset, costsPredicted);
+      setDoubleValueInRow(dataRow, getIdx(indexMap, 7) + offset, baseCosts - actualCosts);
+      setDoubleValueInRow(dataRow, getIdx(indexMap, 8) + offset, effortDeviation);
+      setDoubleValueInRow(dataRow, getIdx(indexMap, 9) + offset, OpActivityDataSetFactory.calculatePercentDeviation(planV.getBaseEffort(), effortDeviation));
+      setDoubleValueInRow(dataRow, getIdx(indexMap,10) + offset, costsDeviation);
+      setDoubleValueInRow(dataRow, getIdx(indexMap,11) + offset, OpActivityDataSetFactory.calculatePercentDeviation(baseCosts, costsDeviation));
+
+   }
+   
+   private static XComponent createDoubleDataCell(double value) {
       XComponent dataCell = new XComponent(XComponent.DATA_CELL);
-      double baseEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.BASE_COLUMN_INDEX, 0);
-      dataCell.setDoubleValue(baseEffort);
-      dataRow.addChild(dataCell);
-
-      //12 - actual effort
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      double actualEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.ACTUAL_COLUMN_INDEX, 0);
-      dataCell.setDoubleValue(actualEffort);
-      dataRow.addChild(dataCell);
-
-      //13 - predicted effort
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      double predictedEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.PREDICTED_COLUMN_INDEX, 0);
-      dataCell.setDoubleValue(predictedEffort);
-      dataRow.addChild(dataCell);
-
-      //14 - remaining effort (base - actual)
-      double remainingEffort = baseEffort - actualEffort;
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setDoubleValue(remainingEffort);
-      dataRow.addChild(dataCell);
-
-      //15 - base costs
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      double baseCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.BASE_COLUMN_INDEX, 0);
-      dataCell.setDoubleValue(baseCost);
-      dataRow.addChild(dataCell);
-
-      //16 - actual costs
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      double actualCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.ACTUAL_COLUMN_INDEX, 0);
-      dataCell.setDoubleValue(actualCost);
-      dataRow.addChild(dataCell);
-
-      //17 - predicted costs
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      double predictedCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.PREDICTED_COLUMN_INDEX, 0);
-      dataCell.setDoubleValue(predictedCost);
-      dataRow.addChild(dataCell);
-
-      //18 - remaining cost (base - actual)
-      double remainingCost = baseCost - actualCost;
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setDoubleValue(remainingCost);
-      dataRow.addChild(dataCell);
-
-      //19 - effort deviation
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      double deviationEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.DEVIATION_COLUMN_INDEX, 0);
-      dataCell.setDoubleValue(deviationEffort);
-      dataRow.addChild(dataCell);
-
-      //20 - effort %deviation
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setDoubleValue(OpActivityDataSetFactory.calculatePercentDeviation(baseEffort, deviationEffort));
-      dataRow.addChild(dataCell);
-
-      //21 - costs deviation
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      double deviationCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.DEVIATION_COLUMN_INDEX, 0);
-      dataCell.setDoubleValue(deviationCost);
-      dataRow.addChild(dataCell);
-
-      //22 - costs %deviation
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setDoubleValue(OpActivityDataSetFactory.calculatePercentDeviation(baseCost, deviationCost));
-      dataRow.addChild(dataCell);
+      dataCell.setDoubleValue(value);
+      return dataCell;
    }
 
    /**
@@ -1392,6 +1324,17 @@ public final class OpProjectDataSetFactory {
    public static Map<String, List<String>> getProjectToResourceMap(OpProjectSession session) {
       return getProjectToResourceMap(session, OpPermission.MANAGER);
    }
+   
+   private static boolean hasAccess(OpProjectSession session, OpBroker broker, Map<Long, Boolean> accessCache, byte minAccessLevel, long id) {
+      Long lId = new Long(id);
+      Boolean access = accessCache.get(lId);
+      if (access != null) {
+         return access.booleanValue();
+      }
+      access = session.checkAccessLevel(broker, id, minAccessLevel);
+      accessCache.put(lId, access ? Boolean.TRUE : Boolean.FALSE);
+      return access;
+   }
    /**
     * Returns a map of projects and list of resources for each project, where the current user is
     * at least observer on the project. The resource will be the ones the user is responsible for or has at least
@@ -1405,6 +1348,8 @@ public final class OpProjectDataSetFactory {
       OpBroker broker = session.newBroker();
       try {
          long userId = session.getUserID();
+         
+         Map<Long, Boolean> resourceAccessLevels = new HashMap<Long, Boolean>();
 
          // add all the resources for which is responsible from project where the user has contributer access
          List<Byte> levels = new ArrayList<Byte>();
@@ -1420,7 +1365,7 @@ public final class OpProjectDataSetFactory {
             for (OpProjectNodeAssignment assignment : project.getAssignments()) {
                OpResource resource = assignment.getResource();
                boolean isResponsible = resource.getUser() != null && resource.getUser().getId() == userId;
-               if (isResponsible || session.checkAccessLevel(broker, resource.getId(), minResourceAccessLevel)) {
+               if (isResponsible || hasAccess(session, broker, resourceAccessLevels, minResourceAccessLevel, resource.getId())) {
                   allResources.add(XValidator.choice(resource.locator(), resource.getName()));
                }
             }

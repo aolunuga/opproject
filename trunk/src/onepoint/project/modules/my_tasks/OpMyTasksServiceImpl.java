@@ -19,7 +19,6 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.OpService;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.project.OpActivity;
-import onepoint.project.modules.project.OpActivityDataSetFactory;
 import onepoint.project.modules.project.OpActivityIfc;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.project.OpAssignmentIfc;
@@ -478,7 +477,7 @@ public class OpMyTasksServiceImpl implements OpService {
 
       // cannot delete if work records exist
       for (OpAssignment assignment : activity.getAssignments()) {
-         if (OpActivityDataSetFactory.hasWorkRecords(assignment)) {
+         if (assignment.hasWorkRecords()) {
             throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.EXISTING_WORKSLIP_ERROR_CODE));
          }
       }

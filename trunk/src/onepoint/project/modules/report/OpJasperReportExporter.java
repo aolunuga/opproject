@@ -4,15 +4,22 @@
 
 package onepoint.project.modules.report;
 
+import java.io.OutputStream;
+
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExporterParameter;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.export.*;
+import net.sf.jasperreports.engine.export.JExcelApiExporter;
+import net.sf.jasperreports.engine.export.JRCsvExporter;
+import net.sf.jasperreports.engine.export.JRCsvExporterParameter;
+import net.sf.jasperreports.engine.export.JRHtmlExporter;
+import net.sf.jasperreports.engine.export.JRHtmlExporterParameter;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 import onepoint.project.OpProjectSession;
-import org.apache.log4j.Logger;
 
-import java.io.OutputStream;
+import org.apache.log4j.Logger;
 
 /**
  * !Document here!
@@ -20,6 +27,11 @@ import java.io.OutputStream;
  * @author cristian.godja
  */
 public abstract class OpJasperReportExporter {
+
+   /**
+    * The Logger for this class...
+    */
+   private static final XLog logger = XLogFactory.getLogger(OpJasperReportExporter.class);
 
    /**
     * Jasper Exporter class for generating PDF
@@ -34,6 +46,8 @@ public abstract class OpJasperReportExporter {
          }
          catch (JRException e) {
             // todo: put error code for this in ReportingException, or add some IOException??
+            e.printStackTrace();
+            logger.error(e);
             throw new OpReportException(session.newError(OpReportService.ERROR_MAP,
                   OpReportError.JASPER_CAN_NOT_EXPORT_REPORT));
          }
@@ -98,11 +112,17 @@ public abstract class OpJasperReportExporter {
             throws OpReportException {
 
          try {
-            JRXlsExporter exporter = new JRXlsExporter();
-            exporter.setParameter(JRXlsExporterParameter.IS_ONE_PAGE_PER_SHEET, Boolean.TRUE);
-            exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
-            exporter.setParameter(JRExporterParameter.OUTPUT_STREAM, os);
-            exporter.exportReport();
+            JExcelApiExporter jExcelApiExporter = new JExcelApiExporter();
+            jExcelApiExporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
+//            jExcelApiExporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, jasperPrint.showType);
+            jExcelApiExporter.setParameter(JRExporterParameter.OUTPUT_STREAM, os);
+            jExcelApiExporter.exportReport();
+
+//            JRXlsExporter exporter = new JRXlsExporter();
+//            exporter.setParameter(JRXlsExporterParameter.IS_ONE_PAGE_PER_SHEET, Boolean.TRUE);
+//            exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
+//            exporter.setParameter(JRExporterParameter.OUTPUT_STREAM, os);
+//            exporter.exportReport();
          }
          catch (JRException e) {
             // todo: put error code for this in ReportingException, or add some IOException??

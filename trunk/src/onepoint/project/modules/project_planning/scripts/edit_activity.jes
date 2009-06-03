@@ -523,15 +523,7 @@ function addResponsibleResource(event) {
    openResourceChooser("ProjectContentFrame", "addResponsableResourceOk", resourceIds, false, false, true, null);
 }
 
-function hoursAssignedChanged(event) {
-   form = XDisplay.getActiveForm();
-   updateAssignment(form, true);
-}
-
 function updateAssignment(form, hours) {
-   if (hours < 0) {
-      hours = 0;
-   }
    Console.println("updateAssignment: " + form + " hours:" + hours);
    recursion = form.findComponent("recursionMarker").getBooleanValue();
    if (recursion) {
@@ -559,6 +551,11 @@ function updateAssignment(form, hours) {
    updateResourceDataSet(activitySet, effort, duration, assignmentSet, resList, editMode);
    form.findComponent("recursionMarker").setBooleanValue(false);
    
+}
+
+function hoursAssignedChanged(event) {
+   form = XDisplay.getActiveForm();
+   updateAssignment(form, true);
 }
 
 function percentageAssignedChanged(event) {

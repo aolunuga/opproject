@@ -267,6 +267,12 @@ public class OpRestoreContext extends XContext {
 //      logger.info("Persisting object with prototype:" + activePrototype.getName());
       insertCount++;
       objectsToAdd.add(activeObject);
+      if (logger.isLoggable(logger.INFO)) {
+         System.out.print(".");
+         if (insertCount == MAX_INSERTS_PER_TRANSACTION || insertCount % 80 == 0) {
+            System.out.println();
+         }
+      }
       if (insertCount == MAX_INSERTS_PER_TRANSACTION) {
          commitRestoredObjects();
       }

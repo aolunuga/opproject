@@ -14,6 +14,7 @@ import onepoint.log.XLogFactory;
 public class OpInitializerFactory {
    // This class's logger
    private static final XLog logger = XLogFactory.getLogger(OpInitializerFactory.class);
+   private static final Object MUTEX = new Object();
 
    // initializer factory holder (solves synchronization and double-checked-locking idiom issue)
    private static class OpInitializerFactoryHolder {
@@ -43,33 +44,41 @@ public class OpInitializerFactory {
     *
     * @param initializerClass initializer class.
     */
-   public void setInitializer(Class initializerClass) {
+   public OpInitializer setInitializer(Class initializerClass) {
       if (initializerClass == null) {
          throw new NullPointerException("Could not create initializer, because provided class is NULL");
       }
-
+      if (initializer != null) {
+         if (initializer.getClass() == initializerClass) {
+            return initializer;
+         }
+         // FIXME (dfreis, May 29, 2009) : do what?
+         throw new IllegalStateException("initializer already set, cannot be changed to a different type!");
+      }
       try {
          initializer = (OpInitializer) initializerClass.newInstance();
+         return initializer;
       }
       catch (InstantiationException e) {
          logger.error("OpInitiliazer instantiation failed.", e);
+         return null;
       }
       catch (IllegalAccessException e) {
          logger.error("IllegalAccess during OpInitiliazer instantiation.", e);
+         return null;
       }
    }
-
+   
    /**
     * Return product initializer.
+    * @param productCode 
     *
     * @return an instance of product initializer.
     */
    public OpInitializer getInitializer() {
       if (initializer == null) {
-         throw new RuntimeException("Initializer was not defined yet. Please use setInitializer() method first.");
+         throw new NullPointerException("Could not create initializer, because provided class is NULL");
       }
-
       return initializer;
    }
-
 }

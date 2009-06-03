@@ -632,23 +632,14 @@ public class OpProjectNode extends OpCustomizableObject implements OpPermissiona
       this.programs = programs;
    }
 
-   /**
-    * @deprecated
-    */
    public Set<OpActivity> getProgramActivities() {
       return programActivities;
    }
 
-   /**
-    * @deprecated
-    */
    private void setProgramActivities(Set<OpActivity> programActivities) {
       this.programActivities = programActivities;
    }
    
-   /**
-    * @deprecated
-    */
    public void addProgramActivity(OpActivity programActivity) {
       if (getProgramActivities() == null) {
          setProgramActivities(new HashSet<OpActivity>());
@@ -658,9 +649,6 @@ public class OpProjectNode extends OpCustomizableObject implements OpPermissiona
       }
    }
    
-   /**
-    * @deprecated
-    */
    public void removeProgramActivity(OpActivity programActivity) {
       if (getProgramActivities() == null) {
          return;
@@ -743,6 +731,27 @@ public class OpProjectNode extends OpCustomizableObject implements OpPermissiona
       if (getAssignments().remove(del)) {
          del.setProjectNode(null);
       }
+   }
+   
+   @Override
+   public String toString() {
+      return "{OpProjectNode: "+getId()+
+      ", name: "+name+
+      ", type: "+type+
+      ", customType: "+customType+
+      ", start: "+start+
+      ", finish: "+finish+
+      ", type: "+type+
+      ", status: "+(getStatus() == null ? "<null>" : getStatus().getName())+
+      "}";
+   }
+
+   public boolean isPortfolio() {
+      return type == PORTFOLIO;
+   }
+
+   public boolean isRootPortfolio() {
+      return ROOT_PROJECT_PORTFOLIO_NAME.equals(getName());
    }
    
 }

@@ -341,6 +341,7 @@
       <resource id="InvalidProjectNodeTypeForExport">Exporting can only be performed for projects</resource>
       <resource id="CalendarsModifiedWarning">Project plan has been revalidated because the holidays have changed</resource>
 
+      <resource id="SubProjectLoopError">Including <parameter name="project.name"/> as a subproject would cause a loop in the program structure</resource>
    </resource-map>
 
    <resource-map id="project_planning.ChooseImportSource">

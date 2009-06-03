@@ -20,9 +20,9 @@ import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpActivityDataSetFactory;
 import onepoint.project.modules.project.OpProjectDataSetFactory;
 import onepoint.project.modules.project.OpProjectNode;
+import onepoint.project.modules.project.OpProjectPlan;
+import onepoint.project.modules.project.OpProjectPlanVersion;
 import onepoint.project.modules.project.OpProjectStatus;
-import onepoint.project.modules.project_costs.OpProjectCostsDataSetFactory;
-import onepoint.project.modules.project_resources.OpProjectResourceDataSetFactory;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpSubjectDataSetFactory;
 import onepoint.project.modules.user.OpUser;
@@ -183,6 +183,7 @@ public class OpMyProjectsFormProvider implements XFormProvider {
     */
    private XComponent createProjectRow(OpProjectSession session, OpProjectNode projectNode, OpBroker broker) {
 
+      // TODO: consolidate with: onepoint.project.modules.project.OpProjectDataSetFactory.createProjectNodeAdvancedRow(OpProjectSession, OpBroker, OpProjectNode, XLocalizer, boolean, int)
       XComponent dataRow = new XComponent(XComponent.DATA_ROW);
       XComponent dataCell;
 
@@ -190,13 +191,7 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       activityTypes.add(OpActivity.STANDARD);
       activityTypes.add(OpActivity.COLLECTION);
 
-      double complete = OpProjectDataSetFactory.getCompletedValue(broker, projectNode.getId(), activityTypes);
-
-      XComponent costDataSet = new XComponent(XComponent.DATA_SET);
-      OpProjectCostsDataSetFactory.fillCostsDataSet(session, broker, projectNode, 0, costDataSet, null);
-
-      XComponent effortDataSet = new XComponent(XComponent.DATA_SET);
-      OpProjectResourceDataSetFactory.fillEffortDataSet(session, broker, projectNode, 0, effortDataSet, false);
+      double complete = OpProjectDataSetFactory.getCompletedValue(broker, projectNode, activityTypes);
 
       //project locator
       dataRow.setStringValue(projectNode.locator());
@@ -219,35 +214,58 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setDoubleValue(complete);
       dataRow.addChild(dataCell);
+      
+      // redundant with onepoint.project.modules.project.OpProjectDataSetFactory.addProjectCostAndEffortCells(XComponent, OpProjectPlanVersion, int[])
+      // as it always was...
+      // TODO: consolidate datasets...
+      OpProjectPlan plan = projectNode.getPlan();
+      OpProjectPlanVersion planV = plan.getBaseVersion();
+      double baseCosts = planV == null ? 0d : planV.getBasePersonnelCosts()
+            + planV.getBaseExternalCosts() + planV.getBaseMaterialCosts()
+            + planV.getBaseMiscellaneousCosts() + planV.getBaseTravelCosts();
+      double actualCosts = planV == null ? 0d : planV.getActualPersonnelCosts()
+            + planV.getActualExternalCosts() + planV.getActualMaterialCosts()
+            + planV.getActualMiscellaneousCosts()
+            + planV.getActualTravelCosts();
+      double remainingCosts = planV == null ? 0d : planV.getRemainingPersonnelCosts()
+            + planV.getRemainingExternalCosts()
+            + planV.getRemainingMaterialCosts()
+            + planV.getRemainingMiscellaneousCosts()
+            + planV.getRemainingTravelCosts();
+      double costsDeviation = planV == null ? 0d : (actualCosts + remainingCosts) - baseCosts;
+      double costsPredicted = planV == null ? 0d : actualCosts + remainingCosts;
+      double effortDeviation = planV == null ? 0d : (plan.getActualEffort() + plan.getOpenEffort()) - planV.getBaseEffort();
+      double effortPredicted = planV == null ? 0d : plan.getActualEffort() + plan.getOpenEffort();
+
       //base effort  3
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double baseEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.BASE_COLUMN_INDEX, 0);
+      double baseEffort = planV == null ? 0d : planV.getBaseEffort();
       dataCell.setDoubleValue(baseEffort);
       dataRow.addChild(dataCell);
       //actual effort 4
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double actualEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.ACTUAL_COLUMN_INDEX, 0);
+      double actualEffort = planV == null ? 0d : plan.getActualEffort();
       dataCell.setDoubleValue(actualEffort);
       dataRow.addChild(dataCell);
       //base costs  5
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double baseCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.BASE_COLUMN_INDEX, 0);
+      double baseCost = baseCosts;
       dataCell.setDoubleValue(baseCost);
       dataRow.addChild(dataCell);
       //actual costs  6
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double actualCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.ACTUAL_COLUMN_INDEX, 0);
+      double actualCost = actualCosts;
       dataCell.setDoubleValue(actualCost);
       dataRow.addChild(dataCell);
 
       //predicted costs 7
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double predictedCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.PREDICTED_COLUMN_INDEX, 0);
+      double predictedCost = costsPredicted;
       dataCell.setDoubleValue(predictedCost);
       dataRow.addChild(dataCell);
       //costs deviation 8
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double deviationCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.DEVIATION_COLUMN_INDEX, 0);
+      double deviationCost = costsDeviation;
       dataCell.setDoubleValue(deviationCost);
       dataRow.addChild(dataCell);
       //costs %deviation 9
@@ -257,12 +275,12 @@ public class OpMyProjectsFormProvider implements XFormProvider {
 
       //predicted effort 10
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double predictedEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.PREDICTED_COLUMN_INDEX, 0);
+      double predictedEffort = effortPredicted;
       dataCell.setDoubleValue(predictedEffort);
       dataRow.addChild(dataCell);
       //effort deviation 11
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double deviationEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.DEVIATION_COLUMN_INDEX, 0);
+      double deviationEffort = effortDeviation;
       dataCell.setDoubleValue(deviationEffort);
       dataRow.addChild(dataCell);
       //effort %deviation 12
@@ -283,8 +301,8 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       dataCell.setDateValue(projectNode.getFinish());
       dataRow.addChild(dataCell);
 
-      double resources = OpProjectDataSetFactory.getResourcesValue(broker, projectNode.getId(), activityTypes);
-      double costs = OpProjectDataSetFactory.getCostsValue(broker, projectNode.getId(), activityTypes);
+      double resources = OpProjectDataSetFactory.getResourcesValue(broker, projectNode, activityTypes);
+      double costs = OpProjectDataSetFactory.getCostsValue(broker, projectNode, activityTypes);
       //resources  16
       dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setDoubleValue(resources);

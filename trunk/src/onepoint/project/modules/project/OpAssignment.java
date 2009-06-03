@@ -468,7 +468,6 @@ public class OpAssignment extends OpObject implements OpAssignmentIfc {
       boolean completed = false;
       boolean completedOld = getComplete() == 100; // it was completed when we had 100% completed ;-)
       // the magic number ;-)
-      double weightedCompleteDelta = 0d;
       if (progressTracked) {
          // FIXME: again, those ugly empty work record shows up and
          // asks for special treatment:
@@ -497,13 +496,10 @@ public class OpAssignment extends OpObject implements OpAssignmentIfc {
          if (getActivity().getType() == OpActivity.ADHOC_TASK
                || getActivity().getType() == OpActivity.MILESTONE || isZero()) {
             setComplete(completed ? 100.0 : 0);
-            weightedCompleteDelta = getComplete() - oldCompleteValue;
          } else {
             setComplete(completed ? 100.0 : OpGanttValidator
                   .calculateCompleteValue(getActualEffort(), getBaseEffort(),
-                        getRemainingEffort()));
-            weightedCompleteDelta = getBaseEffort()
-                  * (getComplete() - oldCompleteValue);
+                        getOpenEffort()));
          }
       } else {
          // FIXME: move this into OpGanttValidator??? -> calculations-class ???
@@ -516,12 +512,8 @@ public class OpAssignment extends OpObject implements OpAssignmentIfc {
       // in theory, we are through with this work-record and this assignment.
       // we need to update the activity:
       OpActivity.OpProgressDelta delta = new OpActivity.OpProgressDelta(insert,
-            0d, sign * wrActualEffort, 0d, sign * wrPersonellCosts, 0d, sign
-                  * wrActualProceeds, remainingEffortDelta, 0d, 0d,
-            // remainingPersonnelCosts and remainingProceeds are calculated in
-            // onepoint.project.modules.project.OpActivityDataSetFactory.updateRemainingValues(OpBroker,
-            // OpProjectCalendar, OpAssignment)
-            weightedCompleteDelta);
+            0d, 0d, sign * wrActualEffort, 0d, sign * wrPersonellCosts, 0d, sign
+                  * wrActualProceeds, remainingEffortDelta, 0d, 0d);
 
       delta.setActualCosts(OpAssignment.COST_TYPE_EXTERNAL, sign * workRecord.getExternalCosts());
       delta.setActualCosts(OpAssignment.COST_TYPE_MATERIAL, sign * workRecord.getMaterialCosts());
@@ -558,7 +550,7 @@ public class OpAssignment extends OpObject implements OpAssignmentIfc {
             }
          } else {
             return OpGanttValidator.calculateCompleteValue(getActualEffort(),
-                  getBaseEffort(), getRemainingEffort());
+                  getBaseEffort(), getOpenEffort());
          }
       }
       else {
@@ -576,14 +568,13 @@ public class OpAssignment extends OpObject implements OpAssignmentIfc {
       }
       
       if (!activity.hasSubActivities()) {
-         double weightedCompleteDelta = isZero() ? getComplete() : getBaseEffort() * getComplete();
          // goal: build a delta-object to get the right thing done here:
          // TODO, FIXME: clarify behavior of remaining values!
          OpActivity.OpProgressDelta delta = new OpActivity.OpProgressDelta(
-               true, -getBaseEffort(), getActualEffort(), getBaseCosts(),
+               true, 0d, -getBaseEffort(), getActualEffort(), getBaseCosts(),
                getActualCosts(), getBaseProceeds(), getActualProceeds(),
                getRemainingEffort(), getRemainingPersonnelCosts(),
-               getRemainingProceeds(), weightedCompleteDelta);
+               getRemainingProceeds());
    
          activity.handleAssigmentProgress(null, delta, false);
       }
@@ -598,13 +589,12 @@ public class OpAssignment extends OpObject implements OpAssignmentIfc {
       }
       
       if (!activity.hasSubActivities()) {
-         double weightedCompleteDelta = isZero() ? getComplete() : getBaseEffort() * getComplete();
          // goal: build a delta-object to get the right thing done here:
          OpActivity.OpProgressDelta delta = new OpActivity.OpProgressDelta(
-               true, getBaseEffort(), -getActualEffort(), -getBaseCosts(),
+               true, 0d, getBaseEffort(), -getActualEffort(), -getBaseCosts(),
                -getActualCosts(), -getBaseProceeds(), -getActualProceeds(),
                -getRemainingEffort(), -getRemainingPersonnelCosts(),
-               -getRemainingProceeds(), weightedCompleteDelta);
+               -getRemainingProceeds());
          
          // remaining costs: find those latest WR for this assignment 
          activity.handleAssigmentProgress(null, delta, false);
@@ -632,7 +622,7 @@ public class OpAssignment extends OpObject implements OpAssignmentIfc {
             while (j.hasNext()) {
                OpAssignmentVersion assV = j.next();
                if (assV.getResource().getId() == getResource().getId()) {
-                  assV.updateComplete(getComplete(), getActualEffort(), getRemainingEffort(), delta);
+                  assV.updateComplete(getComplete(), getActualEffort(), getOpenEffort(), delta);
                   break;
                }
             }
@@ -729,7 +719,7 @@ public class OpAssignment extends OpObject implements OpAssignmentIfc {
       return true;
    }
    public boolean isIndivisible() {
-      return OpGanttValidator.isIndivisibleElemen(this);
+      return OpGanttValidator.isIndivisibleElement(this);
    }
 
 }

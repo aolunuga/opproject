@@ -16,6 +16,8 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -23,11 +25,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import onepoint.error.XLocalizableException;
 import onepoint.log.XLog;
@@ -40,6 +44,7 @@ import onepoint.persistence.OpEvent;
 import onepoint.persistence.OpObjectIfc;
 import onepoint.persistence.OpPersistenceException;
 import onepoint.persistence.OpPrototype;
+import onepoint.persistence.OpRelationship;
 import onepoint.persistence.OpSource;
 import onepoint.persistence.OpTypeManager;
 import onepoint.project.modules.user.OpUserError;
@@ -59,6 +64,8 @@ import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.SQLServerDialect;
 import org.hibernate.engine.ActionQueue;
+import org.hibernate.event.DeleteEvent;
+import org.hibernate.event.DeleteEventListener;
 import org.hibernate.event.EventListeners;
 import org.hibernate.event.FlushEntityEvent;
 import org.hibernate.event.PostDeleteEvent;
@@ -74,13 +81,14 @@ import org.hibernate.event.PreInsertEventListener;
 import org.hibernate.event.PreUpdateEvent;
 import org.hibernate.event.PreUpdateEventListener;
 import org.hibernate.event.def.DefaultFlushEntityEventListener;
+import org.hibernate.util.IdentitySet;
 
 /**
  * This is an implementation of a data source based on Hibernate.
  */
 public class OpHibernateSource extends OpSource
      implements PostUpdateEventListener, PostDeleteEventListener, PostInsertEventListener,
-     PreUpdateEventListener, PreDeleteEventListener, PreInsertEventListener {
+     PreUpdateEventListener, PreDeleteEventListener, PreInsertEventListener, DeleteEventListener {
    /**
     * 
     */
@@ -110,6 +118,7 @@ public class OpHibernateSource extends OpSource
    public final static String DERBY_JDBC_CONNECTION_PREFIX = "jdbc:derby:";
    public final static String DERBY_JDBC_CONNECTION_SUFIX = ";create=true";
    public final static String SCHEMA_TABLE = "op_schema";
+   public final static String SCHEMA_STATUS = "op_status";
 
    final static String HILO_GENERATOR_TABLE_NAME = "hibernate_unique_key";
    final static String HILO_GENERATOR_COLUMN_NAME = "next_hi";
@@ -122,19 +131,38 @@ public class OpHibernateSource extends OpSource
    /**
     * The latest schema version
     */
-   public static final int SCHEMA_VERSION = 86;
+   public static final int SCHEMA_VERSION = 90; // IMP: also check MODULE_CHECK_VERSION if you change the SCHEMA_VERSION
+   /**
+   * The version from which on no module check is required
+   * If this version is eg 88 then module check is only performed for version < 88
+   **/
+   public static final int MODULE_CHECK_VERSION = 90;
+
+   public static final int DEFAULT_STATUS = 0;
+   public static final int UPDATE_STATUS = 1;
 
    /**
     * Db schema related constants
     */
    private static final String VERSION_COLUMN = "op_version";
-   private static final String VERSION_PLACEHOLDER = "#";
-   private static final String CREATE_SCHEMA_TABLE_STATEMENT = "create table " + SCHEMA_TABLE + "(" + VERSION_COLUMN + " int)";
-   private static final String INSERT_CURENT_VERSION_INTO_SCHEMA_TABLE_STATEMENT = "insert into " + SCHEMA_TABLE + " values(" + VERSION_PLACEHOLDER + ")";
+   private static final String VERSION_PLACEHOLDER = "#V";
+   private static final String STATUS_PLACEHOLDER = "#S";
+   private static final String CREATE_SCHEMA_TABLE_STATEMENT = "create table " + SCHEMA_TABLE + "(" + VERSION_COLUMN + " int, "+SCHEMA_STATUS+" int)";
    private static final String UPDATE_SCHEMA_TABLE_STATEMENT = "update " + SCHEMA_TABLE + " set " + VERSION_COLUMN + "=" + VERSION_PLACEHOLDER;
-   private static final String GET_SCHEMA_VERSION_STATEMENT = "select * from " + SCHEMA_TABLE;
+   private static final String UPDATE_SCHEMA_STATUS_STATEMENT = "update " + SCHEMA_TABLE + " set " + SCHEMA_STATUS + "=" + STATUS_PLACEHOLDER;
+   
+   private static final String INSERT_CURENT_VERSION_INTO_SCHEMA_TABLE_STATEMENT = "insert into "
+         + SCHEMA_TABLE
+         + " values("
+         + VERSION_PLACEHOLDER
+         + ", "
+         + STATUS_PLACEHOLDER + ")";
+
+   private static final String GET_SCHEMA_VERSION_STATEMENT = "select "+VERSION_COLUMN+" from " + SCHEMA_TABLE;
+   private static final String GET_SCHEMA_STATUS_STATEMENT = "select "+SCHEMA_STATUS+" from " + SCHEMA_TABLE;
 
    private static final Object DEADLOCK_OBJ = new Object();
+
 
    // A set of default properties to be used by hibernate.
    private static Properties defaultHibernateConfigProperties = null;
@@ -164,6 +192,8 @@ public class OpHibernateSource extends OpSource
    protected String cacheCapacity;
 
    private Configuration newConfiguration;
+
+   private boolean enableFilters = true;
 
    private static HashMap<ActionQueue, HashMap<Object, Triple<Integer, Integer, Object[]>>> transactionMap = new HashMap<ActionQueue, HashMap<Object,Triple<Integer,Integer,Object[]>>>();
 
@@ -504,6 +534,12 @@ public class OpHibernateSource extends OpSource
     */
    private void addListeners() {
       EventListeners eventListeners = getConfiguration().getEventListeners();
+      DeleteEventListener[] deleteEventListeners = eventListeners.getDeleteEventListeners();
+      DeleteEventListener[] newDeleteEventListeners = new DeleteEventListener[deleteEventListeners.length + 1];
+      newDeleteEventListeners[0] = this;
+      System.arraycopy(deleteEventListeners, 0, newDeleteEventListeners, 1, deleteEventListeners.length);
+      eventListeners.setDeleteEventListeners(newDeleteEventListeners);
+
       PreUpdateEventListener[] preUpdateListeners = eventListeners.getPreUpdateEventListeners();
       PreUpdateEventListener[] newPreUpdateListeners = new PreUpdateEventListener[preUpdateListeners.length + 1];
       System.arraycopy(preUpdateListeners, 0, newPreUpdateListeners, 0, preUpdateListeners.length);
@@ -518,8 +554,8 @@ public class OpHibernateSource extends OpSource
 
       PreDeleteEventListener[] preDeleteListeners = eventListeners.getPreDeleteEventListeners();
       PreDeleteEventListener[] newPreDeleteListeners = new PreDeleteEventListener[preDeleteListeners.length + 1];
-      System.arraycopy(preDeleteListeners, 0, newPreDeleteListeners, 0, preDeleteListeners.length);
-      newPreDeleteListeners[preDeleteListeners.length] = this;
+      System.arraycopy(preDeleteListeners, 0, newPreDeleteListeners, 1, preDeleteListeners.length);
+      newPreDeleteListeners[0] = this;
       eventListeners.setPreDeleteEventListeners(newPreDeleteListeners);
 
       eventListeners = getConfiguration().getEventListeners();
@@ -549,12 +585,14 @@ public class OpHibernateSource extends OpSource
    public boolean existsColumn(String tableName, String columnName) {
       Session session = sessionFactory.openSession();
       try {
-         ResultSet tables = session.connection().getMetaData().getColumns(null, null, tableName, "%");
+         ResultSet tables = session.connection().getMetaData().getColumns(null, null, "%","%");
          try {
             while (tables.next()) {
-                if (tables.getString("COLUMN_NAME").equalsIgnoreCase(columnName)) {
-                	return true;
-                }
+               if (tables.getString("TABLE_NAME").equalsIgnoreCase(tableName)) {
+                  if (tables.getString("COLUMN_NAME").equalsIgnoreCase(columnName)) {
+                     return true;
+                  }
+               }
             }
             return false;
          } 
@@ -653,6 +691,31 @@ public class OpHibernateSource extends OpSource
    protected OpMappingsGenerator getMappingsGenerator() {
       return OpMappingsGenerator.getInstance(databaseType);
    }
+   /**
+    * Updates the schema version number in the db, to the value of the SCHEMA_VERSION constant.
+    *
+    * @param versionNumber The new schema version number
+    */
+   public void updateSchemaStatus(int status) {
+      Session session = sessionFactory.openSession();
+      Connection jdbcConnection = session.connection();
+      Statement statement = null;
+
+      try {
+         statement = jdbcConnection.createStatement();
+         statement.executeUpdate(UPDATE_SCHEMA_STATUS_STATEMENT.replaceAll(STATUS_PLACEHOLDER, String.valueOf(status)));
+//         statement.close();
+         jdbcConnection.commit();
+      }
+      catch (SQLException e) {
+         logger.error("Cannot update db schema number", e);
+      }
+      finally {
+         //the jdbc connection is closed by Hibernate
+         OpConnectionManager.closeJDBCObjects(null, statement, null);
+         session.close();
+      }
+   }
 
 
    /**
@@ -714,6 +777,34 @@ public class OpHibernateSource extends OpSource
 //      createSchemaTable(versionNumber, false);
 //   }
 
+   /**
+    * Queries the database for the schema version number.
+    *
+    * @return a <code>int</code> representing the persisted schema version number, or <code>-1</code> if the version number
+    *         can't be retrieved.
+    */
+   public int getSchemaStatus() {
+      Session session = sessionFactory.openSession();
+      Connection jdbcConnection = session.connection();
+      Statement statement = null;
+      ResultSet rs = null;
+      try {
+         createSchemaTable(SCHEMA_VERSION);
+         statement = jdbcConnection.createStatement();
+         rs = statement.executeQuery(GET_SCHEMA_STATUS_STATEMENT);
+         rs.next();
+         return rs.getInt(SCHEMA_STATUS);
+      }
+      catch (SQLException e) {
+         logger.error("Cannot get version number ", e);
+      }
+      finally {
+         //the connection object is closed by Hibernate
+         OpConnectionManager.closeJDBCObjects(null, statement, rs);
+         session.close();
+      }
+      return -1;
+   }
 
    /**
     * Creates the schema table and inserts the given version number if the schema table doesn't exist..
@@ -722,24 +813,61 @@ public class OpHibernateSource extends OpSource
     */
    public void createSchemaTable(int versionNumber)
         throws SQLException {
-
       if (existsTable(SCHEMA_TABLE)) {
+         if (!existsColumn(SCHEMA_TABLE, SCHEMA_STATUS)) {
+            alterSchemaTable();
+            updateSchemaStatus(DEFAULT_STATUS);
+         }
          return;
       }
-
+      
       Session session = sessionFactory.openSession();
       Connection jdbcConnection = session.connection();
       Statement statement = null;
       try {
          statement = jdbcConnection.createStatement();
          statement.execute(getCreateSchemaTableStatement());
-         statement.executeUpdate(INSERT_CURENT_VERSION_INTO_SCHEMA_TABLE_STATEMENT.replaceAll(VERSION_PLACEHOLDER, String.valueOf(versionNumber)));
-//         statement.close();
+         String insertStatement = INSERT_CURENT_VERSION_INTO_SCHEMA_TABLE_STATEMENT;
+         insertStatement = insertStatement.replaceAll(VERSION_PLACEHOLDER, String.valueOf(versionNumber));
+         insertStatement = insertStatement.replaceAll(STATUS_PLACEHOLDER, String.valueOf(DEFAULT_STATUS));
+         statement.executeUpdate(insertStatement);
          jdbcConnection.commit();
          logger.info("Created table op_schema for versioning");
       }
       catch (SQLException e) {
          logger.error("Cannot create schema version or insert version number because:" + e.getMessage(), e);
+         throw e;
+      }
+      finally {
+         //the connection object is closed by Hibernate
+         OpConnectionManager.closeJDBCObjects(null, statement, null);
+         session.close();
+      }
+   }
+
+   private void alterSchemaTable()
+      throws SQLException {
+      Session session = sessionFactory.openSession();
+      Connection jdbcConnection = session.connection();
+      Statement statement = null;
+      try {
+         statement = jdbcConnection.createStatement();
+         String query = null;
+         if (databaseType == ORACLE) {
+            query = "alter table "+SCHEMA_TABLE+" add ("+SCHEMA_STATUS+" int)";            
+         }
+         else if (databaseType == MSSQL) {
+            query = "alter table "+SCHEMA_TABLE+" add "+SCHEMA_STATUS+" int";            
+         }
+         else {
+            query = "alter table "+SCHEMA_TABLE+" add column "+SCHEMA_STATUS+" int";
+         }
+         statement.executeUpdate(query);
+         jdbcConnection.commit();
+         logger.info("Altered table op_schema for status");
+      }
+      catch (SQLException e) {
+         logger.error("Cannot alter schema version or insert status because:" + e.getMessage(), e);
          throw e;
       }
       finally {
@@ -851,6 +979,10 @@ public class OpHibernateSource extends OpSource
    * @see org.hibernate.event.PostUpdateEventListener#onPostUpdate(org.hibernate.event.PostUpdateEvent)
    */
    public void onPostUpdate(PostUpdateEvent event) {
+      if (event.getSession().isClosed()) {
+         logger.warn("Callback called on closed session.");
+         return;
+      }
       ActionQueue aq = event.getSession().getActionQueue();
       Triple<Integer, Integer, Object[]> triple;
       if (aq != null) {
@@ -974,9 +1106,12 @@ public class OpHibernateSource extends OpSource
     * @see org.hibernate.event.PreDeleteEventListener#onPreDelete(org.hibernate.event.PreDeleteEvent)
     */
    public boolean onPreDelete(PreDeleteEvent event) {
+      
       if (isReadOnlyMode()) {
          throw new XLocalizableException(OpUserService.ERROR_MAP, OpUserError.SITE_IS_INVALID);
       }
+//      deleteAllDependentAnyTypes(OpBroker.getBroker(), (OpObjectIfc) event.getEntity());
+
       return false;
    }
 
@@ -1003,6 +1138,10 @@ public class OpHibernateSource extends OpSource
     * @see org.hibernate.event.PostDeleteEventListener#onPostDelete(org.hibernate.event.PostDeleteEvent)
     */
    public void onPostDelete(PostDeleteEvent event) {
+      if (event.getSession().isClosed()) {
+         logger.warn("Callback called on closed session.");
+         return;
+      }
       ActionQueue aq = event.getSession().getActionQueue();
       Triple<Integer, Integer, Object[]> triple;
       if (aq != null) {
@@ -1028,9 +1167,11 @@ public class OpHibernateSource extends OpSource
       }
       OpObjectIfc obj = (OpObjectIfc) event.getEntity();
       OpBroker broker = OpHibernateConnection.getBroker(event.getSession());
+
       String[] propertyNames = event.getPersister().getPropertyNames();
       fireEvent(broker, obj, OpEvent.DELETE, propertyNames, event.getDeletedState(), null, 
             triple.getThird(), triple.getFirst() == triple.getSecond());
+      
       //System.err.println("delete max: "+triple.getFirst()+", current: "+triple.getSecond()+", obj: "+obj);
    }
 
@@ -1038,6 +1179,10 @@ public class OpHibernateSource extends OpSource
     * @see org.hibernate.event.PostInsertEventListener#onPostInsert(org.hibernate.event.PostInsertEvent)
     */
    public void onPostInsert(PostInsertEvent event) {
+      if (event.getSession().isClosed()) {
+         logger.warn("Callback called on closed session.");
+         return;
+      }
       ActionQueue aq = event.getSession().getActionQueue();
       Triple<Integer, Integer, Object[]> triple = null;
       if (aq != null) {
@@ -1100,13 +1245,14 @@ public class OpHibernateSource extends OpSource
          return;
       }
       // deadlock detection - hibernate sometimes causes recursive call here if a listener calls eg. broker.getObject(..)
+      
       if ((action != OpEvent.PRE_FLUSH) && (deadlockDetect.get() != null)) {
          logger.info("deadlock detected, will not notify listeners again!");
 //         return;
       }
       deadlockDetect.set(DEADLOCK_OBJ);
       try {
-         HashMap<Class, HashMap<Integer, Object>> namedListeners = listeners.get(obj.getSiteId());
+         HashMap<Class, HashMap<Integer, Object>> namedListeners = listeners.get(obj.getSiteId() == null ? OpSource.DEFAULT_SOURCE_NAME : obj.getSiteId());
          if (namedListeners != null) {
             HashMap<Integer, Object> listener;
             OpEvent event = null;
@@ -1145,12 +1291,59 @@ public class OpHibernateSource extends OpSource
       }
    }
 
+   private static void deleteAllDependentAnyTypes(OpBroker broker, OpObjectIfc obj) {
+      OpPrototype ptype = OpTypeManager.getPrototypeForObject(obj);
+      for (OpPrototype impType : ptype.getImplementedTypes()) {
+         List<OpRelationship> relations = impType.getRelationships();
+         for (OpRelationship relation : relations) {
+            String cascadeMode = relation.getCascadeMode();
+            if ((OpRelationship.CASCADE_ALL.equals(cascadeMode)) || (OpRelationship.CASCADE_DELETE.equals(cascadeMode))) {
+               try {
+                  Method m = obj.getClass().getMethod("get" + relation.getName());
+                  Object value = m.invoke(obj, new Object[0]);
+                  if (value != null) {
+                     if (value instanceof Collection) {
+                        Iterator iter = ((Collection)value).iterator();
+                        while (iter.hasNext()) {
+                           Object objToDel = iter.next();
+                           if (objToDel instanceof OpObjectIfc) {
+                              broker.deleteObject((OpObjectIfc) objToDel);
+                           }
+                        }
+                     }
+                     else {
+                        if (value instanceof OpObjectIfc) {
+                           broker.deleteObject((OpObjectIfc) value);
+                        }
+                     }
+                  }
+               } catch (SecurityException e) {
+                  // TODO Auto-generated catch block
+                  e.printStackTrace();
+               } catch (NoSuchMethodException e) {
+                  // TODO Auto-generated catch block
+                  e.printStackTrace();
+               } catch (IllegalArgumentException e) {
+                  // TODO Auto-generated catch block
+                  e.printStackTrace();
+               } catch (IllegalAccessException e) {
+                  // TODO Auto-generated catch block
+                  e.printStackTrace();
+               } catch (InvocationTargetException e) {
+                  // TODO Auto-generated catch block
+                  e.printStackTrace();
+               }
+            }
+         }
+      }
+   }
+
    private class OpFlushEventListener extends DefaultFlushEntityEventListener {
       public void onFlushEntity(FlushEntityEvent event)
            throws HibernateException {
          if (listeners != null) {
             OpObjectIfc obj = (OpObjectIfc) event.getEntity();
-            HashMap<Class, HashMap<Integer, Object>> namedListeners = listeners.get(obj.getSiteId());
+            HashMap<Class, HashMap<Integer, Object>> namedListeners = listeners.get(obj.getSiteId() == null ? OpSource.DEFAULT_SOURCE_NAME : obj.getSiteId());
             if (namedListeners != null) {
                HashMap<Integer, Object> classListeners = namedListeners.get(obj.getClass());
                if ((classListeners != null) && (classListeners.get(OpEvent.PRE_FLUSH)) != null) {
@@ -1183,5 +1376,22 @@ public class OpHibernateSource extends OpSource
 
    public Configuration getNewConfiguration() {
 	   return newConfiguration;
+   }
+
+   public void enableFilters(boolean enable) {
+      enableFilters  = enable;
+   }
+
+   public boolean areFiltersEnabled() {
+      return enableFilters;
+   }
+
+   public void onDelete(DeleteEvent event) throws HibernateException {
+      onDelete( event, new IdentitySet() );
+   }
+
+   public void onDelete(DeleteEvent event, Set transientEntities)
+         throws HibernateException {
+      deleteAllDependentAnyTypes(OpHibernateConnection.getBroker(event.getSession()), (OpObjectIfc) event.getObject());
    }
 }

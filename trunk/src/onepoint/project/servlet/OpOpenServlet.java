@@ -147,7 +147,6 @@ public class OpOpenServlet extends XExpressServlet {
 
       //perform the initialization
       OpInitializer initializer = getProductIntializer();
-      initializer.init(this.getProductCode());
 
       //initialize the security feature
       OpConfiguration config = initializer.getConfiguration();
@@ -155,15 +154,20 @@ public class OpOpenServlet extends XExpressServlet {
       secureService = (secure != null) ? secure : Boolean.FALSE.toString();
    }
 
-   /**
-    * Returns an instance of <code>OpInitializer</code> that will be responsible for product initialization.
-    *
-    * @return initializer instance.
-    */
+//   /**
+//    * Returns an instance of <code>OpInitializer</code> that will be responsible for product initialization.
+//    *
+//    * @return initializer instance.
+//    */
+
    protected OpInitializer getProductIntializer() {
       OpInitializerFactory factory = OpInitializerFactory.getInstance();
-      factory.setInitializer(OpInitializer.class);
-      return factory.getInitializer();
+      OpInitializer initializer = factory.getInitializer();
+      if (initializer == null) {
+         initializer = factory.setInitializer(OpInitializer.class);
+         initializer.init(getProductCode());
+      }
+      return initializer;
    }
 
    /**

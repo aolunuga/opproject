@@ -16,17 +16,18 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import onepoint.project.modules.custom_attribute.OpCustomAttribute;
-import onepoint.project.modules.custom_attribute.OpCustomAttributeManager;
-import onepoint.project.modules.custom_attribute.OpCustomizableObject;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project_controlling.OpControllingRecord;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.work.OpCostRecord;
 import onepoint.project.modules.work.OpWorkRecord;
 
-public class OpActivity extends OpCustomizableObject implements OpActivityIfc { //implements OpSubTypable {
+public class OpActivity extends OpActivityBase { //implements OpSubTypable {
 
+   private static final XLog logger = XLogFactory.getLogger(OpActivity.class);
+   
    public final static String ACTIVITY = "OpActivity";
 
    public final static String NAME = "Name";
@@ -110,7 +111,7 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
    private double actualTravelCosts = 0d;
    private double remainingTravelCosts = 0d;
    private double actualPersonnelCosts = 0d;
-   private Double remainingPersonnelCosts = 0d;
+   private double remainingPersonnelCosts = 0d;
    private double actualMaterialCosts = 0d;
    private double remainingMaterialCosts = 0d;
    private double actualExternalCosts = 0d;
@@ -120,7 +121,7 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
    private double remainingEffort = 0d; // Person hours
    private double baseProceeds = 0d;
    private double actualProceeds = 0d;
-   private Double remainingProceeds = 0d;
+   private double remainingProceeds = 0d;
    private double payment = 0d;
    private boolean deleted = false;
    private boolean expanded = false;
@@ -156,44 +157,6 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
       setType(type);
    }
 
-   public void setupFromActivity(OpActivity a) {
-      this.attributes = a.getAttributes();
-
-      this.baseEffort = a.getBaseEffort();
-      this.baseExternalCosts = a.getBaseExternalCosts();
-      this.baseMaterialCosts = a.getBaseMaterialCosts();
-      this.baseMiscellaneousCosts = a.getBaseMiscellaneousCosts();
-      this.basePersonnelCosts = a.getBasePersonnelCosts();
-      this.baseProceeds = a.getBaseProceeds();
-      this.baseTravelCosts = a.getBaseTravelCosts();
-      
-      this.category = a.getCategory();
-      this.complete = a.getComplete();
-      this.description = a.getDescription();
-      this.duration = a.getDuration();
-      this.effortBillable = a.getEffortBillable();
-      this.expanded = a.getExpanded();
-      this.finish = a.getFinish();
-      this.followUpTime = a.getFollowUpTime();
-      this.leadTime = a.getLeadTime();
-      this.name = a.getName();
-      this.payment = a.getPayment();
-      this.priority = a.getPriority();
-      this.start = a.getStart();
-      this.type = a.getType();
-      
-      this.outlineLevel = 0;
-      this.sequence = 0;
-
-      this.actualEffort = a.getActualEffort();
-      this.actualExternalCosts = a.getActualExternalCosts();
-      this.actualMaterialCosts = a.getActualMaterialCosts();
-      this.actualMiscellaneousCosts = a.getActualMiscellaneousCosts();
-      this.actualPersonnelCosts = a.getActualPersonnelCosts();
-      this.actualProceeds = a.getActualProceeds();
-      this.actualTravelCosts = a.getActualTravelCosts();
-   }   
-   
    public void setName(String name) {
       this.name = name;
    }
@@ -217,7 +180,7 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
       this.type = type;
    }
 
-   public Byte getType() {
+   public byte getType() {
       return type;
    }
 
@@ -625,32 +588,16 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
       return baseProceeds;
    }
 
-   public void setBaseProceeds(Double baseProceeds) {
-      setBaseProceedsInternal(baseProceeds);
-   }
-
-   /**
-    * called internally by hibernate
-    * @param baseProceeds
-    */
-   private void setBaseProceedsInternal(Double baseProceeds) {
-      this.baseProceeds = (baseProceeds != null) ? baseProceeds : 0;
+   public void setBaseProceeds(double baseProceeds) {
+      this.baseProceeds = baseProceeds;
    }
 
    public double getActualProceeds() {
       return actualProceeds;
    }
 
-   public void setActualProceeds(Double actualProceeds) {
-      setActualProceedsInternal(actualProceeds);
-   }
-
-   /**
-    * called internally by hibernate
-    * @param actualProceeds
-    */
-   private void setActualProceedsInternal(Double actualProceeds) {
-      this.actualProceeds = (actualProceeds != null) ? actualProceeds : 0;
+   public void setActualProceeds(double actualProceeds) {
+      this.actualProceeds = actualProceeds;
    }
 
    public double getPayment() {
@@ -660,83 +607,40 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
          return 0d;
    }
 
-   public void setPayment(Double payment) {
-      setPaymentInternal(payment);
-   }
-
-   /**
-    * called internally by hibernate
-    * @param payment
-    */
-
-   private void setPaymentInternal(Double payment) {
-      this.payment = (payment != null) ? payment : 0;
+   public void setPayment(double payment) {
+      this.payment = payment;
    }
 
    public double getRemainingTravelCosts() {
       return remainingTravelCosts;
    }
 
-   public void setRemainingTravelCosts(Double remainingTravelCosts) {
-      setRemainingTravelCostsInternal(remainingTravelCosts);
-   }
-   /**
-    * called internally by hibernate
-    * @param remainingTravelCosts
-    */
-
-   private void setRemainingTravelCostsInternal(Double remainingTravelCosts) {
-      this.remainingTravelCosts = remainingTravelCosts != null ? remainingTravelCosts : 0;
+   public void setRemainingTravelCosts(double remainingTravelCosts) {
+      this.remainingTravelCosts = remainingTravelCosts;
    }
 
    public double getRemainingMaterialCosts() {
       return remainingMaterialCosts;
    }
 
-   public void setRemainingMaterialCosts(Double remainingMaterialCosts) {
-      setRemainingMaterialCostsInternal(remainingMaterialCosts);
-   }
-
-   /**
-    * called internally by hibernate
-    * @param remainingMaterialCosts
-    */
-   private void setRemainingMaterialCostsInternal(Double remainingMaterialCosts) {
-      this.remainingMaterialCosts = remainingMaterialCosts != null ? remainingMaterialCosts : 0;
+   public void setRemainingMaterialCosts(double remainingMaterialCosts) {
+      this.remainingMaterialCosts = remainingMaterialCosts;
    }
 
    public double getRemainingExternalCosts() {
       return remainingExternalCosts;
    }
 
-   public void setRemainingExternalCosts(Double remainingExternalCosts) {
-      setRemainingExternalCostsInternal(remainingExternalCosts);
-   }
-
-   /**
-    * called internally by hibernate
-    * @param remainingExternalCosts
-    */
-
-   private void setRemainingExternalCostsInternal(Double remainingExternalCosts) {
-      this.remainingExternalCosts = remainingExternalCosts != null ? remainingExternalCosts : 0;
+   public void setRemainingExternalCosts(double remainingExternalCosts) {
+      this.remainingExternalCosts = remainingExternalCosts;
    }
 
    public double getRemainingMiscellaneousCosts() {
       return remainingMiscellaneousCosts;
    }
 
-   public void setRemainingMiscellaneousCosts(Double remainingMiscellaneousCosts) {
-      setRemainingMiscellaneousCostsInternal(remainingMiscellaneousCosts);
-   }
-
-   /**
-    * called internally by hibernate
-    * @param remainingMiscellaneousCosts
-    */
-
-   private void setRemainingMiscellaneousCostsInternal(Double remainingMiscellaneousCosts) {
-      this.remainingMiscellaneousCosts = remainingMiscellaneousCosts != null ? remainingMiscellaneousCosts : 0;
+   public void setRemainingMiscellaneousCosts(double remainingMiscellaneousCosts) {
+      this.remainingMiscellaneousCosts = remainingMiscellaneousCosts;
    }
 
    /**
@@ -806,7 +710,7 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
    }
 
    public double getRemainingProceeds() {
-      return remainingProceeds != null ? remainingProceeds.doubleValue() : 0d;
+      return remainingProceeds;
    }
 
    public void setRemainingProceeds(double remainingProceeds) {
@@ -814,11 +718,11 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
    }
 
    public double getRemainingPersonnelCosts() {
-      return remainingPersonnelCosts != null ? remainingPersonnelCosts.doubleValue() : 0d;
+      return remainingPersonnelCosts;
    }
 
     public void setRemainingPersonnelCosts(double remainingPersonnelCosts) {
-       this.remainingPersonnelCosts = new Double(remainingPersonnelCosts);
+       this.remainingPersonnelCosts = remainingPersonnelCosts;
    }
 
    public Set<OpControllingRecord> getControllingRecords() {
@@ -848,30 +752,6 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
          cr.setActivity(null);
       }
    }
-   /**
-    * Updates the remaining personnel costs on the activity and its super activities.
-    *
-    * @param remainingPersonnelCostsChange - the <code>double</code> value with which the remaining personnel costs was
-    *                                      changed.
-    */
-   public void updateRemainingPersonnelCosts(double remainingPersonnelCostsChange) {
-      this.remainingPersonnelCosts = this.remainingPersonnelCosts - remainingPersonnelCostsChange;
-      if (superActivity != null) {
-         superActivity.updateRemainingPersonnelCosts(remainingPersonnelCostsChange);
-      }
-   }
-
-   /**
-    * Updates the remaining proceeds on the activity and its super activities.
-    *
-    * @param remainingProceedsChange - the <code>double</code> value with which the remaining proceeds was changed.
-    */
-   public void updateRemainingProceeds(double remainingProceedsChange) {
-      this.remainingProceeds = this.remainingProceeds - remainingProceedsChange;
-      if (superActivity != null) {
-         superActivity.updateRemainingProceeds(remainingProceedsChange);
-      }
-   }
 
    public boolean hasAttachments() {
       return (attributes & HAS_ATTACHMENTS) == HAS_ATTACHMENTS;
@@ -897,30 +777,30 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
       
       private double unassignedEffort = 0d;
 
+      private double baseEffort = 0d;
       private double actualEffort = 0d;
       private double remainingEffort = 0d;
 
       private double basePersonnelCosts = 0d;
       private double actualPersonnelCosts = 0d;
+      private double remainingPersonnelCosts = 0d;
+
       private double baseProceeds = 0d;
       private double actualProceeds = 0d;
-      private double remainingPersonnelCosts = 0d;
       private double remainingProceeds = 0d;
-
-      private double weigthedCompleteDelta = 0d;
 
       private boolean insert = true;
       
       private Map<Byte, Double> actualCosts = new HashMap<Byte, Double>();
       private Map<Byte, Double> remainingCosts = new HashMap<Byte, Double>();
       
-      OpProgressDelta(boolean insert, double unassignedEffort,
-            double actualEffort, double basePersonnelCosts,
-            double actualPersonnelCosts, double baseProceeds,
-            double actualProceeds, double remainingEffort,
-            double remainingPersonnelCosts, double remainingProceeds,
-            double weigthedCompleteDelta) {
+      OpProgressDelta(boolean insert, double baseEffort,
+            double unassignedEffort, double actualEffort,
+            double basePersonnelCosts, double actualPersonnelCosts,
+            double baseProceeds, double actualProceeds, double remainingEffort,
+            double remainingPersonnelCosts, double remainingProceeds) {
          this.insert = insert;
+         this.baseEffort = baseEffort;
          this.unassignedEffort = unassignedEffort;
          this.actualEffort = actualEffort;
          this.basePersonnelCosts = basePersonnelCosts;
@@ -930,11 +810,14 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
          this.remainingEffort = remainingEffort;
          this.remainingPersonnelCosts = remainingPersonnelCosts;
          this.remainingProceeds = remainingProceeds;
-         this.weigthedCompleteDelta = weigthedCompleteDelta;
       }
 
       public boolean isInsert() {
          return insert;
+      }
+
+      public double getBaseEffort() {
+         return baseEffort;
       }
 
       public double getUnassignedEffort() {
@@ -983,14 +866,6 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
          return (r != null ? r.doubleValue() : 0d);
       }
       
-      public void setWeigthedCompleteDelta(double weigthedCompleteDelta) {
-         this.weigthedCompleteDelta = weigthedCompleteDelta;
-      }
-
-      public double getWeigthedCompleteDelta() {
-         return weigthedCompleteDelta;
-      }
-
       public double getBasePersonnelCosts() {
          return basePersonnelCosts;
       }
@@ -999,6 +874,23 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
          return baseProceeds;
       }
 
+      // TODO: get rid of this...
+      // loop detection was added to Program Management too late...
+      private Set<OpProjectPlan> projectPlansVisited = null;
+      
+      public boolean visitProjectPlan(OpProjectPlan plan) {
+         if (projectPlansVisited == null) {
+            projectPlansVisited = new HashSet<OpProjectPlan>();
+         }
+         return projectPlansVisited.add(plan);
+      }
+
+      public boolean leaveProjectPlan(OpProjectPlan plan) {
+         if (projectPlansVisited == null) {
+            projectPlansVisited = new HashSet<OpProjectPlan>();
+         }
+         return projectPlansVisited.remove(plan);
+      }
    }
    
    public Map<Byte, List<OpWorkRecord>> getLatestWorkRecords(OpWorkRecord current, int number, Set<Byte> costTypes) {
@@ -1049,27 +941,34 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
       return result;
    }
    
-   private void applyDelta(OpProgressDelta delta) {
-      addUnassignedEffort(delta.getUnassignedEffort());
-      setBasePersonnelCosts(getBasePersonnelCosts() + delta.getBasePersonnelCosts());
-      setBaseProceeds(getBaseProceeds() + delta.getBaseProceeds());
+   public void applyDelta(OpProgressDelta delta) {
+      OpActivity.applyDelta(this, delta);
+   }
+   
+   public static void applyDelta(OpActivityValuesIfc aggr, OpProgressDelta delta) {
+      aggr.setBaseEffort(aggr.getBaseEffort() + delta.getBaseEffort());
+      aggr.setBasePersonnelCosts(aggr.getBasePersonnelCosts() + delta.getBasePersonnelCosts());
+      aggr.setBaseProceeds(aggr.getBaseProceeds() + delta.getBaseProceeds());
       
-      setActualEffort(getActualEffort() + delta.getActualEffort());
-      setActualPersonnelCosts(getActualPersonnelCosts() + delta.getActualPersonnelCosts());
-      setActualProceeds(getActualProceeds() + delta.getActualProceeds());
-      setActualMaterialCosts(getActualMaterialCosts() + delta.getActualCosts(OpAssignment.COST_TYPE_MATERIAL));
-      setActualTravelCosts(getActualTravelCosts() + delta.getActualCosts(OpAssignment.COST_TYPE_TRAVEL));
-      setActualExternalCosts(getActualExternalCosts() + delta.getActualCosts(OpAssignment.COST_TYPE_EXTERNAL));
-      setActualMiscellaneousCosts(getActualMiscellaneousCosts() + delta.getActualCosts(OpAssignment.COST_TYPE_MISC));
+      aggr.setUnassignedEffort(aggr.getUnassignedEffort() + delta.getUnassignedEffort());
 
-      setRemainingEffort(getRemainingEffort() + delta.getRemainingEffort());
-      setRemainingPersonnelCosts(getRemainingPersonnelCosts() + delta.getRemainingPersonnelCosts());
-      setRemainingProceeds(getRemainingProceeds() + delta.getRemainingProceeds());
+      aggr.setActualEffort(aggr.getActualEffort() + delta.getActualEffort());
+      aggr.setActualPersonnelCosts(aggr.getActualPersonnelCosts() + delta.getActualPersonnelCosts());
+      aggr.setActualProceeds(aggr.getActualProceeds() + delta.getActualProceeds());
       
-      setRemainingExternalCosts(getRemainingExternalCosts() + delta.getRemainingCosts(OpAssignmentIfc.COST_TYPE_EXTERNAL));
-      setRemainingMaterialCosts(getRemainingMaterialCosts() + delta.getRemainingCosts(OpAssignmentIfc.COST_TYPE_MATERIAL));
-      setRemainingMiscellaneousCosts(getRemainingMiscellaneousCosts() + delta.getRemainingCosts(OpAssignmentIfc.COST_TYPE_MISC));
-      setRemainingTravelCosts(getRemainingTravelCosts() + delta.getRemainingCosts(OpAssignmentIfc.COST_TYPE_TRAVEL));
+      aggr.setActualMaterialCosts(aggr.getActualMaterialCosts() + delta.getActualCosts(OpAssignment.COST_TYPE_MATERIAL));
+      aggr.setActualTravelCosts(aggr.getActualTravelCosts() + delta.getActualCosts(OpAssignment.COST_TYPE_TRAVEL));
+      aggr.setActualExternalCosts(aggr.getActualExternalCosts() + delta.getActualCosts(OpAssignment.COST_TYPE_EXTERNAL));
+      aggr.setActualMiscellaneousCosts(aggr.getActualMiscellaneousCosts() + delta.getActualCosts(OpAssignment.COST_TYPE_MISC));
+
+      aggr.setRemainingEffort(aggr.getRemainingEffort() + delta.getRemainingEffort());
+      aggr.setRemainingPersonnelCosts(aggr.getRemainingPersonnelCosts() + delta.getRemainingPersonnelCosts());
+      aggr.setRemainingProceeds(aggr.getRemainingProceeds() + delta.getRemainingProceeds());
+      
+      aggr.setRemainingExternalCosts(aggr.getRemainingExternalCosts() + delta.getRemainingCosts(OpAssignmentIfc.COST_TYPE_EXTERNAL));
+      aggr.setRemainingMaterialCosts(aggr.getRemainingMaterialCosts() + delta.getRemainingCosts(OpAssignmentIfc.COST_TYPE_MATERIAL));
+      aggr.setRemainingMiscellaneousCosts(aggr.getRemainingMiscellaneousCosts() + delta.getRemainingCosts(OpAssignmentIfc.COST_TYPE_MISC));
+      aggr.setRemainingTravelCosts(aggr.getRemainingTravelCosts() + delta.getRemainingCosts(OpAssignmentIfc.COST_TYPE_TRAVEL));
    }
    
    /**
@@ -1091,19 +990,10 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
 
       double newComplete = OpGanttValidator.getCompleteFromTracking(this, isProgressTracked());
       setComplete(newComplete);
-      
-      weigthedCompleteDelta = getComplete() - oldComplete;
-      // for the next steps (the two recursions) the order
-      // is IMPORTANT: first the OpActivity, than the OpActivityVersions (they build upon each other...) 
-      
-      delta.setWeigthedCompleteDelta(weigthedCompleteDelta);
-      if (getSuperActivity() != null) {
-         getSuperActivity().handleSubActivityProgress(delta);
-      }
+      propagateProgressToParent(this, delta);
       
       if (handleWorkingVersion) {
          // because thi smight be changed during update of the parent activites, restore it here:
-         delta.setWeigthedCompleteDelta(weigthedCompleteDelta);
          updateWorkingVersion(getComplete(), delta);
       }
    }
@@ -1159,45 +1049,88 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
          }
       }
    }
-
-   /**
-    * Used to update those collections (only call recursively, cannot be called from outside because
-    * this cannot have any assignments and therefore no work records).
-    * @param subActivity
-    * @param workRecord
-    * @param delta
-    */
-   private void handleSubActivityProgress(OpProgressDelta delta) {
+   
+   public static void handleSubActivityProgress(OpActivityIfc act, OpProgressDelta delta) {
       // update this:
-      applyDelta(delta);
-
-      // now recalculate the dependend things...
-      if (!isIndivisible()) {
-         setComplete(OpGanttValidator.calculateCompleteValue(getActualEffort(), getBaseEffort(), getOpenEffort()));
+      applyDelta(act, delta);
+      act.setComplete(act.getCompleteFromTracking(act.isProgressTracked()));
+      propagateProgressToParent(act, delta);
+   }
+   
+   public static void propagateProgressToParent(OpActivityIfc act, OpProgressDelta delta) {
+      
+      OpActivity a =  (act instanceof OpActivity) ? (OpActivity)act : null;
+      OpActivityVersion av = (act instanceof OpActivityVersion) ? (OpActivityVersion)act : null;;
+      
+      if (act.getSuperActivityIfc() != null) {
+         handleSubActivityProgress(act.getSuperActivityIfc(), delta);
       }
       else {
-         // The Problem: the switch from none-indivisible to indivisible is determined by actual effort and remainig effort.
-         // So this might change anytime...
-         // step down one level and collect complete values (very ugly...)
-         double oldComplete = getComplete();
-         
-         double newComplete = OpGanttValidator.getCompleteFromTracking(this, isProgressTracked());
-         setComplete(newComplete);
-         
-         delta.setWeigthedCompleteDelta(getComplete() - oldComplete);
+         if (a != null) {
+            a.getProjectPlan().handleSubActivityProgress(delta);
+         }
+         if (av != null) {
+            av.getPlanVersion().handleSubActivityProgress(delta);
+         }
       }
-
-      if (getSuperActivity() != null) {
-         getSuperActivity().handleSubActivityProgress(delta);
+      
+      // additionally, check for all programs importing from here:
+      if (a != null && a.getShallowCopies() != null) {
+         for (OpActivity pa: a.getShallowCopies()) {
+            pa.handleMasterActivityProgress(a, delta);
+         }
       }
    }
    
+   public void addChildComplete(double childComplete, double childBaseEffort) {
+      OpActivity.addWeightedComplete(this, childComplete, childBaseEffort);
+   }
+   
+   public static void addWeightedComplete(OpActivityValuesIfc element, double childComplete, double childBaseEffort) {
+      double oldBaseEffort = element.getBaseEffort() - childBaseEffort;
+      double oldWeightedComplete = element.getComplete() * oldBaseEffort;
+      double newWeightedComplete = oldWeightedComplete + (childComplete * childBaseEffort);
+      boolean zeroBase = OpGanttValidator.isZeroWithTolerance(element.getBaseEffort(), element.getBaseEffort()); 
+      element.setComplete(zeroBase ? 0d : newWeightedComplete / element.getBaseEffort());
+   }
+   
+
+   
+   public void handleSubProjectProgress(OpProjectPlan subProjectPlan, OpProgressDelta delta) {
+      if (!delta.visitProjectPlan(subProjectPlan)) {
+         // Loop detected during progress tracking...
+         logger.error("Sub-Project Loop Detected During Progress Tracking... "
+               + getProjectPlan().getProjectNode().getName() + " -> "
+               + subProjectPlan.getProjectNode().getName());
+         return;
+      }
+      applyDelta(this, delta);
+      setComplete(subProjectPlan.getComplete());
+      propagateProgressToParent(this, delta);
+
+      if (!delta.leaveProjectPlan(subProjectPlan)) {
+         // Loop detected during progress tracking...
+         logger.error("How did I get here? "
+               + getProjectPlan().getProjectNode().getName() + " -> "
+               + subProjectPlan.getProjectNode().getName());
+         return;
+      }
+   }
+   
+   public void handleMasterActivityProgress(OpActivityIfc master, OpProgressDelta delta) {
+      applyDelta(this, delta);
+      setComplete(master.getComplete());
+   }
+   
    public double getCompleteFromTracking(boolean progressTracked) {
+      if (isImported()) {
+         return getComplete();
+      }
       return OpGanttValidator.getCompleteFromTracking(this, progressTracked);
    }
 
    public boolean isIndivisible() {
-      return OpGanttValidator.isIndivisibleElemen(this);
+      return OpGanttValidator.isIndivisibleElement(this);
    }
 
    /**
@@ -1233,7 +1166,6 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
     * @post
     * @deprecated this is temporary code and will be removed - do not use unless you know whwt you do!
     */
-   
    public OpActivityVersion getLatestVersion() {
       Set<OpActivityVersion> versions = this.getVersions();
       if (versions == null) {
@@ -1249,9 +1181,8 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
          }
       }
       return null;
-      
-      
    }
+
    /**
     * Bridge to the working stuff...
     * @param delta         our allKnowing-Mega-Complete Delta Object
@@ -1274,15 +1205,25 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
     * @return true, if the activity is a collection activity.
     */
    public boolean hasSubActivities() {
-      return getType() == OpActivity.COLLECTION
-            || getType() == OpActivity.COLLECTION_TASK
-            || getType() == OpActivity.SCHEDULED_TASK;
+      return OpActivity.hasSubActivities(this);
    }
 
-   public boolean effortCalculatedFromChildren() {
-      return getType() == OpActivity.COLLECTION
-            || getType() == OpActivity.COLLECTION_TASK
-            || getType() == OpActivity.SCHEDULED_TASK;
+   public boolean hasAggregatedValues() {
+      return OpActivity.hasSubActivities(this) && !isImported();
+   }
+
+   public static boolean hasSubActivities(OpActivityIfc act) {
+      return (act.getType() == OpActivity.COLLECTION
+            || act.getType() == OpActivity.COLLECTION_TASK
+            || act.getType() == OpActivity.SCHEDULED_TASK);
+   }
+   
+   public boolean hasDerivedStartFinish() {
+      return OpActivity.hasDerivedStartFinish(this);
+   }
+
+   public static boolean hasDerivedStartFinish(OpActivityIfc act) {
+      return act.getType() == OpActivity.COLLECTION;
    }
 
    public String toString() {
@@ -1305,61 +1246,66 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
       b.append(getStart());
       b.append(" F:");
       b.append(getFinish());
-//      b.append("R: {");
-//      for (OpAssignment ass : assignments) {
-//    	  b.append(ass.toString());
-//      }
-//      b.append("}");
-      
       b.append("}");
       return b.toString();
    }
    
+   
    public void resetActualValues() {
-      setActualEffort(0d);
-      setActualExternalCosts(0d);
-      setActualMaterialCosts(0d);
-      setActualMiscellaneousCosts(0d);
-      setActualPersonnelCosts(0d);
-      setActualProceeds(0d);
-      setActualTravelCosts(0d);
-      
-      setRemainingEffort(0d);
-      setUnassignedEffort(getBaseEffort());
-
-      setRemainingExternalCosts(getBaseExternalCosts());
-      setRemainingMaterialCosts(getBaseMaterialCosts());
-      setRemainingMiscellaneousCosts(getBaseMiscellaneousCosts());
-      setRemainingPersonnelCosts(getBasePersonnelCosts());
-      setRemainingProceeds(getBaseProceeds());
-      setRemainingTravelCosts(getBaseTravelCosts());
-      
-      setComplete(0d);
+      OpActivity.resetActualValues(this);
    }
    
-   public void resetAggregatedValuesForCollection() {
-      setBaseEffort(0d);
-      setBaseExternalCosts(0d);
-      setBaseMaterialCosts(0d);
-      setBaseMiscellaneousCosts(0d);
-      setBasePersonnelCosts(0d);
-      setBaseProceeds(0d);
-      setBaseTravelCosts(0d);
+   public void resetAggregatedValues() {
+      OpActivity.resetValues(this);
+   }
+
+   public static void resetValues(OpActivityValuesIfc aggr) {
+      aggr.setBaseEffort(0d);
+      aggr.setUnassignedEffort(0d);
+
+      aggr.setBaseExternalCosts(0d);
+      aggr.setBaseMaterialCosts(0d);
+      aggr.setBaseMiscellaneousCosts(0d);
+      aggr.setBasePersonnelCosts(0d);
+      aggr.setBaseProceeds(0d);
+      aggr.setBaseTravelCosts(0d);
       
-      if (!definesStartFinish()) {
-         setStart(null);
-         setFinish(null);
-         setLeadTime(0d);
-         setFollowUpTime(0d);
+      if (!definesStartFinish(aggr)) {
+         aggr.setStart(null);
+         aggr.setFinish(null);
+         aggr.setLeadTime(0d);
+         aggr.setFollowUpTime(0d);
       }
-      resetActualValues();
+      aggr.resetActualValues();
+      aggr.setComplete(0d);
+   }
+   
+   public static void resetActualValues(OpActivityValuesIfc aggr) {
+      aggr.setActualEffort(0d);
+      aggr.setActualPersonnelCosts(0d);
+      aggr.setActualProceeds(0d);
+      
+      aggr.setActualExternalCosts(0d);
+      aggr.setActualMaterialCosts(0d);
+      aggr.setActualMiscellaneousCosts(0d);
+      aggr.setActualTravelCosts(0d);
+      
+      aggr.setRemainingEffort(0d);
+      aggr.setRemainingPersonnelCosts(aggr.getBasePersonnelCosts());
+      aggr.setRemainingProceeds(aggr.getBaseProceeds());
+
+      aggr.setRemainingExternalCosts(aggr.getBaseExternalCosts());
+      aggr.setRemainingMaterialCosts(aggr.getBaseMaterialCosts());
+      aggr.setRemainingMiscellaneousCosts(aggr.getBaseMiscellaneousCosts());
+      aggr.setRemainingTravelCosts(aggr.getBaseTravelCosts());
+      
    }
    
    public boolean definesStartFinish() {
       return OpActivity.definesStartFinish(this);
    }
    
-   public static boolean definesStartFinish(OpActivityIfc a) {
+   public static boolean definesStartFinish(OpActivityValuesIfc a) {
       return a.getType() == STANDARD || a.getType() == MILESTONE || a.getType() == SCHEDULED_TASK;
    }
    /**
@@ -1388,7 +1334,7 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
    
    public boolean isProgressTracked() {
       return getProjectPlan().getProgressTracked()
-            || getType() == OpActivity.ADHOC_TASK || hasSubActivities();
+            || getType() == OpActivity.ADHOC_TASK || hasAggregatedValues();
    }
 
    public boolean isLeafActivity() {
@@ -1480,30 +1426,18 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
       }
    }
    
-   /**
-    * @deprecated
-    */
    public OpActivity getMasterActivity() {
       return masterActivity;
    }
 
-   /**
-    * @deprecated
-    */
    public void setMasterActivity(OpActivity masterActivity) {
       this.masterActivity = masterActivity;
    }
 
-   /**
-    * @deprecated
-    */
    public Set<OpActivity> getShallowCopies() {
       return shallowCopies;
    }
 
-   /**
-    * @deprecated
-    */
    private void setShallowCopies(Set<OpActivity> shallowCopies) {
       this.shallowCopies = shallowCopies;
    }
@@ -1541,6 +1475,9 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
       this.shallowVersions = shallowVersions;
    }
    
+   /**
+    * @deprecated
+    */
    public void addShallowVersion(OpActivityVersion shallowVersion) {
       // TODO: loop detection...
       if (getShallowVersions() == null) {
@@ -1551,6 +1488,9 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
       }
    }
    
+   /**
+    * @deprecated
+    */
    public void removeShallowVersion(OpActivityVersion shallowVersion) {
       if (getShallowVersions() == null) {
          return;
@@ -1560,16 +1500,10 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
       }
    }
 
-   /**
-    * @deprecated
-    */
    public OpProjectNode getSubProject() {
       return subProject;
    }
 
-   /**
-    * @deprecated
-    */
    public void setSubProject(OpProjectNode subProject) {
       this.subProject = subProject;
    }
@@ -1578,7 +1512,11 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
       return getSuperActivity();
    }
 
-   public OpActivity getActivityForActualValues() {
+   public OpActivityValuesIfc getElementForActualValues() {
+      return this;
+   }
+
+   public OpActivity getActivityForAdditionalObjects() {
       return this;
    }
 
@@ -1615,23 +1553,10 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
       this.unassignedEffort = uae != null ? uae.doubleValue() : 0d;
    }
 
-   public void addUnassignedEffort(double effort) {
-      setUnassignedEffort(getUnassignedEffort() + effort);
-   }
-   
    public void cloneSimpleMembers(OpActivityIfc src, boolean progressTracked) {
       // TODO all new Progress delta!      
       cloneSimpleMembers(src, this, progressTracked);
       
-      // copy all custom attributes
-      OpCustomAttributeManager caManager = OpCustomAttributeManager.getInstance();
-      if (caManager != null) {
-         Map<String, OpCustomAttribute> map = caManager.getCustomAttributesMap(OpActivity.class, null);
-         for (String key : map.keySet()) {
-            this.setObject(key, src.getObject(key));
-         }
-      }
-
       // responsible resource is easy:
       if (src.getResponsibleResource() != null) {
          src.getResponsibleResource().addActivity(this);
@@ -1639,18 +1564,16 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
    }
    
    public static void cloneSimpleMembers(OpActivityIfc src, OpActivityIfc tgt, boolean progressTracked) {
+      cloneSimpleMembers(src, tgt, progressTracked, false);
+   }
+   
+   public static void cloneSimpleMembers(OpActivityIfc src, OpActivityIfc tgt, boolean progressTracked, boolean copyAggregatedValues) {
 
       // all things solely maintained by the activity itself (unassigned effort, remaining costs)
       // must be maintained here in a delta process...
       double baseEffortDelta = src.getBaseEffort() - tgt.getBaseEffort();
-      tgt.addUnassignedEffort(baseEffortDelta);
+      tgt.setUnassignedEffort(tgt.getUnassignedEffort() + baseEffortDelta);
 
-      // TODO: Check assumption: if actual costs exist, the remainings are defined by the costs records. None-progress Tracked stuff???
-      double baseExternalCostsDelta = tgt.getActualExternalCosts() == 0 ? src.getBaseExternalCosts() - tgt.getBaseExternalCosts() : 0d;
-      double baseMaterialCostsDelta = tgt.getActualMaterialCosts() == 0 ? src.getBaseMaterialCosts() - tgt.getBaseMaterialCosts() : 0d;
-      double baseMiscellaneousCostsDelta = tgt.getActualMiscellaneousCosts() == 0 ? src.getBaseMiscellaneousCosts() - tgt.getBaseMiscellaneousCosts() : 0d;
-      double baseTravelCostsDelta = tgt.getActualTravelCosts() == 0 ? src.getBaseTravelCosts() - tgt.getBaseTravelCosts() : 0d;
-      
       tgt.setBaseEffort(0d);
       tgt.setBaseExternalCosts(0d);
       tgt.setBaseMaterialCosts(0d);
@@ -1678,61 +1601,92 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
       tgt.setSequence(0);
       tgt.setTemplate(false);
       tgt.setType(OpActivity.STANDARD);
+
+      boolean doCopyAggregatedValues = src.isImported() || copyAggregatedValues;
+      boolean copyBaseValues = doCopyAggregatedValues
+            || src.getType() == OpActivity.STANDARD
+            || src.getType() == OpActivity.MILESTONE
+            || src.getType() == OpActivity.TASK;
+      boolean adoptRemainingCostsToBaseChanges = !doCopyAggregatedValues;
+      boolean copyDates = copyBaseValues
+            || src.getType() == OpActivity.COLLECTION_TASK
+            || src.getType() == OpActivity.SCHEDULED_TASK;
       
-      // a little ugly maybe, 
-      switch (src.getType()) {
-      case OpActivity.STANDARD:
-      case OpActivity.MILESTONE:
-      case OpActivity.TASK:
+      // a little ugly maybe...
+      tgt.setType(src.getType());
 
+      if (adoptRemainingCostsToBaseChanges) {
+         // potentially adopt to new base values, if nothing is booked for the specified costs right now...
+         tgt.setRemainingExternalCosts(tgt.getActualExternalCosts() == 0d ? src.getBaseExternalCosts() : tgt.getRemainingExternalCosts());
+         tgt.setRemainingMaterialCosts(tgt.getActualMaterialCosts() == 0d ? src.getBaseMaterialCosts() : tgt.getRemainingMaterialCosts());
+         tgt.setRemainingMiscellaneousCosts(tgt.getActualMiscellaneousCosts() == 0d ? src.getBaseMiscellaneousCosts() : tgt.getRemainingMiscellaneousCosts());
+         tgt.setRemainingTravelCosts(tgt.getActualTravelCosts() == 0d ? src.getBaseTravelCosts() : tgt.getRemainingTravelCosts());
+      }
+
+      if (doCopyAggregatedValues) {
+         tgt.setBasePersonnelCosts(src.getBasePersonnelCosts());
+         tgt.setBaseProceeds(src.getBaseProceeds());
+         
+         tgt.setActualEffort(src.getActualEffort());
+         tgt.setActualPersonnelCosts(src.getActualPersonnelCosts());
+         tgt.setActualProceeds(src.getActualProceeds());
+         
+         tgt.setUnassignedEffort(src.getUnassignedEffort());
+         
+         tgt.setActualExternalCosts(src.getActualExternalCosts());
+         tgt.setActualMaterialCosts(src.getActualMaterialCosts());
+         tgt.setActualMiscellaneousCosts(src.getActualMiscellaneousCosts());
+         tgt.setActualTravelCosts(src.getActualTravelCosts());
+         
+         tgt.setRemainingEffort(src.getRemainingEffort());
+         tgt.setRemainingPersonnelCosts(src.getRemainingPersonnelCosts());
+         tgt.setRemainingProceeds(src.getRemainingProceeds());
+         
+         tgt.setRemainingExternalCosts(src.getRemainingExternalCosts());
+         tgt.setRemainingMaterialCosts(src.getRemainingMaterialCosts());
+         tgt.setRemainingMiscellaneousCosts(src.getRemainingMiscellaneousCosts());
+         tgt.setRemainingTravelCosts(src.getRemainingTravelCosts());
+         
+         tgt.setComplete(src.getComplete());
+      }
+      
+      if (copyBaseValues) {
+         // tgt.setUnassignedEffort(src.getUnassignedEffort());
+         
          tgt.setBaseEffort(src.getBaseEffort());
-
+         // basePersonnelCosts & basProceeds are provided by the assignments!
+         
          tgt.setBaseExternalCosts(src.getBaseExternalCosts());
          tgt.setBaseMaterialCosts(src.getBaseMaterialCosts());
          tgt.setBaseMiscellaneousCosts(src.getBaseMiscellaneousCosts());
          tgt.setBaseTravelCosts(src.getBaseTravelCosts());
-
-         // ATTN: currently, remaining costs are always estimated by project contributor 
-         if (true || progressTracked) { 
-            tgt.setRemainingExternalCosts(tgt.getRemainingExternalCosts() + baseExternalCostsDelta);
-            tgt.setRemainingMaterialCosts(tgt.getRemainingMaterialCosts() + baseMaterialCostsDelta);
-            tgt.setRemainingMiscellaneousCosts(tgt.getRemainingMiscellaneousCosts() + baseMiscellaneousCostsDelta);
-            tgt.setRemainingTravelCosts(tgt.getRemainingTravelCosts() + baseTravelCostsDelta);
-         }
-         else {
-            tgt.setComplete(src.getComplete());
-            tgt.setRemainingExternalCosts(OpGanttValidator.calculateRemainingEffort(tgt.getBaseExternalCosts(), tgt.getActualExternalCosts(), tgt.getComplete()));
-            tgt.setRemainingMaterialCosts(OpGanttValidator.calculateRemainingEffort(tgt.getBaseMaterialCosts(), tgt.getActualMaterialCosts(), tgt.getComplete()));
-            tgt.setRemainingMiscellaneousCosts(OpGanttValidator.calculateRemainingEffort(tgt.getBaseMiscellaneousCosts(), tgt.getActualMiscellaneousCosts(), tgt.getComplete()));
-            tgt.setRemainingTravelCosts(OpGanttValidator.calculateRemainingEffort(tgt.getBaseTravelCosts(), tgt.getActualTravelCosts(), tgt.getComplete()));
-         }
-      case OpActivity.COLLECTION_TASK:
-      case OpActivity.SCHEDULED_TASK:
+      }
+      
+      if (copyDates) {
          tgt.setFinish(src.getFinish());
          tgt.setLeadTime(src.getLeadTime());
          tgt.setStart(src.getStart());
          tgt.setFollowUpTime(src.getFollowUpTime());
-
-      case OpActivity.COLLECTION:
-         tgt.setDuration(src.getDuration());
-         tgt.setEffortBillable(src.getEffortBillable());
-         tgt.setExpanded(src.getExpanded());
-
-         tgt.setAttributes(src.getAttributes());
-         tgt.setCategory(src.getCategory());
-         tgt.setName(src.getName());
-         tgt.setDescription(src.getDescription());
-
-         tgt.setOutlineLevel(src.getOutlineLevel());
-
-         tgt.setPayment(src.getPayment());
-         tgt.setPriority(src.getPriority());
-         tgt.setSequence(src.getSequence());
-         tgt.setTemplate(src.getTemplate());
-         tgt.setType(src.getType());
-         
-         break;
       }
+      // stuff, that is always copied...
+      tgt.setEffortBillable(src.getEffortBillable());
+      tgt.setExpanded(src.getExpanded());
+
+      tgt.setAttributes(src.getAttributes());
+      tgt.setCategory(src.getCategory());
+      tgt.setName(src.getName());
+      tgt.setDescription(src.getDescription());
+
+      tgt.setOutlineLevel(src.getOutlineLevel());
+
+      tgt.setPayment(src.getPayment());
+      tgt.setPriority(src.getPriority());
+      tgt.setSequence(src.getSequence());
+      tgt.setTemplate(src.getTemplate());
+      
+      // silly enough, duration is not aggreagted for collections
+      // TODO: remove aggregated date stuff and trust OpGanttValidator!
+      tgt.setDuration(src.getDuration());
    }
 
    public void removeWorkPeriod(OpWorkPeriod del) {
@@ -1853,5 +1807,23 @@ public class OpActivity extends OpCustomizableObject implements OpActivityIfc { 
             || act.getType() == OpGanttValidator.ADHOC_TASK;
    }
 
+   public OpActivityValuesIfc getParent() {
+      if (getSuperActivity() != null) {
+         return getSuperActivity();
+      }
+      return getProjectPlan();
+   }
 
+   public void addActualEffort(double actualEffort) {
+      setActualEffort(getActualEffort() + actualEffort);
+   }
+
+   public boolean isImported() {
+      return (getAttributes() & OpActivity.IMPORTED_FROM_SUBPROJECT) == OpActivity.IMPORTED_FROM_SUBPROJECT;
+   }
+   
+   public boolean isSubProjectReference() {
+      return getSubProject() != null;
+   }
+   
 }

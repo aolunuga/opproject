@@ -153,13 +153,12 @@ public class OpAssignmentVersion extends OpObject implements OpAssignmentIfc {
          return;
       }
       
-      if (!activity.hasSubActivities()) {
-         double weightedCompleteDelta = getBaseEffort() * getComplete();
+      if (!activity.hasAggregatedValues()) {
          // goal: build a delta-object to get the right thing done here:
          // TODO, FIXME: clarify behavior of remaining values!
          OpActivity.OpProgressDelta delta = new OpActivity.OpProgressDelta(
-               true, -getBaseEffort(), 0d, getBaseCosts(), 0d,
-               getBaseProceeds(), 0d, getRemainingEffort(), 0d, 0d, weightedCompleteDelta);
+               true, 0d, -getBaseEffort(), 0d, getBaseCosts(), 0d,
+               getBaseProceeds(), 0d, getRemainingEffort(), 0d, 0d);
    
          activity.handleAssigmentProgress(delta);
       }
@@ -170,12 +169,11 @@ public class OpAssignmentVersion extends OpObject implements OpAssignmentIfc {
          return;
       }
       
-      if (!activity.hasSubActivities()) {
-         double weightedCompleteDelta = getBaseEffort() * getComplete();
+      if (!activity.hasAggregatedValues()) {
          // goal: build a delta-object to get the right thing done here:
          OpActivity.OpProgressDelta delta = new OpActivity.OpProgressDelta(
-               true, getBaseEffort(), 0d, -getBaseCosts(), 0d,
-               -getBaseProceeds(), 0d, -getRemainingEffort(), 0d, 0d, weightedCompleteDelta);
+               true, 0d, getBaseEffort(), 0d, -getBaseCosts(), 0d,
+               -getBaseProceeds(), 0d, -getRemainingEffort(), 0d, 0d);
          
          // remaining costs: find those latest WR for this assignment 
          activity.handleAssigmentProgress(delta);
@@ -240,7 +238,7 @@ public class OpAssignmentVersion extends OpObject implements OpAssignmentIfc {
    }
 
    public boolean isIndivisible() {
-      return OpGanttValidator.isIndivisibleElemen(this);
+      return OpGanttValidator.isIndivisibleElement(this);
    }
 
 }

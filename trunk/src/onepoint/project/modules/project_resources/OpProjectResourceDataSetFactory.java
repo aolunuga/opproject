@@ -19,15 +19,12 @@ import onepoint.express.XComponent;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.calendars.OpProjectCalendarFactory;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpActivityDataSetFactory;
 import onepoint.project.modules.project.OpActivityIfc;
-import onepoint.project.modules.project.OpActivityVersion;
 import onepoint.project.modules.project.OpAssignmentIfc;
 import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.project.OpProjectPlanVersion;
-import onepoint.project.util.OpProjectCalendar;
 
 /**
  * DataSet Factory for resource controlling.
@@ -105,15 +102,6 @@ public final class OpProjectResourceDataSetFactory {
          
          OpActivityIfc activity = activities.next();
 
-         OpActivityVersion av = (activity instanceof OpActivityVersion) ? (OpActivityVersion)activity : null;
-         
-         if (av != null && av.getSubProject() != null) {
-            OpActivityVersion hav = OpActivityDataSetFactory.getInstance().prepareProjectHeadActivityVersion(av.getSubProject());
-            XComponent tmpDataSet = new XComponent(XComponent.DATA_SET);
-            OpProjectCalendar calendar = OpProjectCalendarFactory.getInstance().getCalendar(session, broker, planVersion.getProjectPlan());
-            OpActivityDataSetFactory.getInstance().prepareSubProjectActualData(session, broker, calendar, hav, av.getSubProject().locator(), tmpDataSet);
-            activity = hav;
-         }
          // Filter out milestones
          if (activity.getType() == OpActivity.MILESTONE) {
             continue;

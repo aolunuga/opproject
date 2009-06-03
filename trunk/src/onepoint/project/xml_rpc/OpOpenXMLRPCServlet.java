@@ -155,17 +155,14 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
       try {
          initializer = factory.getInitializer();
          if (initializer == null) {
-            factory.setInitializer(OpInitializer.class);
-            initializer = factory.getInitializer();
+            initializer = factory.setInitializer(OpInitializer.class);
+            initializer.init(this.getProductCode());
          }
       }
       catch (RuntimeException exc) {
-         factory.setInitializer(OpInitializer.class);
-         initializer = factory.getInitializer();
+         initializer = factory.setInitializer(OpInitializer.class);
+         initializer.init(this.getProductCode());
       }
-
-      // NOTE: does no initialization if we are already initialized
-      initializer.init(this.getProductCode());
 
       // initialize the handlers
       initHandlers();

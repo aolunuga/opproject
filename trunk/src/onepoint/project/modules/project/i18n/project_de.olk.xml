@@ -221,7 +221,7 @@
         <resource id="NoRightsChangingBudgetError">Sie benötigen Administrator-Rechte um das Budget zu ändern</resource>
         <resource id="NoRightsChangingStatusError">Sie benötigen Administrator-Rechte um den Projektstatus zu ändern</resource>
         <resource id="CannotChangeActivityTypeError">Der Vorgangstyp kann nicht geändert werden</resource>
-        <resource id="ProjectsStillReferencedWarning">Eine Projekte, Templates oder Portfolios, die noch referenziert wurden, konnten nicht gelöscht werden</resource>
+        <resource id="ProjectsStillReferencedWarning">Projekte, Templates oder Portfolios, die noch referenziert werden, konnten nicht gelöscht werden</resource>
         <resource id="ProjectsStillReferencedError">Projekte, Templates oder Portfolios, die noch referenziert werden, können nicht gelöscht werden</resource>
         <resource id="ProjectIsProgram">Ein Projekt mit eingebundenen Projekten kann nicht als Template gespeichert werden</resource>
         <resource id="CopyProjectResourcePermissionMissing">Sie benötigen Manager-Rechte auf alle dem Projekt zugewiesenen Ressourcen</resource>

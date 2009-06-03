@@ -82,14 +82,16 @@ public class OpLock extends OpObject {
             lockTS = getCreated();
          }
          // check if XServer is older than lock timesatamp (restarted after lock)
-         if (new Timestamp(session.getServer().getCreationTimeMillis()).before(lockTS)) {
-            if (lockerID != null) {
-               if (session.getID() != lockerID.intValue()) {
+         Timestamp sessionTS = new Timestamp(session.getServer().getCreationTimeMillis()); 
+         if (sessionTS.before(lockTS)) {
+            if (lockerID == null || session.getID() != lockerID.intValue()) {
+               if (lockerID != null) {
                   // check if lock is held by a still open session
                   OpProjectSession lockerSession = (OpProjectSession) session.getServer().getSession(lockerID.intValue());
                   // check if lockerSession is still valid and no logoff toke place
                   if ((lockerSession != null) && (lockerSession.isValid()) &&
                         (lockerSession.getUserID() == owner.getId())) {
+                     // locked by someone else, exit...
                      return false;
                   }
                }
@@ -110,7 +112,6 @@ public class OpLock extends OpObject {
                finally {
                   lockBroker.close();
                }
-//               broker.makePersistent(lock);
             }
          }
          else {
@@ -121,6 +122,7 @@ public class OpLock extends OpObject {
             OpBroker lockBroker = session.newBroker();
             OpTransaction t = lockBroker.newTransaction();
             OpLock lock = (OpLock)lockBroker.getObject(OpLock.class, getId());
+            lock.setModified(new Timestamp(System.currentTimeMillis()));
             lock.setLockerID(new Long(session.getID()));
             t.commit();
             lockBroker.close();

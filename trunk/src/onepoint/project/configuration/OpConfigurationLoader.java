@@ -4,15 +4,17 @@
 
 package onepoint.project.configuration;
 
-import onepoint.log.XLog;
-import onepoint.log.XLogFactory;
-import onepoint.project.util.OpEnvironmentManager;
-import onepoint.util.XEnvironmentManager;
-import onepoint.xml.XDocumentHandler;
-import onepoint.xml.XLoader;
-import onepoint.xml.XSchema;
-import org.w3c.dom.*;
-import org.xml.sax.InputSource;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -22,10 +24,21 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.*;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
+import onepoint.project.util.OpEnvironmentManager;
+import onepoint.util.XEnvironmentManager;
+import onepoint.xml.XDocumentHandler;
+import onepoint.xml.XLoader;
+import onepoint.xml.XSchema;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
+import org.xml.sax.InputSource;
 
 public class OpConfigurationLoader extends XLoader {
 
@@ -67,7 +80,7 @@ public class OpConfigurationLoader extends XLoader {
          return configuration;
       }
       catch (FileNotFoundException e) {
-         logger.error("Cannot load configuration file: " + fileName, e);
+         logger.info("Cannot load configuration file: " + fileName);
          throw new OpInvalidDataBaseConfigurationException(OpDatabaseConfiguration.DEFAULT_DB_CONFIGURATION_NAME);
       }
       catch (Exception e) {

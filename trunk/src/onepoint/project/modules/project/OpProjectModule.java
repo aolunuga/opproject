@@ -4,10 +4,14 @@
 
 package onepoint.project.modules.project;
 
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import onepoint.log.XLog;
@@ -19,13 +23,17 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModule;
 import onepoint.project.module.OpModuleChecker;
 import onepoint.project.modules.backup.OpBackupManager;
+import onepoint.project.modules.calendars.OpProjectCalendarFactory;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.modules.work.OpWorkSlip;
 import onepoint.project.util.OpBulkFetchIterator;
+import onepoint.project.util.OpGraph;
+import onepoint.project.util.OpProjectCalendar;
 import onepoint.project.util.OpBulkFetchIterator.LongIdConverter;
+import onepoint.util.XCalendar;
 
 public class OpProjectModule extends OpModule {
 
@@ -534,6 +542,153 @@ public class OpProjectModule extends OpModule {
       return false;
    }
 
+   public void upgradeToVersion87(OpProjectSession session) {
+
+      OpBroker broker = session.newBroker();
+      try {
+         int count = 0;
+         
+         // reset all aggreagted values of all projectplanversions (projectplan should follow during plan validation...)
+         OpTransaction tx = broker.newTransaction();
+         count = 0;
+         OpQuery allPlanVersions = broker.newQuery("select pv from OpProjectPlanVersion as pv");
+         Iterator<OpProjectPlanVersion> pvIt = broker.iterate(allPlanVersions);
+         
+         Set<OpProjectPlanVersion> remainingPlanVersions = new HashSet<OpProjectPlanVersion>();
+         while (pvIt.hasNext()) {
+            OpProjectPlanVersion pv = pvIt.next();
+            safeResetAggregatedValues(pv);
+            remainingPlanVersions.add(pv);
+            count++;
+         }
+         tx.commit();
+         logger.debug("upgradeToVersion87 - #00:" + count);
+         
+         // TODO: check th e following assumption:
+         // the sub-project data collected in activityversions of older versions is correct
+         // for project plan versions (no actual data accumulated!).
+         //
+         // aggregate all level-0 activities into projectplans:
+         // 1. find all the projectplanversion linked somewhere
+         tx = broker.newTransaction();
+         count = 0;
+         OpGraph g = new OpGraph();
+         Map<Long, List<OpActivityVersion>> dependendActivitiesList = new HashMap<Long, List<OpActivityVersion>>();
+         OpQuery subProjectsQ = broker.newQuery("select actV from OpActivityVersion as actV where actV.SubProject is not null");
+         Iterator<OpActivityVersion> actVIt = broker.iterate(subProjectsQ);
+         while (actVIt.hasNext()) {
+            OpActivityVersion actV = actVIt.next();
+            OpProjectPlanVersion program = actV.getPlanVersion();
+            OpProjectPlanVersion subProject = findProjectPlanVersionForDate(actV.getSubProject(), program.getCheckInTime());
+            if (subProject == null) {
+               continue;
+            }
+            OpGraph.Entry prgE = g.addNode(program);
+            OpGraph.Entry spE = g.addNode(subProject);
+            g.addEdge(spE, prgE);
+            logger.info("upgradeToVersion87 - " + program + " -> " + subProject);
+            
+            // remember those dependencies...
+            Long subProjectKey = new Long(subProject.getId());
+            List<OpActivityVersion> depActVs = dependendActivitiesList.get(subProjectKey);
+            if (depActVs == null) {
+               depActVs = new ArrayList<OpActivityVersion>();
+               dependendActivitiesList.put(subProjectKey, depActVs);
+            }
+            depActVs.add(actV);
+
+            count++;
+         }
+         logger.debug("upgradeToVersion87 - #01:" + count);
+         count = 0;
+         try {
+            List<OpGraph.Entry> to = g.getTopologicOrder();
+            for (OpGraph.Entry e:to) {
+               OpProjectPlanVersion pv = (OpProjectPlanVersion) e.getElem();
+               logger.info("upgradeToVersion87 - adjusting(1) " + pv);
+               pv.resetAggregatedValues();
+               count += updateAggregatedValuesForPlanVersion(session, broker, pv);
+               List<OpActivityVersion> dependencies = dependendActivitiesList.get(new Long(pv.getId()));
+               if (dependencies != null) {
+                  for (OpActivityVersion av: dependencies) {
+                     logger.info("upgradeToVersion87 - -- dependend activity in " + av.getPlanVersion());
+                     updateDependendActivities(session, broker, pv, av);
+                     count++;
+                  }
+               }
+               remainingPlanVersions.remove(pv);
+            }
+         }
+         catch (IllegalStateException isx) {
+            logger.error("Cycle in sub-project Hierarchie deteced, Results will be wrong...");
+         }
+         tx.commit();
+         
+         tx = broker.newTransaction();
+         logger.debug("upgradeToVersion87 - #02:" + count);
+         for (OpProjectPlanVersion pv: remainingPlanVersions) {
+            logger.info("upgradeToVersion87 - adjusting(2) " + pv);
+            safeResetAggregatedValues(pv);
+            count += updateAggregatedValuesForPlanVersion(session, broker, pv);
+         }
+         
+         tx.commit();
+         logger.debug("upgradeToVersion87 - #03:" + count);
+         
+      }
+      finally {
+         broker.closeAndEvict();
+      }
+   }
+
+   private void safeResetAggregatedValues(OpProjectPlanVersion pv) {
+      pv.resetAggregatedValues();
+      pv.setStart(pv.getProjectPlan().getStart());
+      pv.setFinish(pv.getProjectPlan().getFinish());
+   }
+
+   private void updateDependendActivities(OpProjectSession session,
+         OpBroker broker, OpProjectPlanVersion pv, OpActivityVersion dep) {
+      OpActivityValuesIfc parent = dep.getParent();
+      OpProjectCalendar pCal = OpProjectCalendarFactory.getInstance().getCalendar(session, broker, pv);
+      boolean progressTracked = dep.getPlanVersion().getProjectPlan().getProgressTracked();
+      while (parent != null) {
+         OpActivityVersionDataSetFactory.updateParentAggregatedValues(dep, parent, pCal, progressTracked, false);
+         parent = parent.getParent();
+      }
+      OpActivityDataSetFactory.getInstance().copyValuesForSubProjectActivity(pv, dep);
+      parent = dep.getParent();
+      while (parent != null) {
+         OpActivityVersionDataSetFactory.updateParentAggregatedValues(dep, parent, pCal, progressTracked, true);
+         parent = parent.getParent();
+      }
+   }
+
+   private int updateAggregatedValuesForPlanVersion(OpProjectSession session,
+         OpBroker broker, OpProjectPlanVersion pv) {
+      int count = 0;
+      OpQuery activityVersionsLevel0 = broker.newQuery("" +
+            "select av0 from" +
+            " OpActivityVersion as av0 " +
+            "where " +
+            "av0.OutlineLevel = 0 " +
+            "and av0.PlanVersion = :planVersionId");
+      activityVersionsLevel0.setLong("planVersionId", pv.getId());    
+      Iterator<OpActivityVersion> av0It = broker.iterate(activityVersionsLevel0);
+
+      OpProjectCalendar pCal = OpProjectCalendarFactory.getInstance().getCalendar(session, broker, pv);
+      
+      while (av0It.hasNext()) {
+         OpActivityVersion av = av0It.next();
+         OpActivityVersionDataSetFactory.updateParentAggregatedValues(av, av.getParent(), pCal, av.getProjectPlan().getProgressTracked());
+         count++;
+      }
+      Date dayAfterFinish = new Date(pv.getFinish().getTime() + XCalendar.MILLIS_PER_DAY);
+      pv.setDuration(pCal.getWorkHoursPerDay()
+            * pCal.countWorkDaysBetween(pv.getStart(), dayAfterFinish));
+      return count;
+   }
+   
    /**
     * @see onepoint.project.module.OpModule#getCheckerList()
     */
@@ -542,6 +697,27 @@ public class OpProjectModule extends OpModule {
       List<OpModuleChecker> checkers = new ArrayList<OpModuleChecker>();
       checkers.add(new OpProjectModuleChecker());
       return checkers;
+   }
+   
+   private OpProjectPlanVersion findProjectPlanVersionForDate(OpProjectNode pn, Timestamp time) {
+      if (pn.getPlan().getVersions() == null || time == null) {
+         return null;
+      }
+      OpProjectPlanVersion bestMatch = null;
+      for (OpProjectPlanVersion pv: pn.getPlan().getVersions()) {
+         if (pv.getVersionNumber() == OpProjectPlan.WORKING_VERSION_NUMBER) {
+            continue;
+         }
+         if (pv.getCheckInTime().before(time)) {
+            if ((bestMatch == null) || bestMatch.getCheckInTime().before(pv.getCheckInTime())) {
+               bestMatch = pv;
+            }
+         }
+      }
+      return bestMatch;
+   }
+
+   public void upgradeToVersion89(OpProjectSession session) {
    }
 
 }

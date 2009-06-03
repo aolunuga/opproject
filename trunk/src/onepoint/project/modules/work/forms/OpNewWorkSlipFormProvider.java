@@ -265,7 +265,7 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
          OpWorkSlipDataSetFactory.configureActivityChoiceMap(broker, choiceCostActivitySet, choiceCostResourceSet, true);
 
          //fill the assignmentMapDataField
-         form.findComponent(ASSIGNMENT_MAP).setValue(OpWorkSlipDataSetFactory.getInstance().createAssignmentMap(assignmentList));
+         form.findComponent(ASSIGNMENT_MAP).setValue(OpWorkSlipDataSetFactory.getInstance().createAssignmentMap(session, broker, assignmentList));
 
          //filter effort, time & cost data sets
          OpWorkSlipDataSetFactory.filterDataSetForAssignments(effortRecordSet, assignmentList);

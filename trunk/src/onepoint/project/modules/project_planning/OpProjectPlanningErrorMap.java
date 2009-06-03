@@ -37,5 +37,6 @@ public class OpProjectPlanningErrorMap extends XErrorMap {
       registerErrorCode(OpProjectPlanningError.CALENDARS_MODIFIED_WARNING, OpProjectPlanningError.CALENDARS_MODIFIED_WARNING_NAME);
       registerErrorCode(OpProjectPlanningError.ACTION_NAME_NOT_UNIQUE, OpProjectPlanningError.ACTION_NAME_NOT_UNIQUE_NAME);
       registerErrorCode(OpProjectPlanningError.PROJECT_START_DATE_AFTER_ACTIVITY_DATE, OpProjectPlanningError.PROJECT_START_DATE_AFTER_ACTIVITY_DATE_NAME);
+      registerErrorCode(OpProjectPlanningError.SUB_PROJECT_LOOP_ERROR, OpProjectPlanningError.SUB_PROJECT_LOOP_ERROR_NAME);
    }
 }

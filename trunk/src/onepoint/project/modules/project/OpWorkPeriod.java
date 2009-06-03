@@ -6,9 +6,7 @@ package onepoint.project.modules.project;
 
 import java.sql.Date;
 
-import onepoint.persistence.OpObject;
-
-public class OpWorkPeriod extends OpObject implements OpWorkPeriodIfc {
+public class OpWorkPeriod extends OpWorkPeriodBase {
 
    public final static String WORK_PERIOD = "OpWorkPeriod";
 

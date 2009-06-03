@@ -1,4 +1,5 @@
 <project name="Opproject 8.0 - Open" basedir="." default="dist.war">
+	<import file="./common.xml"/>
 
    <!-- Sets property references that are used throught the build file -->
    <property file="build.properties"/>
@@ -55,6 +56,7 @@
       <include name="${rootpackage.dir}/project/**/*.jasper"/>
       <include name="${rootpackage.dir}/project/**/*.jes"/>
       <include name="${rootpackage.dir}/project/configuration/generated/**/*.ser"/>
+      <include name="${rootpackage.dir}/project/**/list-en1-semic-3.txt"/>
       <exclude name="${rootpackage.dir}/**/test/**"/>
       <exclude name="${rootpackage.dir}/project/reports/**/*.*"/>
    </patternset>
@@ -105,6 +107,7 @@
       <include name="**/*.gif"/>
       <include name="**/*.properties"/>
       <include name="**/*.ser"/>
+      <include name="**/*.txt"/>
       <exclude name="**/test/**/*.*"/>
    </patternset>
 
@@ -188,6 +191,7 @@
 
    <!-- Removes the directory where the classes are generated -->
    <target name="clean" description="Cleans the output of the build process, dist and tests.">
+      <ant target="clean" antfile="build.xml" inheritall="false" dir="${express4j.dir}"/>
       <delete dir="${build.dir}" failonerror="false"/>
       <delete dir="${dist.dir}" failonerror="false"/>
       <delete dir="${release.dir}" failonerror="false"/>
@@ -285,13 +289,13 @@
 
    <!--Builds the project classes-->
    <target name="build" depends="generate.schema,copy.resources" description="Builds all the project classes.">
-      <javac srcdir="${src.dir}" destdir="${classes.dir}"
+      <javac encoding="UTF-8" srcdir="${src.dir}" destdir="${classes.dir}"
              classpathref="op.classpath" debug="${debug}"
              target="${jdk.target}" source="${jdk.source}"
              deprecation="${deprecation}">
          <patternset refid="compile.pathid"/>
       </javac>
-      <javac srcdir="${src.dir}" destdir="${client.classes.dir}"
+      <javac encoding="UTF-8" srcdir="${src.dir}" destdir="${client.classes.dir}"
              classpathref="op.classpath" debug="${debug}"
              target="${jdk.client.target}" source="${jdk.client.source}"
              deprecation="${deprecation}">
@@ -566,6 +570,14 @@
       </loadfile>
       <echo message="${web.xml.content}" file="${build.dir}/web.xml"/>
 
+      <!-- expand properties within open.jnlp file -->
+      <loadfile property="open.jnlp.context" srcFile="${open.jnlp}">
+         <filterchain>
+            <expandproperties/>
+         </filterchain>
+      </loadfile>
+      <echo message="${open.jnlp.content}" file="${build.dir}/open.jnlp"/>
+
       <!--build war file-->
       <war destfile="${build.dir}/${warname}" webxml="${build.dir}/web.xml" manifest="${manifest}">
          <fileset dir="${build.dir}" includes="${applet}/**/*"/>
@@ -622,6 +634,7 @@
        <zipfileset file="../express4j/build.properties" prefix="express4j"/>
        <zipfileset dir="META-INF" prefix="${zip.root.dir}/META-INF"/>
        <zipfileset file="build.xml" prefix="${zip.root.dir}"/>
+       <zipfileset file="common.xml" prefix="${zip.root.dir}"/>
        <zipfileset file="build.properties" prefix="${zip.root.dir}"/>
        <zipfileset dir="WEB-INF" prefix="${zip.root.dir}/WEB-INF"/>
        <zipfileset dir="${security.dir}" prefix="${zip.root.dir}/${security.dir}"/>
@@ -742,6 +755,8 @@
       <delete file="${dist.basic.dir}/${dist.main.folder}/${project.basic.jarname}"/>
       <delete dir="${dist.basic.dir}/${dist.main.folder}/${lib.dir}"/>
       <zip basedir="${dist.basic.dir}" excludes="${project.basic.jarname}" zipfile="${dist.dir}/${basic.name}-mac.zip"/>
+      <antcall target="dmg"/>
+   	
    </target>
 
    <!-- build the xml-rpc examples zip file -->
@@ -787,7 +802,7 @@
 
    <!-- Compiles the tests source code of the application -->
    <target name="build.tests" depends="clean,build,copy.test.resources" description="Compiles the test source code">
-      <javac srcdir="${src.dir}" destdir="${classes.dir}"
+      <javac encoding="UTF-8" srcdir="${src.dir}" destdir="${classes.dir}"
              classpathref="op.tests.classpath" debug="${debug}"
              target="${jdk.target}" source="${jdk.source}"
              deprecation="${deprecation}">

@@ -6,6 +6,7 @@
 package onepoint.project.modules.work;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -20,6 +21,7 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.modules.calendars.OpProjectCalendarFactory;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpActivityDataSetFactory;
+import onepoint.project.modules.project.OpActivityValuesIfc;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.project.OpProjectModuleChecker;
 import onepoint.project.modules.project.OpProjectNode;
@@ -43,11 +45,18 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
 
    @Override
    public void check(OpProjectSession session) {
-      logger.info("Checking module Work...");
-      for (Iterator it = super.getProjectsOfType(session, OpProjectNode.PROJECT).iterator(); it.hasNext();) {
-         Long projectId = (Long) it.next();
+      logger.info("Checking module Work... - initialzing values");
+      Collection<Long> projectIDs = super.getProjectsOfType(session, OpProjectNode.PROJECT);
+      for (Long projectId : projectIDs) {
          resetWorkValues(session, projectId);
-         // resetWorkMonths(session, projectId);
+      }
+      logger.info("Checking module Work... - re-linking...");
+      for (Long projectId : projectIDs) {
+         reAttachAssignments(session, projectId);
+      }
+      logger.info("Checking module Work... - recalculating...");
+      for (Long projectId : projectIDs) {
+         applyWorkRecordsForProject(session, projectId);
       }
    }
 
@@ -61,7 +70,6 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
    private void resetWorkValues(OpProjectSession session, long projectId) {
       resetActivities(session, projectId);
       resetAssignments(session, projectId);
-      applyWorkRecordsForProject(session, projectId);
    }
 
    private final static int TRANSACTION_SIZE = 100;
@@ -185,44 +193,21 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
       OpBroker broker;
       OpTransaction transaction;
       OpQuery query;
-      Iterator result;
 
       //reset activities
       broker = session.newBroker();
       try {
          transaction = broker.newTransaction();
-         query = broker.newQuery("select activity.id from OpActivity activity where activity.Deleted = false and activity.ProjectPlan.ProjectNode.id=?");
+         OpProjectNode pn = broker.getObject(OpProjectNode.class, projectId);
+         boolean progressTracked = pn.getPlan().getProgressTracked();
+         resetValues(pn.getPlan(), progressTracked);
+         
+         query = broker.newQuery("select activity from OpActivity activity where activity.Deleted = false and activity.ProjectPlan.ProjectNode.id=?");
          query.setLong(0, projectId);
-         result = broker.iterate(query);
+         Iterator<OpActivity> result = broker.iterate(query);
          while (result.hasNext()) {
-            long id = (Long) result.next();
-            OpActivity activity = (OpActivity) broker.getObject(OpActivity.class, id);
-            activity.setUnassignedEffort(activity.getBaseEffort());
-            
-            //actual set to 0 (simulate the no workslip state)
-            activity.setActualEffort(0);
-            activity.setActualExternalCosts(0);
-            activity.setActualMaterialCosts(0);
-            activity.setActualMiscellaneousCosts(0);
-            activity.setActualPersonnelCosts(0);
-            activity.setActualProceeds(0.0);
-            activity.setActualTravelCosts(0);
-
-            activity.setBasePersonnelCosts(0d);
-            activity.setBaseProceeds(0d);
-            
-            activity.setRemainingEffort(0d);
-            if (activity.getProjectPlan().getProgressTracked()) {
-               activity.setComplete(0d);
-            }
-            activity.setRemainingPersonnelCosts(0d);
-            activity.setRemainingProceeds(0d);
-
-            //this will be set by progress calculator
-            activity.setRemainingExternalCosts(activity.getBaseExternalCosts());
-            activity.setRemainingMaterialCosts(activity.getBaseMaterialCosts());
-            activity.setRemainingMiscellaneousCosts(activity.getBaseMiscellaneousCosts());
-            activity.setRemainingTravelCosts(activity.getBaseTravelCosts());
+            OpActivity activity = result.next();
+            resetValues(activity, progressTracked);
          }
          transaction.commit();
       }
@@ -231,6 +216,16 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
       }
    }
 
+   private void resetValues(OpActivityValuesIfc elem, boolean progressTracked) {
+      elem.setUnassignedEffort(elem.getBaseEffort());
+      elem.setBasePersonnelCosts(0d);
+      elem.setBaseProceeds(0d);
+      OpActivity.resetActualValues(elem);
+      if (progressTracked) {
+         elem.setComplete(0d);
+      }
+   }
+   
    /**
     * Resets the values on all the assignments (actual and remaining).
     *
@@ -242,14 +237,12 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
       try {
          OpTransaction transaction = broker.newTransaction();
          //reset assignments
-         OpQuery query = broker.newQuery("select assignment.id from OpAssignment assignment where assignment.Activity.ProjectPlan.ProjectNode.id=?");
-         query.setLong(0, projectId);
-         Iterator result = broker.iterate(query);
+         Iterator<OpAssignment> result = getAssignmentsForProject(broker,
+               projectId);
          OpProjectCalendar pCal = null;
          OpProjectNode pn = null;
          while (result.hasNext()) {
-            long id = (Long) result.next();
-            OpAssignment assignment = (OpAssignment) broker.getObject(OpAssignment.class, id);
+            OpAssignment assignment = result.next();
 
             if (pCal == null) {
                pCal = OpProjectCalendarFactory.getInstance()
@@ -262,14 +255,14 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
             assignment.setActualEffort(0);
             assignment.setActualProceeds(0.0);
 
-            // fix assignment regarding duration/effort ration:
+            // fix assignment regarding duration/effort ratio:
             OpProjectCalendar cal = OpProjectCalendarFactory.getInstance().getCalendar(session, broker, assignment.getResource(), assignment.getProjectPlan().getLatestVersion());
             double durationDays = 0d;
             if (assignment.getActivity().getDuration() < pCal.getWorkHoursPerDay()) {
                Set<OpWorkPeriod> wps = assignment.getActivity().getWorkPeriods();
                if (wps != null) {
                   for (OpWorkPeriod wp : wps) {
-                     durationDays += OpActivityDataSetFactory.countWorkDaysInPeriod(wp);
+                     durationDays += wp.countWorkDays();
                   }
                }
             }
@@ -281,7 +274,9 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
             if (hoursAssigned > assignment.getActivity().getUnassignedEffort()) {
                hoursAssigned = assignment.getActivity().getUnassignedEffort();
                double percentAssigned = zeroAct ? 100d : (hoursAssigned / durationDays / cal.getWorkHoursPerDay() * 100d);
-               if (Math.abs(assignment.getAssigned() - percentAssigned) > OpGanttValidator.ERROR_MARGIN) {
+               if (!OpGanttValidator.isZeroWithTolerance(Math.abs(assignment
+                     .getAssigned()
+                     - percentAssigned), assignment.getBaseEffort())) {
                   logger.error("Corrected Assignment (%) for " + pn.getName() + " " + assignment);
                }
                assignment.setAssigned(percentAssigned);
@@ -294,7 +289,8 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
             }
 
             //reset remaining values based on tracking
-            if (assignment.getProjectPlan().getProgressTracked()) {
+            if (assignment.getProjectPlan().getProgressTracked()
+                  || assignment.getActivity().getType() == OpActivity.ADHOC_TASK) {
                assignment.setRemainingEffort(assignment.getBaseEffort());
                assignment.setComplete(0d);
                assignment.setRemainingPersonnelCosts(assignment.getBaseCosts());
@@ -302,10 +298,29 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
             }
             else {
                double complete = assignment.getActivity().getComplete();
-               assignment.setComplete(complete);
-               OpProgressCalculator.updateAssignmentBasedOnTracking(assignment, false, false);
+               assignment.setComplete(assignment.getActivity().getComplete());
+               double remainingEffort = OpGanttValidator
+                     .calculateRemainingEffort(assignment.getBaseEffort(),
+                           assignment.getActualEffort(), complete);
+               assignment.setRemainingEffort(remainingEffort);
             }
-            
+         }
+         transaction.commit();
+      }
+      finally {
+         broker.closeAndEvict();
+      }
+   }
+
+   private void reAttachAssignments(OpProjectSession session, long projectId) {
+      OpBroker broker = session.newBroker();
+      try {
+         OpTransaction transaction = broker.newTransaction();
+         //reset assignments
+         Iterator<OpAssignment> result = getAssignmentsForProject(broker,
+               projectId);
+         while (result.hasNext()) {
+            OpAssignment assignment = result.next();
             // WARNING: will add remaining costs/effort and the like to activity! 
             assignment.attachToActivity(assignment.getActivity());
          }
@@ -315,4 +330,14 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
          broker.closeAndEvict();
       }
    }
+   
+
+   private Iterator<OpAssignment> getAssignmentsForProject(OpBroker broker,
+         long projectId) {
+      OpQuery query = broker.newQuery("select assignment from OpAssignment assignment where assignment.Activity.ProjectPlan.ProjectNode.id=?");
+      query.setLong(0, projectId);
+      Iterator<OpAssignment> result = broker.iterate(query);
+      return result;
+   }
+
 }

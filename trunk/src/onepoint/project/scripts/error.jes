@@ -21,13 +21,16 @@ function handleError(form, response, label) {
 function displayError(form, error, label) {
    success = true;
    error_label = form.findComponent(label);
-   if (error != null) {
-      success = false;
-      error_label.setText(error.getMessage());
-      error_label.setVisible(true);
-   } else {
-      error_label.setVisible(false);
+   if (error_label != null) {
+	   if (error != null) {
+		   success = false;
+		   error_label.setText(error.getMessage());
+		   error_label.setVisible(true);
+	   } else {
+		   error_label.setVisible(false);
+	   }
    }
+
    form.doLayout();
    form.repaint();
    return success;

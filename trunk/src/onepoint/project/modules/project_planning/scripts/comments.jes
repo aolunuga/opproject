@@ -2,6 +2,8 @@
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
+import onepoint.project.modules.project.components.OpGanttValidator;
+
 function addActivityComment(activityLocator) {
    // Open add-comment dialog w/activity-locator as parameter
    if (activityLocator != null) {
@@ -63,17 +65,8 @@ function updateComments(has_comments, form) {
       activity_set = content_frame.currentForm().findComponent("ActivitySet");
       activity_row = activity_set.getChild(activity_row_index_value);
 
-      attributes = activity_row.getChild(18).getIntValue();
-      if (has_comments) {
-         if ((attributes & 8) == 0) {
-            activity_set.setDataCellValue(activity_row, 18, attributes + 8, form);
-         }
-      }
-      else {
-         if ((attributes & 8) == 8) {
-            activity_set.setDataCellValue(activity_row, 18, attributes - 8, form);
-         }
-      }
+      OpGanttValidator.setAttribute(activity_row, OpGanttValidator.HAS_COMMENTS, has_comments);
+
       content_frame.doLayout();
       content_frame.repaint();
    }

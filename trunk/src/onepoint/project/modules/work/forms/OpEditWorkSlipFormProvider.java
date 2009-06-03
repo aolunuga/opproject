@@ -165,7 +165,7 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
          fillChoiceSets(broker, form, assignmentList, timeTrackingEnabled);
 
          //fill the assignmentMapDataField
-         form.findComponent(ASSIGNMENT_MAP).setValue(OpWorkSlipDataSetFactory.getInstance().createAssignmentMap(assignmentList));
+         form.findComponent(ASSIGNMENT_MAP).setValue(OpWorkSlipDataSetFactory.getInstance().createAssignmentMap(session, broker, assignmentList));
 
          //fill the cost types for the costs tab
          XComponent costTypesDataSet = form.findComponent(COST_TYPES_SET);

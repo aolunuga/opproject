@@ -171,11 +171,13 @@ public class OpProjectPlanValidator {
       }
       validator.validateEntireDataSet();
       
-      OpActivityVersionDataSetFactory.getInstance()
-            .storeActivityVersionDataSet(session, broker, dataSet,
-                  projectPlan.getLatestVersion(), resources, projectPlan.getLatestVersion(), false);
-      OpActivityDataSetFactory.getInstance().checkInProjectPlan(session,
-            broker, projectPlan.getLatestVersion());
+      if (projectPlan.getLatestVersion() != null) {
+         OpActivityVersionDataSetFactory.getInstance()
+               .storeActivityVersionDataSet(session, broker, dataSet,
+                     projectPlan.getLatestVersion(), resources, projectPlan.getLatestVersion(), false);
+         OpActivityDataSetFactory.getInstance().checkInProjectPlan(session,
+               broker, projectPlan.getLatestVersion());
+      }
    }
 
    /**
@@ -190,7 +192,6 @@ public class OpProjectPlanValidator {
          XComponent dataSet = new XComponent(XComponent.DATA_SET);
          //
          OpActivityVersionDataSetFactory.getInstance().retrieveActivityVersionDataSet(session, broker, workingPlan, dataSet, true);
-         OpActivityDataSetFactory.getInstance().importSubProjectActivities(session, broker, dataSet);
          validator.setDataSet(dataSet);
          //allow custom modifications
          if (modifier != null) {

@@ -8,7 +8,22 @@
    <field name="Creator" type="String"/>
    <field name="Recalculated" type="Timestamp"/>
    <field name="CheckInTime" type="Timestamp"/>
-     
+   
+   <field name="Duration" type="Double" default="0"/>
+   <field name="LeadTime" type="Double" default="0"/>
+   <field name="FollowUpTime" type="Double" default="0"/>
+   <field name="Complete" type="Double" default="0"/>
+   <field name="BaseEffort" type="Double" default="0"/>
+   <field name="BaseTravelCosts" type="Double" default="0"/>
+   <field name="BasePersonnelCosts" type="Double" default="0"/>
+   <field name="BaseMaterialCosts" type="Double" default="0"/>
+   <field name="BaseExternalCosts" type="Double" default="0"/>
+   <field name="BaseMiscellaneousCosts" type="Double" default="0"/>
+   <field name="BaseProceeds" type="Double" default="0"/>
+   <field name="UnassignedEffort" type="Double" default="0"/>
+
+   <field name="Complete" type="Double" default="0"/>
+
    <relationship name="ProjectPlan" type="OpProjectPlan" back-relationship="Versions"/>
    <relationship name="ActivityVersions" type="OpActivityVersion" collection-type="Set" back-relationship="PlanVersion" inverse="true" cascade="delete"/>
    <relationship name="AssignmentVersions" type="OpAssignmentVersion" collection-type="Set" back-relationship="PlanVersion" inverse="true" cascade="delete"/>

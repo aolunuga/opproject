@@ -23,6 +23,8 @@ import onepoint.persistence.OpCustomSubTypable;
 import onepoint.persistence.OpObject;
 import onepoint.persistence.OpSubTypable;
 import onepoint.project.OpProjectSession;
+import onepoint.project.modules.project.OpActivity;
+import onepoint.project.modules.project.OpActivityVersion;
 import onepoint.project.modules.project.OpAttachment;
 import onepoint.service.server.XServiceManager;
 import onepoint.service.server.XSession;
@@ -475,29 +477,42 @@ public class OpCustomizableObject extends OpObject implements OpCustomizable {
    private void check(OpCustomAttribute attribute, int type, Object value) {
       check(attribute, type);
       if (attribute.isMandatory() && value == null) {
-         Map<String, Object> params = new HashMap<String, Object>();
-         params.put(NAME_PARAM, attribute.getLabel() != null ? attribute.getLabel() : attribute.getName());
-         throw new XLocalizableException(OpCustomAttributeErrorMap.ERROR_MAP, OpCustomAttributeError.MANDATORY_ERROR, params);
+         // FIXME (dfreis, Feb 3, 2009) : HACK fix of OPP-1192 should be moved to upgrade code and avoid setting action to mandatory for this case
+         if (!(this instanceof OpActivity) && (!(this instanceof OpActivityVersion))) {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put(NAME_PARAM, attribute.getLabel() != null ? attribute.getLabel() : attribute.getName());
+            throw new XLocalizableException(OpCustomAttributeErrorMap.ERROR_MAP, OpCustomAttributeError.MANDATORY_ERROR, params);
+         }
       }
       if (attribute.isUnique()) {
-         OpProjectSession session = (OpProjectSession) XSession.getSession();
-         OpBroker broker = session.newBroker();
-         try {
-            if (customAttributesServiceImpl == null) {
-               customAttributesServiceImpl = (OpCustomAttributeServiceImpl) XServiceManager.getServiceImpl(OpCustomAttributeServiceImpl.SERVICE_NAME);
+         // FIXME (dfreis, Feb 3, 2009) : HACK fix of OPP-1192 should be moved to upgrade code and avoid setting action to mandatory for this case
+         if (!(this instanceof OpActivity) && (!(this instanceof OpActivityVersion))) {
+            OpProjectSession session = (OpProjectSession) XSession.getSession();
+            // reuse broker if possible...
+            OpBroker broker = OpBroker.getBroker();
+            boolean newBroker = broker == null;
+            if (newBroker) {
+               broker = session.newBroker();
             }
-            List<OpObject> list = customAttributesServiceImpl.getObjects(session, broker, attribute, value);
-            if (list.isEmpty()) {
-               return;
+            try {
+               if (customAttributesServiceImpl == null) {
+                  customAttributesServiceImpl = (OpCustomAttributeServiceImpl) XServiceManager.getServiceImpl(OpCustomAttributeServiceImpl.SERVICE_NAME);
+               }
+               List<OpObject> list = customAttributesServiceImpl.getObjects(session, broker, attribute, value);
+               if (list.isEmpty()) {
+                  return;
+               }
+               if ((list.size() != 1) || (list.get(0).getId() != getId())) {
+                  Map<String, Object> params = new HashMap<String, Object>();
+                  params.put(NAME_PARAM, attribute.getLabel() != null ? attribute.getLabel() : attribute.getName());
+                  throw new XLocalizableException(OpCustomAttributeErrorMap.ERROR_MAP, OpCustomAttributeError.NOT_UNIQUE_ERROR, params);               
+               }
             }
-            if ((list.size() != 1) || (list.get(0).getId() != getId())) {
-               Map<String, Object> params = new HashMap<String, Object>();
-               params.put(NAME_PARAM, attribute.getLabel() != null ? attribute.getLabel() : attribute.getName());
-               throw new XLocalizableException(OpCustomAttributeErrorMap.ERROR_MAP, OpCustomAttributeError.NOT_UNIQUE_ERROR, params);               
+            finally {
+               if (newBroker) {
+                  broker.close();
+               }
             }
-         }
-         finally {
-            broker.close();
          }
       }
    }

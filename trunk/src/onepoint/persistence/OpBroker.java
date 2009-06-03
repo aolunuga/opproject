@@ -12,6 +12,7 @@ import java.util.Stack;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
+import onepoint.persistence.hibernate.OpScrollableResults;
 
 public class OpBroker {
    private static final XLog logger = XLogFactory.getLogger(OpBroker.class);
@@ -137,6 +138,15 @@ public class OpBroker {
       // Find object in sources specified in query (default is default source)
       if (defaultConnection != null) {
          return defaultConnection.iterate(query);
+      }
+      else {
+         return null;
+      }
+   }
+
+   public OpScrollableResults scroll(OpQuery query) {
+      if (defaultConnection != null) {
+         return defaultConnection.scroll(query);
       }
       else {
          return null;
@@ -328,5 +338,4 @@ public class OpBroker {
    public static void removeBroker() {
       setBroker(null);
    }
-
 }

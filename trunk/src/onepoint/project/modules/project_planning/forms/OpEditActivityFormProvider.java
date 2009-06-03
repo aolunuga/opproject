@@ -138,12 +138,13 @@ public class OpEditActivityFormProvider implements XFormProvider {
          String currentProjectId = (String) session.getVariable(OpProjectConstants.PROJECT_ID);
          if (currentProjectId != null) {
             OpProjectNode project = (OpProjectNode) broker.getObject(currentProjectId);
-            boolean actionsEditable = !project.getPlan().getProgressTracked();
-            if (editActivityMode) {
-               actionsEditable = !actionsEditable;
+            if (activity == null) {
+               boolean actionsEditable = !project.getPlan().getProgressTracked();
+               if (editActivityMode) {
+                  actionsEditable = !actionsEditable;
+               }
+               form.findComponent(ACTIONS_EDITABLE).setBooleanValue(actionsEditable);
             }
-            form.findComponent(ACTIONS_EDITABLE).setBooleanValue(actionsEditable);
-
             XComponent projectResources = new XComponent(XComponent.DATA_SET);
             XComponent excludedResources = new XComponent(XComponent.DATA_SET);
             List<Long> projectResourcesList = new ArrayList<Long>();
@@ -209,7 +210,7 @@ public class OpEditActivityFormProvider implements XFormProvider {
                fillData(session, broker, activity, form, parameters);
             }
             // TODO: see onepoint.project.modules.project_planning.OpProjectPlanningService.insertComment(OpProjectSession, XMessage)
-            showComments(form, activity.getActivityForActualValues(), session, broker, resourceMap, true);
+            showComments(form, activity.getActivityForAdditionalObjects(), session, broker, resourceMap, true);
 
          }
          logger.info("/OpEditActivityFormProvider.prepareForm()");
@@ -526,9 +527,12 @@ public class OpEditActivityFormProvider implements XFormProvider {
          ((XComponent)category_field.getChild(0)).setStringValue(category.getName());
       }
       else {
-         String noCategory = ((XComponent) form.findComponent("ActivityCategoryDataSet").getChild(0)).getStringValue();
-         category_field.setStringValue(noCategory);
-         ((XComponent) category_field.getChild(0)).setStringValue(noCategory);
+         XComponent activityCategoryDataSet = (XComponent) form.findComponent("ActivityCategoryDataSet");
+         if (activityCategoryDataSet.getChildCount() > 0) {
+            String noCategory = ((XComponent) form.findComponent("ActivityCategoryDataSet").getChild(0)).getStringValue();
+            category_field.setStringValue(noCategory);
+            ((XComponent) category_field.getChild(0)).setStringValue(noCategory);
+         }
       }
       setFieldEditMode(edit_mode, category_field, disabledFieldsIds);
 

@@ -20,7 +20,7 @@ public class OpActionVersion extends OpObject implements OpActionIfc {
    String name;
    String description;
    private OpActivityVersion activityVersion;
-   private boolean deleted;
+   private boolean deleted = false;
 //   private int status = NOT_STARTED;
    private OpAction action;
       
@@ -28,6 +28,7 @@ public class OpActionVersion extends OpObject implements OpActionIfc {
     * for internal use only 
     */
    private OpActionVersion() {
+      deleted = false;
    }
 
    /**
@@ -167,6 +168,7 @@ public class OpActionVersion extends OpObject implements OpActionIfc {
    public boolean isDeleted() {
       return deleted;
    }
+   
    
    public void setDeleted(boolean deleted) {
       this.deleted = deleted;

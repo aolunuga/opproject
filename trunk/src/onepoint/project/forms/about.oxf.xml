@@ -11,6 +11,7 @@
       <panel y="0" layout="flow" direction="south" style-ref="compact-panel-default">
          <panel layout="flow" direction="east" style-ref="compact-panel-default">
             <label id="ProductName"/>
+            <label text=" "/>
             <label id="Version"/>
             <label text=" ("/>
             <label text="${Build}"/>

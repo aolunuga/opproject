@@ -38,6 +38,7 @@ public abstract class OpWorkError {
    public final static int WORK_SLIP_IS_CONTROLLED = 25;
    public static final int WORK_SLIP_PERMISSION_DENIED = 26;
    public static final int REMAINING_COSTS_OUTDATED = 27;
+   public static final int MSPROJECT_FILE_WRITE_ERROR = 28;
 
    // Error names
    public final static String INCORRECT_ACTUAL_EFFORT_NAME = "IncorrectActualEffort";

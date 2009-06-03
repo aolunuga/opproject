@@ -44,7 +44,26 @@ public class OpPrototype extends OpType {
    public OpPrototype() {
       subTypes = new HashSet<OpPrototype>();
       declaredMembers = new LinkedHashMap<String, OpMember>();
+      
       members = new LinkedHashMap<String, OpMember>();
+   }
+
+   void addCreatedAndModifiedFields() {
+      OpField field = new OpField();
+      field.setName(OpObject.CREATED);
+      field.setMandatory(true);
+      OpType type = OpTypeManager.getType("Timestamp");
+      field.setTypeID(type.getID());
+      field.setTypeName(type.getName());
+      declaredMembers.put(OpObject.CREATED, field);
+
+      field = new OpField();
+      field.setName(OpObject.MODIFIED);
+      field.setMandatory(true);
+      type = OpTypeManager.getType("Timestamp");
+      field.setTypeID(type.getID());
+      field.setTypeName(type.getName());
+      declaredMembers.put(OpObject.MODIFIED, field);
    }
 
    public final void setSuperTypeName(String super_type_name) {
@@ -96,6 +115,9 @@ public class OpPrototype extends OpType {
    // On-register callback
    public void onRegister() {
       super.onRegister();
+      if (superTypeName == null && !isInterface()) {
+         addCreatedAndModifiedFields();
+      }
       size = declaredMembers.size();
       // resolve includes
       implementedTypes = new HashSet<OpPrototype>();
@@ -169,7 +191,7 @@ public class OpPrototype extends OpType {
                   if (dependentType == null) {
                      logger.error("no prototype found for: "+relationship.getTypeName()+", within: "+this.getName());
                   }
-                  if (dependentType.getSubsequentBackupDependencies().contains(this)) {
+                  if (dependentType.getSubsequentBackupDependencies() != null && dependentType.getSubsequentBackupDependencies().contains(this)) {
                      StringBuffer exceptionMessage = new StringBuffer("Detected circular dependency caused by relationships between ");
                      exceptionMessage.append(this.getName());
                      exceptionMessage.append("<");

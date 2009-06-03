@@ -23,6 +23,7 @@ import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource_utilization.OpResourceUtilizationDataSetFactory;
+import onepoint.project.modules.user.OpPermission;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.service.server.XSession;
 
@@ -114,7 +115,8 @@ public class OpPoolUtilizationDetailsFormProvider implements XFormProvider {
       for (OpResource res: resources) {
          resIDs.add(new Long(res.getId()));
       }
-      assignmentsForDateQuery.setCollection("resourceIds", resIDs);
+      Set<Long> filteredIds = session.accessibleIds(broker, resIDs, OpPermission.OBSERVER);
+      assignmentsForDateQuery.setCollection("resourceIds", filteredIds);
       
       SortedMap<String, XComponent> detailsRows = new TreeMap(new XComponent.ChoiceComparator());
       

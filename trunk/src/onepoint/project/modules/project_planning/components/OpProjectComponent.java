@@ -4339,9 +4339,17 @@ static final double[] START_FIXED_SHAPE_X = {0d, 0.17d, 0.17d, 0d};
 
       Rectangle bounds = getBounds();
       Rectangle draggedBounds = activity.getBounds();
-      
-      boolean intersectsX = (bounds.x + bounds.width > draggedBounds.x && bounds.x < draggedBounds.x + draggedBounds.width);
-      boolean intersectsY = (bounds.y + bounds.height > draggedBounds.y && bounds.y < draggedBounds.y + draggedBounds.height);
+
+      XStyle style = getStyleAttributes();
+      XStyle draggedStyle = activity.getStyleAttributes();
+      boolean intersectsX = (bounds.x + bounds.width - style.right > draggedBounds.x
+            + draggedStyle.left)
+            && (bounds.x + style.left < draggedBounds.x + draggedBounds.width
+                  - draggedStyle.right);
+      boolean intersectsY = (bounds.y + bounds.height - style.bottom > draggedBounds.y
+            + draggedStyle.top)
+            && (bounds.y + style.top < draggedBounds.y + draggedBounds.height
+                  - draggedStyle.bottom);
       return intersectsX && intersectsY;
    }
 

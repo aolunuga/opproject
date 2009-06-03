@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.text.DateFormat;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -263,10 +262,14 @@ public class OpInitializer {
 
             //if db schema doesn't exist, create it
             createEmptySchema();
-
-            //register additional datasources, only after the schema has been created
-            registerAdditionalDataSources(dbConfig.getDatabaseUrl(), dbConfig.getDatabaseDriver(),
-                 dbConfig.getDatabaseLogin(), dbConfig.getDatabasePassword(), dbConfig.getDatabaseType());
+            if (getSchemaStatus() != OpHibernateSource.DEFAULT_STATUS) {
+               runLevel = OpProjectConstants.COULD_NOT_UPDATE_SCHEMA_RUN_LEVEL;
+               initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
+               return initParams;
+            }
+            if (getSchemaVersion() < OpHibernateSource.SCHEMA_VERSION) {
+               setSchemaStatus(OpHibernateSource.UPDATE_STATUS);
+            }
 
             logger.info("Repository status is OK");
             runLevel = OpProjectConstants.COULD_NOT_UPDATE_SCHEMA_RUN_LEVEL;
@@ -288,6 +291,14 @@ public class OpInitializer {
             	}
                logger.info("Updated database schema is OK");
             }
+
+            //register additional datasources, only after the schema has been created
+            registerAdditionalDataSources(dbConfig.getDatabaseUrl(), dbConfig.getDatabaseDriver(),
+                 dbConfig.getDatabaseLogin(), dbConfig.getDatabasePassword(), dbConfig.getDatabaseType());
+
+            upgradeModules();
+            upgradeSchemaVersionNumber();
+            setSchemaStatus(OpHibernateSource.DEFAULT_STATUS);
             runLevel = OpProjectConstants.COULD_NOT_START_REGISTERED_MODULES_RUN_LEVEL;
             initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
@@ -406,9 +417,7 @@ public class OpInitializer {
       if (connectionTestCode == OpConnectionManager.SUCCESS) {
          return dbConfig;
       }
-      else {
-         return null;
-      }
+      return null;
    }
 
    /**
@@ -523,45 +532,69 @@ public class OpInitializer {
     *
     * @return <code>true</code> if the update was successfull.
     */
-   private boolean updateDBSchema(boolean fromFile) 
+   private void updateDBSchema(boolean fromFile) 
    	throws SQLException {
-      Collection<OpSource> allSources = OpSourceManager.getAllSources();
-      boolean updated = false;
-      for (OpSource source : allSources) {
-         OpHibernateSource hibernateSource = (OpHibernateSource) source;
+      OpHibernateSource hibernateSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
 
-         int existingVersionNr = hibernateSource.getExistingSchemaVersionNumber();
-         if (existingVersionNr < OpHibernateSource.SCHEMA_VERSION) {
-            logger.info("Updating DB schema from version " + existingVersionNr + " (actual version "+OpHibernateSource.SCHEMA_VERSION+")...");
+      int existingVersionNr = hibernateSource.getExistingSchemaVersionNumber();
+      if (existingVersionNr < OpHibernateSource.SCHEMA_VERSION) {
+         logger.info("Updating DB schema from version " + existingVersionNr + " (actual version "+OpHibernateSource.SCHEMA_VERSION+")...");
 
-            if (existingVersionNr <= 81) {
-               // required to add row for customValuePage
-                Configuration configuration = hibernateSource.getConfiguration();
-                if (configuration.getClassMapping(OpOrigObject.class.getName()) == null) { // not previously added
-                   // required to add row for customValuePage
-                   try {
-                      Configuration oldConfiguration = hibernateSource.createConfiguration();
-                      oldConfiguration = oldConfiguration.addClass(OpOrigObject.class);
-                      hibernateSource.setConfiguration(oldConfiguration);
-                      hibernateSource.setNewConfiguration(configuration);
-                   } catch (UnsupportedEncodingException e) {
-                      // TODO Auto-generated catch block
-                      e.printStackTrace();
-                   } catch (IOException e) {
-                      // TODO Auto-generated catch block
-                      e.printStackTrace();
-                   }
+         if (existingVersionNr <= 81) {
+            // required to add row for customValuePage
+             Configuration configuration = hibernateSource.getConfiguration();
+             if (configuration.getClassMapping(OpOrigObject.class.getName()) == null) { // not previously added
+                // required to add row for customValuePage
+                try {
+                   Configuration oldConfiguration = hibernateSource.createConfiguration();
+                   oldConfiguration = oldConfiguration.addClass(OpOrigObject.class);
+                   hibernateSource.setConfiguration(oldConfiguration);
+                   hibernateSource.setNewConfiguration(configuration);
+                } catch (UnsupportedEncodingException e) {
+                   // TODO Auto-generated catch block
+                   e.printStackTrace();
+                } catch (IOException e) {
+                   // TODO Auto-generated catch block
+                   e.printStackTrace();
                 }
-            }
+             }
+         }
+         OpPersistenceManager.updateDBSchema();
+      }
+   }
 
-            OpPersistenceManager.updateDBSchema();
-            OpModuleManager.upgrade(existingVersionNr, OpHibernateSource.SCHEMA_VERSION);
+   public void upgradeModules() {
+      OpHibernateSource hibernateSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
+      int existingVersionNr = hibernateSource.getExistingSchemaVersionNumber();
+      if (existingVersionNr < OpHibernateSource.SCHEMA_VERSION) {
+         OpModuleManager.upgrade(existingVersionNr, OpHibernateSource.SCHEMA_VERSION);
+         if (existingVersionNr < OpHibernateSource.MODULE_CHECK_VERSION) {
             OpModuleManager.checkModules();
-            hibernateSource.updateSchemaVersionNumber(OpHibernateSource.SCHEMA_VERSION);
-            updated = true;
          }
       }
-      return updated;
+      else if (existingVersionNr > OpHibernateSource.SCHEMA_VERSION) {
+         throw new IllegalStateException("Schema version of database is newer than software. (db: "+existingVersionNr+", software: "+OpHibernateSource.SCHEMA_VERSION+")");
+      }
+   }
+   
+   public int getSchemaVersion() {
+      OpHibernateSource hibernateSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
+      return hibernateSource.getExistingSchemaVersionNumber();
+   }
+
+   public int getSchemaStatus() {
+      OpHibernateSource hibernateSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
+      return hibernateSource.getSchemaStatus();
+   }
+
+   public void setSchemaStatus(int status) {
+      OpHibernateSource hibernateSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
+      hibernateSource.updateSchemaStatus(status);
+   }
+
+   public void upgradeSchemaVersionNumber() {
+      OpHibernateSource hibernateSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
+      hibernateSource.updateSchemaVersionNumber(OpHibernateSource.SCHEMA_VERSION);
    }
 
    /**
@@ -628,7 +661,7 @@ public class OpInitializer {
 //      OpPersistenceManager.updateDBSchema();
 //      logger.info("Dropping schema...");
 //      OpPersistenceManager.dropSchema();
-
+      setSchemaStatus(OpHibernateSource.UPDATE_STATUS);
       OpSourceManager.clearAllSources();
 
 //      logger.info("Creating schema...");
@@ -636,6 +669,8 @@ public class OpInitializer {
 
       logger.info("Updating schema...");
       updateDBSchema(false);
+      upgradeSchemaVersionNumber();
+      setSchemaStatus(OpHibernateSource.DEFAULT_STATUS);
 
       logger.info("Starting modules");
       OpModuleManager.start();
@@ -652,9 +687,13 @@ public class OpInitializer {
     */
    public void restoreSchemaFromFile(String filePath, OpProjectSession projectSession)
         throws SQLException, IOException {
+      setSchemaStatus(OpHibernateSource.UPDATE_STATUS);
       OpBackupManager.getBackupManager().restoreRepository(projectSession, filePath);
       OpSourceManager.clearAllSources();
-      this.updateDBSchema(true);
+      updateDBSchema(true);
+      upgradeModules();
+      upgradeSchemaVersionNumber();
+      setSchemaStatus(OpHibernateSource.DEFAULT_STATUS);
    }
 
    public boolean isUpdateDBSchema() {
@@ -664,4 +703,5 @@ public class OpInitializer {
    public void setUpdateDBSchema(boolean updateDBSchema) {
       this.updateDBSchema = updateDBSchema;
    }
+
 }

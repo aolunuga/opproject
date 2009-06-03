@@ -3,6 +3,13 @@
  */
 package onepoint.project.modules.documents.test;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
@@ -14,13 +21,6 @@ import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.project.OpAttachment;
 import onepoint.project.test.OpBaseOpenTestCase;
 import onepoint.service.XSizeInputStream;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 /**
  * This class test document classes.
@@ -58,7 +58,15 @@ public class OpDocumentsTest extends OpBaseOpenTestCase {
    @Override
    protected void tearDown()
         throws Exception {
-      super.deleteAllObjects(OpContent.CONTENT);
+      OpBroker broker = session.newBroker();
+      try {
+         OpTransaction t = broker.newTransaction();
+         super.deleteAllObjects(broker, OpContent.CONTENT);
+         t.commit();
+      }
+      finally {
+         broker.close();
+      }
       super.tearDown();
    }
 
