@@ -81,7 +81,7 @@ public final class OpContentManager {
    public static void updateContent(OpContent content, OpBroker broker, boolean addReference, OpAttachmentVersion attachmentVersion) {
       if (content != null) {
          if (addReference) {
-            content.getAttachmentVersions().add(attachmentVersion);
+            content.addAttachmentVersion(attachmentVersion);
          }
          updateContent(content, broker, addReference);
       }
@@ -103,7 +103,7 @@ public final class OpContentManager {
    public static void updateContent(OpContent content, OpBroker broker, boolean addReference, OpDocumentNode documentNode) {
       if (content != null) {
          if (addReference) {
-            content.getDocumentNodes().add(documentNode);
+            content.addDocumentNode(documentNode);
          }
          updateContent(content, broker, addReference);
       }

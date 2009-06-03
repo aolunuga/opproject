@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -371,6 +372,16 @@ public final class OpProjectCalendar extends XCalendar implements Serializable {
          start = new Date(start.getTime() + MILLIS_PER_DAY);
       }
       return forward ? count : -count;
+   }
+
+   public int countWorkDaysInMonth(Date start) {
+      GregorianCalendar startCal = new GregorianCalendar();
+      startCal.setTime(start);
+      startCal.set(Calendar.DATE, 1);
+      GregorianCalendar stopCal = new GregorianCalendar();
+      stopCal.setTime(startCal.getTime());
+      stopCal.add(Calendar.MONTH, 1);
+      return countWorkDaysBetween(new Date(startCal.getTimeInMillis()), new Date(stopCal.getTimeInMillis()));
    }
 
    /**

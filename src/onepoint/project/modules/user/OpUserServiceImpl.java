@@ -502,6 +502,9 @@ public class OpUserServiceImpl implements OpService {
 
             if ((user == null) || (user.getSource() == OpUser.LDAP)) {
                try {
+                  if (password == null && !Boolean.valueOf(OpSettingsService.getService().getStringValue(session, OpSettings.ALLOW_EMPTY_PASSWORD))) {
+                     throw new XServiceException(session.newError(ERROR_MAP, OpUserError.PASSWORD_MISMATCH));                     
+                  }
                   if (!ldapService.signOn(session, broker, username, password)) {
                      logger.debug("==> ldap Passwords do not match: Access denied");
                      throw new XServiceException(session.newError(ERROR_MAP, OpUserError.PASSWORD_MISMATCH));

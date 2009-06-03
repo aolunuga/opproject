@@ -105,7 +105,9 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       XMessage reply = new XMessage();
 
       OpResource resource = new OpResource();
-      resource.setName((String) (resource_data.get(OpResource.NAME)));
+      String resourceName = (String) (resource_data.get(OpResource.NAME));
+      resourceName = resourceName != null ? resourceName.trim() : null;
+      resource.setName(resourceName);
       resource.setDescription((String) (resource_data.get(OpResource.DESCRIPTION)));
       resource.updateAvailable(((Double) resource_data.get(OpResource.AVAILABLE)).doubleValue());
       resource.updateInternalHourlyRate(((Double) (resource_data.get(OpResource.HOURLY_RATE))).doubleValue());
@@ -291,16 +293,17 @@ public class OpResourceService extends onepoint.project.OpProjectService {
             return reply;
          }
          //set resource name
-         String name = user.getName();
+         String resourceName = user.getName();
+         resourceName = resourceName != null ? resourceName.trim() : null;
          // check if resource name is already used
          OpQuery query = broker.newQuery("select resource.id from OpResource as resource where resource.Name = :resourceName");
-         query.setString("resourceName", name);
+         query.setString("resourceName", resourceName);
          Iterator resourceIds = broker.iterate(query);
          if (resourceIds.hasNext()) {
             reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_UNIQUE));
             return reply;
          }
-         resource.setName(name);
+         resource.setName(resourceName);
 
          //set resource description (from user contact)
          OpContact contact = user.getContact();
@@ -434,7 +437,8 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          }
 
          String resourceName = (String) (resource_data.get(OpResource.NAME));
-
+         resourceName = resourceName != null ? resourceName.trim() : null;
+         
          // check mandatory input fields
          if (resourceName == null || resourceName.length() == 0) {
             reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_SPECIFIED));
@@ -970,6 +974,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
 
       OpBroker broker = session.newBroker();
       try {
+         OpTransaction t = broker.newTransaction();
          List<Long> resourceIds = new ArrayList<Long>();
          for (String resourceId : ids) {
             resourceIds.add(OpLocator.parseLocator(resourceId).getID());
@@ -997,7 +1002,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
             resources.add(resource);
          }
 
-         OpTransaction t = broker.newTransaction();
          for (OpResource resource : resources) {
             // get all project node assignment ids for the resource
             query = broker.newQuery("select assignment.ProjectNode.id from OpProjectNodeAssignment as assignment where assignment.Resource.id = ?");
@@ -1009,7 +1013,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
             }
             //remove contributor permissions
             deleteContributorPermission(broker, resource.getUser(), assignedProjectIds);
-            //remove resource entity
+               //remove resource entity
             broker.deleteObject(resource);
          }
          t.commit();

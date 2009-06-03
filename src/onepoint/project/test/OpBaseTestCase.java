@@ -1,15 +1,45 @@
 package onepoint.project.test;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+import java.util.TimeZone;
+
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpObject;
 import onepoint.persistence.OpObjectIfc;
 import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.documents.*;
-import onepoint.project.modules.project.*;
+import onepoint.project.modules.documents.OpContent;
+import onepoint.project.modules.documents.OpDocument;
+import onepoint.project.modules.documents.OpDocumentNode;
+import onepoint.project.modules.documents.OpDynamicResource;
+import onepoint.project.modules.documents.OpFolder;
+import onepoint.project.modules.project.OpActivity;
+import onepoint.project.modules.project.OpActivityCategory;
+import onepoint.project.modules.project.OpActivityComment;
+import onepoint.project.modules.project.OpActivityVersion;
+import onepoint.project.modules.project.OpAssignmentIfc;
+import onepoint.project.modules.project.OpAssignmentVersion;
+import onepoint.project.modules.project.OpAttachment;
+import onepoint.project.modules.project.OpAttachmentVersion;
+import onepoint.project.modules.project.OpProjectNode;
+import onepoint.project.modules.project.OpProjectNodeAssignment;
+import onepoint.project.modules.project.OpProjectPlan;
+import onepoint.project.modules.project.OpProjectPlanVersion;
+import onepoint.project.modules.project.OpProjectStatus;
+import onepoint.project.modules.project.OpWorkPeriod;
 import onepoint.project.modules.project.test.OpProjectTestDataFactory;
 import onepoint.project.modules.report.OpReportType;
 import onepoint.project.modules.resource.OpResource;
@@ -31,14 +61,7 @@ import onepoint.service.server.XLocalServer;
 import onepoint.service.server.XServer;
 import onepoint.service.server.XSession;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.*;
+import org.hibernate.proxy.HibernateProxy;
 
 /**
  * @author mihai.costin
@@ -156,7 +179,7 @@ public class OpBaseTestCase extends OpTestCase {
       super.tearDown();
 
       // check if the objects from database are still valid.
-      testInitializer.checkObjects(session);
+      //testInitializer.checkObjects(session);
 
       // Log-off user.
       logOut();
@@ -256,51 +279,64 @@ public class OpBaseTestCase extends OpTestCase {
    protected void clean()
         throws Exception {
 
+
+      OpBroker broker = session.newBroker();
+      try {
+         OpTransaction t = broker.newTransaction();
+         doClean(broker);
+         t.commit();
+      }
+      finally {
+         broker.close();
+      }
+   }
+
+   protected void doClean(OpBroker broker) {
       OpUserTestDataFactory userDataFactory = new OpUserTestDataFactory(session);
       OpProjectTestDataFactory projectDataFactory = new OpProjectTestDataFactory(session);
       OpResourceTestDataFactory resourceDataFactory = new OpResourceTestDataFactory(session);
+      deleteAllObjects(broker, OpSettings.SETTING);
+      deleteAllObjects(broker, OpDocument.DOCUMENT);
+      deleteAllObjects(broker, OpWorkPeriod.WORK_PERIOD);
+      deleteAllObjects(broker, OpWorkRecord.WORK_RECORD);
+      deleteAllObjects(broker, OpWorkSlip.WORK_SLIP);
+      deleteAllObjects(broker, OpActivityComment.ACTIVITY_COMMENT);
+      deleteAllObjects(broker, OpActivityVersion.ACTIVITY_VERSION);
+      deleteAllObjects(broker, OpActivity.ACTIVITY);
+      deleteAllObjects(broker, OpActivityCategory.ACTIVITY_CATEGORY);
+      deleteAllObjects(broker, OpProjectNodeAssignment.PROJECT_NODE_ASSIGNMENT);
+      deleteAllObjects(broker, OpAttachment.ATTACHMENT);
+      deleteAllObjects(broker, OpAttachmentVersion.ATTACHMENT_VERSION);
+      deleteAllObjects(broker, OpDocumentNode.DOCUMENT_NODE);
+      deleteAllObjects(broker, OpFolder.FOLDER);
+      deleteAllObjects(broker, OpAssignmentVersion.ASSIGNMENT_VERSION);
+      deleteAllObjects(broker, OpAssignmentIfc.ASSIGNMENT);
+      deleteAllObjects(broker, OpProjectPlanVersion.PROJECT_PLAN_VERSION);
+      deleteAllObjects(broker, OpProjectPlan.PROJECT_PLAN);
+      deleteAllObjects(broker, OpContent.CONTENT);
+      deleteAllObjects(broker, OpCostRecord.COST_RECORD);
+      deleteAllObjects(broker, OpReportType.REPORT_TYPE);
+      deleteAllObjects(broker, OpDynamicResource.DYNAMIC_RESOURCE);
+      deleteAllObjects(broker, projectDataFactory.getAllProjects(session));
+      deleteAllObjects(broker, projectDataFactory.getAllPortofolios(session), Arrays.asList(OpProjectNode.ROOT_PROJECT_PORTFOLIO_NAME));
+      deleteAllObjects(broker, OpResource.RESOURCE);
+      deleteAllObjects(broker, resourceDataFactory.getAllResourcePools(session), Arrays.asList(OpResourcePool.ROOT_RESOURCE_POOL_NAME));
+      deleteAllObjects(broker, OpProjectStatus.PROJECT_STATUS);
 
-      deleteAllObjects(OpSettings.SETTING);
-      deleteAllObjects(OpDocument.DOCUMENT);
-      deleteAllObjects(OpWorkPeriod.WORK_PERIOD);
-      deleteAllObjects(OpWorkRecord.WORK_RECORD);
-      deleteAllObjects(OpWorkSlip.WORK_SLIP);
-      deleteAllObjects(OpActivityComment.ACTIVITY_COMMENT);
-      deleteAllObjects(OpActivityVersion.ACTIVITY_VERSION);
-      deleteAllObjects(OpActivity.ACTIVITY);
-      deleteAllObjects(OpActivityCategory.ACTIVITY_CATEGORY);
-      deleteAllObjects(OpProjectNodeAssignment.PROJECT_NODE_ASSIGNMENT);
-      deleteAllObjects(OpAttachment.ATTACHMENT);
-      deleteAllObjects(OpAttachmentVersion.ATTACHMENT_VERSION);
-      deleteAllObjects(OpDocumentNode.DOCUMENT_NODE);
-      deleteAllObjects(OpFolder.FOLDER);
-      deleteAllObjects(OpAssignmentVersion.ASSIGNMENT_VERSION);
-      deleteAllObjects(OpAssignmentIfc.ASSIGNMENT);
-      deleteAllObjects(OpProjectPlanVersion.PROJECT_PLAN_VERSION);
-      deleteAllObjects(OpProjectPlan.PROJECT_PLAN);
-      deleteAllObjects(OpContent.CONTENT);
-      deleteAllObjects(OpCostRecord.COST_RECORD);
-      deleteAllObjects(OpReportType.REPORT_TYPE);
-      deleteAllObjects(OpDynamicResource.DYNAMIC_RESOURCE);
-      deleteAllObjects(projectDataFactory.getAllProjects(session));
-      deleteAllObjects(projectDataFactory.getAllPortofolios(session), Arrays.asList(OpProjectNode.ROOT_PROJECT_PORTFOLIO_NAME));
-      deleteAllObjects(OpResource.RESOURCE);
-      deleteAllObjects(resourceDataFactory.getAllResourcePools(session), Arrays.asList(OpResourcePool.ROOT_RESOURCE_POOL_NAME));
-      deleteAllObjects(OpProjectStatus.PROJECT_STATUS);
-
-      deleteAllObjects(userDataFactory.getAllUsers(session), Arrays.asList(OpUser.ADMINISTRATOR_NAME));
-      deleteAllObjects(OpGroup.GROUP, Arrays.asList(OpGroup.EVERYONE_NAME));
-//      deleteAllObjects("OpCustomAttribute");
-//      deleteAllObjects("OpCustomType");
+      deleteAllObjects(broker, userDataFactory.getAllUsers(session), Arrays.asList(OpUser.ADMINISTRATOR_NAME));
+      deleteAllObjects(broker, OpGroup.GROUP, Arrays.asList(OpGroup.EVERYONE_NAME));
+      //      deleteAllObjects("OpCustomAttribute");
+      //      deleteAllObjects("OpCustomType");
    }
 
    /**
     * Deletes all the objects of the given prototype.
+    * @param broker 
     *
     * @param prototypeName prototype of the objects to be removed
     */
-   protected void deleteAllObjects(String prototypeName) {
-      deleteAllObjects(prototypeName, null);
+   protected void deleteAllObjects(OpBroker broker, String prototypeName) {
+      deleteAllObjects(broker, prototypeName, null);
    }
 
    /**
@@ -309,20 +345,14 @@ public class OpBaseTestCase extends OpTestCase {
     * @param prototypeName prototype of the objects to be removed
     * @param excludeNames  names of the objects to be excluded from deletion
     */
-   protected void deleteAllObjects(String prototypeName, List<String> excludeNames) {
-      OpBroker broker = session.newBroker();
-      try {
-         if (prototypeName.equalsIgnoreCase(OpContent.CONTENT)) {
-            removeAllContents(broker);
-         }
-         else {
-            OpQuery query = broker.newQuery("from " + prototypeName);
-            Iterator iter = broker.iterate(query);
-            deleteAllObjects(broker, iter, excludeNames);
-         }
+   protected void deleteAllObjects(OpBroker broker, String prototypeName, List<String> excludeNames) {
+      if (prototypeName.equalsIgnoreCase(OpContent.CONTENT)) {
+         removeAllContents(broker);
       }
-      finally {
-         broker.close();
+      else {
+         OpQuery query = broker.newQuery("from " + prototypeName);
+         Iterator iter = broker.iterate(query);
+         deleteAllObjects(broker, iter, excludeNames);
       }
    }
 
@@ -336,10 +366,8 @@ public class OpBaseTestCase extends OpTestCase {
       OpQuery query = broker.newQuery("select content.id from " + OpContent.CONTENT + " content");
       List<Long> contentIds = broker.list(query);
       for (long contentID : contentIds) {
-         OpTransaction t = broker.newTransaction();
          OpContent content = broker.getObject(OpContent.class, contentID);
          broker.deleteObject(content);
-         t.commit();
       }
    }
 
@@ -348,8 +376,8 @@ public class OpBaseTestCase extends OpTestCase {
     *
     * @param objects list of objects to be deleted.
     */
-   protected void deleteAllObjects(List objects) {
-      deleteAllObjects(objects, null);
+   protected void deleteAllObjects(OpBroker broker, List objects) {
+      deleteAllObjects(broker, objects, null);
    }
 
    /**
@@ -358,15 +386,9 @@ public class OpBaseTestCase extends OpTestCase {
     * @param objects      list of objects to be deleted.
     * @param excludeNames names of the objects to be excluded from deletion
     */
-   protected void deleteAllObjects(List objects, List<String> excludeNames) {
+   protected void deleteAllObjects(OpBroker broker, List objects, List<String> excludeNames) {
       if (objects != null || objects.size() > 0) {
-         OpBroker broker = session.newBroker();
-         try {
-            deleteAllObjects(broker, objects.iterator(), excludeNames);
-         }
-         finally {
-            broker.close();
-         }
+         deleteAllObjects(broker, objects.iterator(), excludeNames);
       }
    }
 
@@ -387,15 +409,18 @@ public class OpBaseTestCase extends OpTestCase {
     * @param iterator iterator over the objects to be deleted.
     */
    protected void deleteAllObjects(OpBroker broker, Iterator iterator, List<String> excludeNames) {
-      OpTransaction transaction = broker.newTransaction();
-      List<OpObject> objs = new ArrayList<OpObject>();
+      List objs = new ArrayList();
       while (iterator.hasNext()) {
          OpObjectIfc object = (OpObjectIfc) iterator.next();
-         objs.add(broker.getObject(OpObject.class, object.getId()));
+         if (object instanceof HibernateProxy) { // remove CGLib proxy
+            object = (OpObjectIfc) ((HibernateProxy)object).getHibernateLazyInitializer().getImplementation();
+         }
+
+         objs.add(broker.getObject(object.getClass(), object.getId()));
       }
       iterator = objs.iterator();
       while (iterator.hasNext()) {
-         OpObject object = (OpObject) iterator.next();
+         OpObjectIfc object = (OpObjectIfc) iterator.next();
 
          if (excludeNames != null && excludeNames.size() > 0) {
             if (checkObject(object, excludeNames)) {
@@ -406,7 +431,6 @@ public class OpBaseTestCase extends OpTestCase {
             broker.deleteObject(object);
          }
       }
-      transaction.commit();
    }
 
    /**
@@ -416,7 +440,7 @@ public class OpBaseTestCase extends OpTestCase {
     * @param excludeNames list of names to be excluded
     * @return true if the object name is not into excluded names list or it does not have getName method.
     */
-   private boolean checkObject(OpObject object, List<String> excludeNames) {
+   private boolean checkObject(OpObjectIfc object, List<String> excludeNames) {
       try {
          Method method = object.getClass().getMethod("getName");
          String name = (String) method.invoke(object);

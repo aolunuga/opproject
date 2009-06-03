@@ -4,24 +4,19 @@
 
 package onepoint.project.modules.project_costs;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import onepoint.express.XComponent;
 import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.calendars.OpProjectCalendarFactory;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpActivityDataSetFactory;
 import onepoint.project.modules.project.OpActivityIfc;
 import onepoint.project.modules.project.OpActivityVersion;
 import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.project.OpProjectPlanVersion;
-import onepoint.project.util.OpProjectCalendar;
 
 /**
  * DataSet Factory for project costs controlling.
@@ -94,26 +89,6 @@ public final class OpProjectCostsDataSetFactory {
          query.setLong("maxLevel", max_outline_level);
       }
 
-      Map<String, OpActivityVersion> importedProjectsMap = new HashMap<String, OpActivityVersion>();
-      Iterator<OpActivityVersion> iActs = broker.iterate(query);
-      while (iActs.hasNext()) {
-         OpActivityVersion activity = iActs.next();
-         if (activity.getSubProject() != null) {
-            importedProjectsMap.put(activity.getSubProject().locator(), OpActivityDataSetFactory.getInstance().prepareProjectHeadActivityVersion(activity.getSubProject()));
-         }
-      }
-
-      Iterator<Entry<String, OpActivityVersion>> piait = importedProjectsMap.entrySet().iterator();
-      while (piait.hasNext()) {
-         Entry<String, OpActivityVersion> iAct = piait.next();
-         OpActivityVersion av = iAct.getValue();
-         long projectNodeId = OpLocator.parseLocator(iAct.getKey()).getID();
-
-         XComponent tmpDataSet = new XComponent(XComponent.DATA_SET);
-         OpProjectCalendar calendar = OpProjectCalendarFactory.getInstance().getCalendar(session, broker, planVersion.getProjectPlan());
-         OpActivityDataSetFactory.getInstance().prepareSubProjectActualData(session, broker, calendar, av, iAct.getKey(), tmpDataSet);
-      }
-      
       // reset:
       Iterator<OpActivityVersion> activities = broker.iterate(query);
       while (activities.hasNext()) {
@@ -121,16 +96,7 @@ public final class OpProjectCostsDataSetFactory {
          if (activity.getType() == OpActivity.MILESTONE) {
             continue;
          }
-         if (activity.getMasterActivityVersion() != null) {
-            addActivityToCostDataSet(activity.getMasterActivityVersion(), costNames, data_set);
-         }
-         else if (activity.getSubProject() != null) {
-            OpActivityVersion iAct = importedProjectsMap.get(activity.getSubProject().locator());
-            addActivityToCostDataSet(iAct, costNames, data_set);
-         }
-         else {
-            addActivityToCostDataSet(activity, costNames, data_set);
-         }
+         addActivityToCostDataSet(activity, costNames, data_set);
       }
       
       OpQuery adhocTasksQuery = broker.newQuery("from OpActivity as a where a.ProjectPlan.id = :planId and a.Type = :adhocType order by a.Sequence");

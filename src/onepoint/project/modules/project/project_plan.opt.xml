@@ -9,7 +9,36 @@
    <field name="Recalculated" type="Timestamp"/>
    <field name="ImplicitBaseline" type="Boolean" default="true"/>
    <field name="BaseDataChanged" type="Timestamp"/>
+
+   <field name="Duration" type="Double" default="0"/>
+   <field name="LeadTime" type="Double" default="0"/>
+   <field name="FollowUpTime" type="Double" default="0"/>
+   <field name="Complete" type="Double" default="0"/>
+   <field name="BaseEffort" type="Double" default="0"/>
+   <field name="BaseTravelCosts" type="Double" default="0"/>
+   <field name="BasePersonnelCosts" type="Double" default="0"/>
+   <field name="BaseMaterialCosts" type="Double" default="0"/>
+   <field name="BaseExternalCosts" type="Double" default="0"/>
+   <field name="BaseMiscellaneousCosts" type="Double" default="0"/>
+   <field name="ActualEffort" type="Double" default="0"/>
+   <field name="ActualTravelCosts" type="Double" default="0"/>
+   <field name="RemainingTravelCosts" type="Double" default="0"/>
+   <field name="ActualPersonnelCosts" type="Double" default="0"/>
+   <field name="RemainingPersonnelCosts" type="Double" default="0"/>
+   <field name="ActualMaterialCosts" type="Double" default="0"/>
+   <field name="RemainingMaterialCosts" type="Double" default="0"/>
+   <field name="ActualExternalCosts" type="Double" default="0"/>
+   <field name="RemainingExternalCosts" type="Double" default="0"/>
+   <field name="ActualMiscellaneousCosts" type="Double" default="0"/>
+   <field name="RemainingMiscellaneousCosts" type="Double" default="0"/>
+   <field name="RemainingEffort" type="Double" default="0"/>
+   <field name="BaseProceeds" type="Double" default="0"/>
+   <field name="ActualProceeds" type="Double" default="0"/>
+   <field name="RemainingProceeds" type="Double" default="0"/>
+   <field name="UnassignedEffort" type="Double" default="0"/>
    
+   <field name="Complete" type="Double" default="0"/>
+
    <relationship name="WorkingVersion" type="OpProjectPlanVersion" recursive="true"/>
    <relationship name="BaseVersion" type="OpProjectPlanVersion" recursive="true"/>
    <relationship name="LatestVersion" type="OpProjectPlanVersion" recursive="true"/>

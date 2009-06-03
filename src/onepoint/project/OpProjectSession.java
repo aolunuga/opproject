@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,6 +25,7 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpObject;
+import onepoint.persistence.OpObjectIfc;
 import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.persistence.OpPersistenceManager;
 import onepoint.persistence.OpQuery;
@@ -32,6 +34,7 @@ import onepoint.persistence.OpSourceManager;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
+import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.OpGroup;
@@ -502,6 +505,10 @@ public class OpProjectSession extends XExpressSession {
       return (userId != NO_ID) && (userId == administratorId);
    }
 
+   public final boolean userIsAdministrator(OpUser user) {
+      return (user.getId() != NO_ID) && (user.getId() == administratorId);
+   }
+
    public final boolean userMemberOfGroup(long groupId) {
       return subjectIds.contains(new Long(groupId));
    }
@@ -738,5 +745,18 @@ public class OpProjectSession extends XExpressSession {
 
    public boolean isInRestoreState() {
       return restoreState;
+   }
+
+   public Set<Long> getManagedResources(OpBroker broker) {
+      Set<Long> managedResources = new LinkedHashSet<Long>();
+      Iterator resourceIterator = accessibleObjects(broker, null,
+            OpPermission.MANAGER, new OpObjectOrderCriteria(OpResource.class,
+                  OpResource.NAME, OpObjectOrderCriteria.ASCENDING));
+      
+      while (resourceIterator.hasNext()) {
+         OpObjectIfc res = (OpObjectIfc) resourceIterator.next();
+         managedResources.add(new Long(res.getId()));
+      }
+      return managedResources;
    }
 }

@@ -24,7 +24,9 @@ public class OpPrototypeHandler implements XNodeHandler {
          prototype.setClassName((String) value);
       }
       value = attributes.get("super-type");
+      boolean superTypeSet = false;
       if ((value != null) && (value instanceof String)) {
+         superTypeSet = true;
          prototype.setSuperTypeName((String) value);
       }
       value = attributes.get("implements");
@@ -47,6 +49,10 @@ public class OpPrototypeHandler implements XNodeHandler {
       value = attributes.get("batch-size");
       if ((value != null) && (value instanceof String)) {
          prototype.setBatchSize(Integer.valueOf((String) value));
+      }
+      
+      if (!superTypeSet && !prototype.isInterface()) {
+         prototype.addCreatedAndModifiedFields();
       }
       return prototype;
    }

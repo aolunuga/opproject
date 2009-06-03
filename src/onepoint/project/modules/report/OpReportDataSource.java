@@ -67,6 +67,10 @@ public class OpReportDataSource implements JRDataSource {
       this.queryIterator = queryIterator;
    }
 
+   public Iterator getQueryIterator() {
+      return queryIterator;
+   }
+   
    public void setLocalizer(XLocalizer localizer) {
       this.localizer = localizer;
    }
@@ -128,8 +132,19 @@ public class OpReportDataSource implements JRDataSource {
       this.parameters = param;
    }
 
+   public Map getParameters() {
+      return parameters;
+   }
+   
    public void setBrokerAndSession(OpBroker broker, OpProjectSession session) {
       this.broker = broker;
       this.session = session;
+   }
+
+   public void init() {
+   }
+
+   public Map getReportParameters() {
+      return null;
    }
 }

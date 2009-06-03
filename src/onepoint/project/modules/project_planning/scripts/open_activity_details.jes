@@ -289,7 +289,6 @@ function baseEditActivity(titleComponentId, edit_mode, effortBased, is_template,
       parameters.callingForm = XDisplay.getActiveForm();
       parameters.activityRowIndex = selectedIndex; 
       parameters.editActionsMode = XDisplay.getActiveForm().findComponent("EditActionsModeField").getBooleanValue();
-
       dialog_form = dialog.loadForm(getEditDialogForm(), parameters);
       
       if (edit_mode) {

@@ -10,6 +10,9 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 
+import onepoint.persistence.hibernate.OpDataException;
+import onepoint.persistence.hibernate.OpScrollableResults;
+
 /**
  * Super class for all connection implementations.
  */
@@ -65,6 +68,8 @@ public abstract class OpConnection {
    public abstract List list(OpQuery query);
 
    public abstract Iterator iterate(OpQuery query);
+
+   public abstract OpScrollableResults scroll(OpQuery query) throws OpDataException;
 
    public abstract int execute(OpQuery query);
 

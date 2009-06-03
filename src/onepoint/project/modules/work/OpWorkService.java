@@ -55,6 +55,9 @@ public class OpWorkService extends OpProjectService {
    private final int INTERNAL_RESOURCE_RATE_INDEX = 0;
    private final int EXTERNAL_RESOURCE_RATE_INDEX = 1;
 
+   public final static String BYTES_ARRAY_FIELD = "bytes_array";
+   public final static String FILE_NAME_FIELD = "file_name";
+
    public final static OpWorkErrorMap ERROR_MAP = new OpWorkErrorMap();
 
    private OpWorkServiceImpl serviceImpl = new OpWorkServiceImpl();
@@ -146,7 +149,7 @@ public class OpWorkService extends OpProjectService {
             activityRemainingValue = assignmentForRecord.getActivity().getRemainingTravelCosts();
             break;
          }
-         if (activityRemainingValue != origRemainingValue.doubleValue()) {
+         if (origRemainingValue != null && activityRemainingValue != origRemainingValue.doubleValue()) {
             Map<Byte, Double> typeMap = tamperedCostsMap.get(assignmentLoc);
             if (typeMap == null) {
                typeMap = new HashMap<Byte, Double>();

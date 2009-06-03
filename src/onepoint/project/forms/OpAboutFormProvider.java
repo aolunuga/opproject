@@ -81,7 +81,7 @@ public class OpAboutFormProvider implements XFormProvider {
    private final static String CODE = "code";
    private final static String PRODUCT = "product";
    private final static String BUILD = "build";
-   private final static int READ_TIMEOUT = 5000;
+   private final static int CONNECT_TIMEOUT = 5000;
 
    /**
     * Initializer for the map of product codes.
@@ -106,7 +106,7 @@ public class OpAboutFormProvider implements XFormProvider {
       try {
          URL versionUrl = new URL(PRODUCT_VERSIONS_URL);
          URLConnection connection = versionUrl.openConnection();
-         connection.setReadTimeout(READ_TIMEOUT);
+         connection.setConnectTimeout(CONNECT_TIMEOUT);
          InputStream inputStream = connection.getInputStream();
          versionsMap = getProductVersionsMap(inputStream);
          inputStream.close();
@@ -176,12 +176,13 @@ public class OpAboutFormProvider implements XFormProvider {
          }
       }
       catch (IOException exc) {
+         logger.warn("could not get version due to: ",exc);
       }
       if (version == null) {
          version = OpProjectConstants.CODE_VERSION_NUMBER;
       }
       if (copyright == null) {
-         copyright = "(c) 2005 - 2008 Onepoint Software GmbH. All rights reserved. www.onepoint-project.com";
+         copyright = "(c) 2005 - 2009 Onepoint Software GmbH. All rights reserved. www.onepoint-project.com";
       }
       if (build == null) {
          build = new Date();
@@ -192,7 +193,7 @@ public class OpAboutFormProvider implements XFormProvider {
       }
       else {
          productName = partnerEdition+" "+productName+" Edition";
-      }
+      } 
       form.findComponent(PRODUCT_NAME_LABEL).setText(productName);
       form.findComponent(VERSION_LABEL).setText(version);
       String dateText = ((OpProjectSession) session).getCalendar().localizedDateToString(

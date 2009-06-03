@@ -47,7 +47,6 @@ public class OpActivitiesFormProvider implements XFormProvider {
 
    protected final static String ACTIVITY_SET = "ActivitySet";
    protected final static String EDIT_MODE_FIELD = "EditModeField";
-   protected final static String EDIT_ACTIONS_MODE_FIELD = "EditActionsModeField";
    protected final static String ACTIVITY_GANTT_CHART = "ActivityGanttChart";
    protected final static String TOTAL_STRING = "Total";
 
@@ -137,7 +136,6 @@ public class OpActivitiesFormProvider implements XFormProvider {
    public final static String PROJECTNAME_ID = "ProjectName";
    public final static String SOURCEPLANVERSIONIDFIELD_ID = "SourcePlanVersionIDField";
    public final static String EDITMODEFIELD_ID = "EditModeField";
-   public final static String EDITACTIONSMODEFIELD_ID = "EditActionsModeField";
    public final static String EDITACTIONSINVERSEMODEFIELD_ID = "EditActionsInverseModeField";
    public final static String LOOPEXCEPTION_ID = "LoopException";
    public final static String MANDATORYEXCEPTION_ID = "MandatoryException";

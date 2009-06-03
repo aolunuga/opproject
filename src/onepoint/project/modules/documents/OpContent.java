@@ -261,4 +261,22 @@ public class OpContent extends OpObject {
 		}
 	}
 
+   public void addDocumentNode(OpDocumentNode documentNode) {
+      if (getDocumentNodes() == null) {
+         setDocumentNodes(new HashSet<OpDocumentNode>());
+      }
+      if (getDocumentNodes().add(documentNode)) {
+         documentNode.setContent(this);
+      }
+   }
+
+   public void removeDocumentNode(OpDocumentNode documentNode) {
+      if (getDocumentNodes() == null) {
+         setDocumentNodes(new HashSet<OpDocumentNode>());
+      }
+      if (getDocumentNodes().remove(documentNode)) {
+         documentNode.setContent(null);
+      }
+   }
+
 }

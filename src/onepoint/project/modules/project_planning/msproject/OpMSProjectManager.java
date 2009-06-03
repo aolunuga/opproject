@@ -73,6 +73,7 @@ public class OpMSProjectManager {
    private static final String MPT_FORMAT = "MPT";
    private static final String MPX_FORMAT = "MPX";
    private static final String MSPDI_FORMAT = "XML";
+   private static final String MS_PROJECT_NO_RESOURCE_NAME = "?";
 
    //utility class
    private OpMSProjectManager() {
@@ -419,13 +420,21 @@ public class OpMSProjectManager {
                if (!validator.getProgressTracked()) {
                   assignmentActualWork = OpGanttValidator.calculateActualEffort(assignmentWork, 0d, msTask.getPercentageComplete().doubleValue());
                }
+//               if (name.equals(MS_PROJECT_NO_RESOURCE_NAME) || projectResources.keySet().contains(name)) {
                if (projectResources.keySet().contains(name)) {
                   String locator = (String) projectResources.get(name);
-                  String id = XValidator.choiceID(locator);
+                  String id = "-1";
+                  if (locator != null) {
+                     id = XValidator.choiceID(locator);
+                  }
                   double percentage = (assignmentWork / oppActivityDuration) * 100d;
+                  if (name.equals(MS_PROJECT_NO_RESOURCE_NAME)) {
+                     name = "?";
+//                     percentage = oppActivityDuration/8
+                  }
                   String oppResource = XValidator.choice(id, name + " " + percentage + "%");
                   OpGanttValidator.addResource(activityRow, oppResource);
-                  //OpGanttValidator.addResourceBaseEffort(activityRow, assignment.getBaseEffort());
+//                  OpGanttValidator.setResourceBaseEffort(activityRow, locator, assignment.getWork().getDuration());//assignment.getBaseEffort());
                   logger.info("Resource \"" + name + "\" has been added to the project on activity " + msTask.getName());
                }
                else {
@@ -439,17 +448,16 @@ public class OpMSProjectManager {
          // TODO: check the following... (for now, seems to be a good compromise ;-)
          double activityBaseEffort = convertMsDurationToWorkingHours(msTask.getBaselineWork(), false, validator.getCalendar());
          double actualEffort = 0;
-         double remainingEffort = 0;
 
          activityBaseEffort = activityEffort > activityBaseEffort ? activityEffort : activityBaseEffort;
          OpGanttValidator.setBaseEffort(activityRow, activityBaseEffort);
-         OpGanttValidator.adjustRemainingEffort(activityRow);
 
+         validator.updateResources(activityRow);
+         
          if (!validator.getProgressTracked()) {
             actualEffort = OpGanttValidator.calculateActualEffort(activityBaseEffort, 0d, msTask.getPercentageComplete().doubleValue());
             OpGanttValidator.setActualEffort(activityRow, actualEffort);
          }
-         remainingEffort = activityBaseEffort - actualEffort;
 
          //personnel costs  -- not imported (will be calculated by the validator)
 
@@ -693,16 +701,25 @@ public class OpMSProjectManager {
       header.setStartDate(validator.getProjectStart());
 
       //add resources on project
+      
       Map resourceMap = new HashMap();
+      Resource resource = file.addResource();
+      resource.setName(MS_PROJECT_NO_RESOURCE_NAME);
+      resourceMap.put("-1", resource);
       for (OpProjectNodeAssignment projectAssignment : projectNode.getAssignments()) {
          OpResource projectResource = projectAssignment.getResource();
          String resouceLocator = projectResource.locator();
          String resouceID = XValidator.choiceID(resouceLocator);
-         Resource resource = file.addResource();
-         resource.setName(projectResource.getName());
+         String resName = projectResource.getName();
+//         if (resouceID.equals(OpGanttValidator.NO_RESOURCE_NAME)) {
+//            resName = MS_PROJECT_NO_RESOURCE_NAME;
+//         }
+         resource = file.addResource();
+         resource.setName(resName);
          resourceMap.put(resouceID, resource);
       }
-
+//      resou
+      
       //add activities
       int previousOutlineLevel = 0;
       XComponent superActivity = null;
@@ -852,20 +869,30 @@ public class OpMSProjectManager {
          String locator = (String) iterator.next();
          String id = XValidator.choiceID(locator);
          String caption = XValidator.choiceCaption(locator);
-         String resName = OpGanttValidator.getResourceName(caption, "%");
-         if (!resName.equals(OpGanttValidator.NO_RESOURCE_NAME)) {
-            Resource resource = (Resource) resourceMap.get(id);
-            ResourceAssignment assignments = task.addResourceAssignment();
-            assignments.setResourceUniqueID(resource.getID());
-            Double resourceBaseEffort = (Double) OpGanttValidator.getResourceBaseEfforts(activity).get(i);
-            Duration workDuration = Duration.getInstance(resourceBaseEffort == null ? 0 : resourceBaseEffort.doubleValue(), TimeUnit.HOURS);
-            assignments.setWork(workDuration);
-            if (caption.length() > resName.length()) {
-               double assigned = OpGanttValidator.percentageAssigned(locator);
-               assignments.setUnits(new Double(assigned));
+         String resName = OpGanttValidator.getResourceName(caption);
+         //         if (!resName.equals(OpGanttValidator.NO_RESOURCE_NAME)) {
+         Resource resource = (Resource) resourceMap.get(id);
+         ResourceAssignment assignments = task.addResourceAssignment();
+         assignments.setResourceUniqueID(resource.getID());
+         Double resourceBaseEffort = (Double) OpGanttValidator.getResourceBaseEfforts(activity).get(id);
+         double hours = Double.MAX_VALUE;
+         if (caption.length() > resName.length()) {
+            double hoursPerDay = OpGanttValidator.hoursAssigned(locator);
+            if (calendar.getWorkHoursPerDay() != 0) {
+               hours = hoursPerDay / calendar.getWorkHoursPerDay();
             }
-            i++;
+//            Duration assignedHours = Duration.getInstance(assigned, TimeUnit.HOURS);
+            assignments.setUnits(new Double(100 * hours));
          }
+         
+         if (resourceBaseEffort == null) {
+            resourceBaseEffort = new Double(hours * OpGanttValidator.getDuration(activity));
+         }
+         Duration workDuration = Duration.getInstance(resourceBaseEffort == null ? 0 : resourceBaseEffort.doubleValue(), TimeUnit.HOURS);
+         assignments.setWork(workDuration);
+         
+         i++;
+         //         }
       }
 
       //Costs are not exported!

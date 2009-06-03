@@ -118,12 +118,12 @@ public final class OpPersistenceManager {
       XResourceBroker.setResourcePath("onepoint/project");
       // initialize factory
       OpInitializerFactory factory = OpInitializerFactory.getInstance();
-      factory.setInitializer(OpInitializer.class);
-
       OpInitializer initializer = factory.getInitializer();
-      initializer.setUpdateDBSchema(false);
-      initializer.init(OpProjectConstants.OPEN_EDITION_CODE);
-      
+      if (initializer == null) {
+         initializer = factory.setInitializer(OpInitializer.class);
+         initializer.setUpdateDBSchema(false);
+         initializer.init(OpProjectConstants.OPEN_EDITION_CODE);
+      }
        if (drop) {
           OpPersistenceManager.dropSchema();
        }

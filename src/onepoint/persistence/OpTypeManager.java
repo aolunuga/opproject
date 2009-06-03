@@ -212,6 +212,10 @@ public class OpTypeManager {
       return (OpPrototype) (prototypeIds.get(new Integer(id)));
    }
 
+   public static OpPrototype getPrototypeByClass(Class type) {
+      return getPrototypeByClassName(type.getName());
+   }
+
    public static OpPrototype getPrototypeByClassName(String className) {
       // check if we have an enhanced class (Proxy) or not.
       int index = className.indexOf(CGLIB_ENHANCER_PREFIX);

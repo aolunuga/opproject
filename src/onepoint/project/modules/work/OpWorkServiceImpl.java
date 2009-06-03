@@ -95,9 +95,13 @@ public class OpWorkServiceImpl implements OpService {
          Iterator iter = records.iterator();
          while (iter.hasNext()) {
             record = (OpWorkRecord) iter.next();
+
             if (record.getAssignment() == null) {
                throw (new XServiceException(session.newError(ERROR_MAP, OpWorkError.INCORRECT_ASSIGNMENT)));
             }
+
+            updateWorkProgress(session, broker, record);
+            adjustAttachmentPermissions(broker, record);
          }
       }
 
@@ -108,7 +112,7 @@ public class OpWorkServiceImpl implements OpService {
       broker.makePersistent(work_slip);
 
       // Inserts work-records into database and add to progress calculator
-      insertMyWorkRecords(session, broker, work_slip.getRecords().iterator(), work_slip);
+      //insertMyWorkRecords(session, broker, work_slip.getRecords().iterator(), work_slip);
       broker.getConnection().flush(); // required to ensure ConstraintViolationException!
    }
 
@@ -252,7 +256,7 @@ public class OpWorkServiceImpl implements OpService {
       if (work_slip == null) {
          throw (new XServiceException(session.newError(ERROR_MAP, OpWorkError.INCORRECT_WORK_SLIP)));
       }
-      work_record.setWorkSlip(work_slip);
+      work_slip.addRecord(work_record);
 
       if (!session.isUser(work_record.getWorkSlip().getCreator()) && (!session.userIsAdministrator())) {
          throw new XServiceException(session.newError(OpUserServiceImpl.ERROR_MAP,
@@ -264,10 +268,14 @@ public class OpWorkServiceImpl implements OpService {
          throw (new XServiceException(session.newError(ERROR_MAP, OpWorkError.INCORRECT_ASSIGNMENT)));
       }
 
-      // Use progress calculator to update progress information in associated project plan
-      OpAssignment assignment = work_record.getAssignment();
-      OpProgressCalculator.addWorkRecord(session, broker, work_record, assignment);
+      updateWorkProgress(session, broker, work_record);
+      adjustAttachmentPermissions(broker, work_record);
 
+      broker.makePersistent(work_record);
+   }
+
+   private void adjustAttachmentPermissions(OpBroker broker,
+         OpWorkRecord work_record) {
       OpProjectNode projectNode = work_record.getAssignment().getActivity().getProjectPlan().getProjectNode();
       Set<OpWorkRecord> records = work_record.getWorkSlip().getRecords();
       if (records != null) {
@@ -285,8 +293,13 @@ public class OpWorkServiceImpl implements OpService {
     		  }
     	  }
       }
+   }
 
-      broker.makePersistent(work_record);
+   private void updateWorkProgress(OpProjectSession session, OpBroker broker,
+         OpWorkRecord work_record) {
+      // Use progress calculator to update progress information in associated project plan
+      OpAssignment assignment = work_record.getAssignment();
+      OpProgressCalculator.addWorkRecord(session, broker, work_record, assignment);
    }
 
    /**
@@ -327,10 +340,7 @@ public class OpWorkServiceImpl implements OpService {
          throw (new XServiceException(session.newError(ERROR_MAP, OpWorkError.INCORRECT_ASSIGNMENT)));
       }
 
-      // Use progress calculator to update progress information in associated project plan
-      //workRecord.get
-      OpAssignment ass = workRecord.getAssignment();
-      OpProgressCalculator.addWorkRecord(session, broker, workRecord, ass);
+      updateWorkProgress(session, broker, workRecord);
 
    }
 

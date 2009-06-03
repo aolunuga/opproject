@@ -183,7 +183,7 @@ function exportActivities(event) {
    filters.put("Microsoft Project (.mpx)", "*.mpx");
    filters.put("Microsoft Excel (.xls)", "*.xls");
    filters.put("Microsoft Project (.xml)", "*.xml");
-   fileName = XDisplay.showFileDialog(exportProject, false, null, filters, true);
+   fileName = XDisplay.showFileDialog(exportProject, false, "mpx", null, filters, true);
    if (fileName == null) {
       return;
    }

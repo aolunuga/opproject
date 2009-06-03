@@ -33,6 +33,7 @@ public class OpReport extends OpDocument implements OpPermissionable {
 
    private Set<OpPermission> permissions;
 
+   private String[] KNOWN_EXTENSIONS = {"pdf", "xls", "html", "csv", "xml", "rtf", "txt"};
    /**
     * Gets the type of the report.
     *
@@ -104,5 +105,48 @@ public class OpReport extends OpDocument implements OpPermissionable {
          perm.remove(opPermission);
       }
       opPermission.setObject(null);
+   }
+
+   public String getNameWithoutExtension() {
+      String name = getName();
+      if (name == null) {
+         return null;
+      }
+      int suffixPos = name.lastIndexOf('.');
+      if (suffixPos < 0) {
+         return name;
+      }
+      String extension = name.substring(suffixPos+1);
+      if (isKnownExtension(extension)) {
+         return name.substring(0, suffixPos);
+      }
+      return name;
+   }
+
+   private boolean isKnownExtension(String extension) {
+      extension = extension.toLowerCase();
+      for (int pos = 0; pos < KNOWN_EXTENSIONS .length; pos++) {
+         if (KNOWN_EXTENSIONS[pos].equals(extension)) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   public String getNameExtension() {
+      String name = getName();
+      if (name == null) {
+         return null;
+      }
+      int suffixPos = name.lastIndexOf('.');
+      if (suffixPos < 0) {
+         return name;
+      }
+      String extension = name.substring(suffixPos+1);
+      if (isKnownExtension(extension)) {
+         return extension;
+      }
+
+      return null;
    }
 }

@@ -58,9 +58,10 @@
    <relationship name="Actions" type="OpAction" collection-type="Set" back-relationship="Activity" inverse="true" cascade="delete" order-by="ID asc" />
    <relationship name="WorkBreaks" type="OpActivityWorkBreak" collection-type="Set" back-relationship="Activity" inverse="true"/>
 
-   <!-- DEPRECATED! -->
    <relationship name="MasterActivity" type="OpActivity" back-relationship="ShallowCopies" recursive="true"/>
    <relationship name="ShallowCopies" type="OpActivity" collection-type="Set" back-relationship="MasterActivity" inverse="true"/>
-   <relationship name="ShallowVersions" type="OpActivityVersion" collection-type="Set" back-relationship="MasterActivity" inverse="true"/>
    <relationship name="SubProject" type="OpProjectNode" back-relationship="ProgramActivities" recursive="true"/>
+
+   <!-- DEPRECATED! -->
+   <relationship name="ShallowVersions" type="OpActivityVersion" collection-type="Set" back-relationship="MasterActivity" inverse="true"/>
 </prototype>

@@ -84,6 +84,8 @@ public final class OpHibernateSchemaUpdater {
     */
    private OpSqlStatement statement = null;
 
+   private Integer dbType;
+
    /**
     * Initialize the db types map.
     */
@@ -103,12 +105,16 @@ public final class OpHibernateSchemaUpdater {
     * @see onepoint.persistence.hibernate.OpHibernateSource
     */
    public OpHibernateSchemaUpdater(Integer databaseType) {
-      Integer dbType = (Integer) DB_TYPES_MAP.get(databaseType);
+      dbType = (Integer) DB_TYPES_MAP.get(databaseType);
       if (dbType != null) {
          statement = OpSqlStatementFactory.createSqlStatement(dbType);
       }
    }
 
+   public int getDBType() {
+      return dbType;
+   }
+   
    public OpSqlStatement getStatement() {
 	   return statement;
    }
@@ -286,15 +292,41 @@ public final class OpHibernateSchemaUpdater {
     * @param dbMetaData a <code>DatabaseMetaData</code> containing information about the underlying db.
     * @return a <code>List</code> of <code>String</code> representing SQL statements.
     */
+   public List<String> generateDropExportedKeysConstraints(String tableName, String columnName, DatabaseMetaData dbMetaData) {
+      List<String> dropFkConstraints = new ArrayList<String>();
+      if (statement != null) {
+         try {
+            ResultSet rs = dbMetaData.getExportedKeys(null, null, tableName);
+            createDropStatement(columnName, dropFkConstraints, rs);
+            rs.close();
+         }
+         catch (SQLException e) {
+            logger.error("Cannot generate drop fk constraints for table:" + tableName, e);
+         }
+      }
+      return dropFkConstraints;
+   }
+   
+   /**
+    * Generates a list of SQL statements for dropping the FK constraints of the given table for the given column.
+    *
+    * @param tableName  a <code>String</code> representing a table name.
+    * @param columnName a <code>String</code> representing the column name for which the statements are generated.
+    * @param dbMetaData a <code>DatabaseMetaData</code> containing information about the underlying db.
+    * @return a <code>List</code> of <code>String</code> representing SQL statements.
+    */
    public List<String> generateDropExportedFKConstraints(String tableName, String columnName, DatabaseMetaData dbMetaData) {
       List<String> dropFkConstraints = new ArrayList<String>();
       if (statement != null) {
          try {
-        	ResultSet rs = dbMetaData.getExportedKeys(null, null, tableName);
-            createDropStatement(columnName, dropFkConstraints, rs);
-            rs.close();
-            rs = dbMetaData.getExportedKeys(null, null, tableName.toUpperCase()); // ORACLE requires uppercase
-            createDropStatement(columnName.toUpperCase(), dropFkConstraints, rs); // ORACLE requires uppercase
+            String tmpTableName = tableName;
+            String tmpColumnName = columnName;
+            if (getDBType() == OpHibernateSource.ORACLE) {
+               tmpTableName = tableName.toUpperCase(); // ORACLE requires uppercase
+               tmpColumnName = columnName.toUpperCase(); // ORACLE requires uppercase
+            }
+            ResultSet rs = dbMetaData.getExportedKeys(null, null, tmpTableName); 
+            createDropStatement(tmpColumnName, dropFkConstraints, rs); // ORACLE requires uppercase
             rs.close();
          }
          catch (SQLException e) {
@@ -307,9 +339,15 @@ public final class OpHibernateSchemaUpdater {
 private void createDropStatement(String columnName,
 		List<String> dropFkConstraints, ResultSet rs) throws SQLException {
 	while (rs.next()) {
-	   String fkName = rs.getString("FK_NAME").toUpperCase();
-	   String fkColumnName = rs.getString("FKCOLUMN_NAME").toUpperCase();
-	   String fkTableName = rs.getString("FKTABLE_NAME").toUpperCase();
+	   
+	   String fkName = rs.getString("FK_NAME");
+	   String fkColumnName = rs.getString("FKCOLUMN_NAME");
+	   String fkTableName = rs.getString("FKTABLE_NAME");
+	   if (getDBType() == OpHibernateSource.ORACLE) {
+	      fkName = fkName.toUpperCase();
+	      fkColumnName = fkColumnName.toUpperCase();
+	      fkTableName = fkTableName.toUpperCase();
+	   }
 	   if (fkColumnName.equalsIgnoreCase(columnName)) {
 	      String dropStatement = statement.getDropFKConstraintStatement(fkTableName, fkName);
 	      logger.info("Adding drop constraint statement: " + dropStatement);

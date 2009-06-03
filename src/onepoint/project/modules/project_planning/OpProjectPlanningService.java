@@ -801,16 +801,17 @@ public class OpProjectPlanningService extends OpProjectService {
          String activityLocator = (String) comment_data.get(ACTIVITY_ID);
          OpActivityIfc av = (OpActivityIfc) broker.getObject(activityLocator);
          // TODO: check, which activity to comment ;-)
-         if (av == null || av.getActivityForActualValues() == null) {
+         
+         if (av == null || av.getElementForActualValues() == null) {
             error = session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.COMMENT_NOT_FOUND);
             reply.setError(error);
             return reply;
          }
 
-         OpActivity a = av.getActivityForActualValues();
+         OpActivity act = av.getActivityForAdditionalObjects();
          // Check contributor access to activity
-         if (!session.checkAccessLevel(broker, a.getProjectPlan().getProjectNode().getId(), OpPermission.CONTRIBUTOR)) {
-            logger.warn("ERROR: Insert access to activity denied; ID = " + a.getId());
+         if (!session.checkAccessLevel(broker, act.getProjectPlan().getProjectNode().getId(), OpPermission.CONTRIBUTOR)) {
+            logger.warn("ERROR: Insert access to activity denied; ID = " + act.getId());
             reply.setError(session.newError(PROJECT_ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
             return reply;
          }
@@ -819,7 +820,7 @@ public class OpProjectPlanningService extends OpProjectService {
 
          // Query max-sequence
          OpQuery query = broker.newQuery("select max(comment.Sequence) from OpActivityComment as comment where comment.Activity.id = ?");
-         query.setLong(0, a.getId());
+         query.setLong(0, act.getId());
          Iterator result = broker.iterate(query);
          int sequence = 1;
          if (result.hasNext()) {
@@ -834,13 +835,13 @@ public class OpProjectPlanningService extends OpProjectService {
          comment.setSequence(sequence);
          comment.setText((String) comment_data.get(OpActivityComment.TEXT));
          comment.setCreator(session.user(broker));
-         comment.setActivity(a);
+         comment.setActivity(act);
          broker.makePersistent(comment);
 
          // Update activity.Attributes in order that activity has comments and all of its versions
-         if ((a.getAttributes() & OpActivity.HAS_COMMENTS) == 0) {
-            a.setAttributes(a.getAttributes() + OpActivity.HAS_COMMENTS);
-            broker.updateObject(a);
+         if ((act.getAttributes() & OpActivity.HAS_COMMENTS) == 0) {
+            act.setAttributes(act.getAttributes() + OpActivity.HAS_COMMENTS);
+            broker.updateObject(act);
          }
 
          t.commit();

@@ -33,6 +33,7 @@ public class OpProjectPlanningError {
    public final static int CALENDARS_MODIFIED_WARNING = 19;
    public static final int ACTION_NAME_NOT_UNIQUE = 20;
    public static final int PROJECT_START_DATE_AFTER_ACTIVITY_DATE = 21;
+   public static final int SUB_PROJECT_LOOP_ERROR = 22;
 
    // Error names
    public final static String COMMENT_NAME_MISSING_NAME = "CommentNameMissing";
@@ -56,4 +57,5 @@ public class OpProjectPlanningError {
    public final static String CALENDARS_MODIFIED_WARNING_NAME = "CalendarsModifiedWarning";
    public static final String ACTION_NAME_NOT_UNIQUE_NAME = "ActionNameNotUnique";
    public static final String PROJECT_START_DATE_AFTER_ACTIVITY_DATE_NAME = "ProjectStartDateAfterActivityDate";
+   public static final String SUB_PROJECT_LOOP_ERROR_NAME = "SubProjectLoopError";
 }

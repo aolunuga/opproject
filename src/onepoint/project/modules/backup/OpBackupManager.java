@@ -807,6 +807,7 @@ public class OpBackupManager {
 		// Write root elements
 		attributes.put(VERSION, String.valueOf(CURRENT_VERSION_NUMBER));
 		attributes.put(SCHEMA_VERSION, String.valueOf(OpHibernateSource.SCHEMA_VERSION));
+		logger.info("Schema Version is: "+OpHibernateSource.SCHEMA_VERSION);
 		writer.writeStartElement(OPP_BACKUP, attributes, false);
 		attributes.clear();
 
@@ -1286,7 +1287,7 @@ public class OpBackupManager {
 	 * @param member    a <code>OpMember</code> the field or relationship of the prototype to export.
 	 * @return a <code>Method</code> to access the member or <code>null</code> if there is no such method.
 	 */
-	private Method getAccessorForMember(OpPrototype prototype, OpMember member) {
+	public static Method getAccessorForMember(OpPrototype prototype, OpMember member) {
 		final String[] PREFIXES = {"get", "is", "has"};
 		for (String prefix : Arrays.asList(PREFIXES)) {
 			try {

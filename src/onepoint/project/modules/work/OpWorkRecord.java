@@ -4,6 +4,7 @@
 
 package onepoint.project.modules.work;
 
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -32,6 +33,7 @@ public class OpWorkRecord extends OpObject {
    public final static String WORK_SLIP = "WorkSlip";
    public final static String CONTROLLING_RECORDS = "ControllingRecords";
 
+   private Date date = null;
    private double actualEffort = 0; // Additional actual effort in hours
    private double remainingEffort = 0; // Estimated remaining effort in hours
    private double personnelCosts = 0;
@@ -52,6 +54,14 @@ public class OpWorkRecord extends OpObject {
    private Set<OpTimeRecord> timeRecords = new HashSet<OpTimeRecord>();
    private OpControllingRecord controllingRecord;
    
+   public Date getDate() {
+      return date;
+   }
+
+   public void setDate(Date date) {
+      this.date = date;
+   }
+
    public void setActualEffort(double actualEffort) {
       this.actualEffort = actualEffort;
    }
@@ -539,7 +549,7 @@ public class OpWorkRecord extends OpObject {
    @Override
    public String toString() {
       if (workSlip != null && assignment != null) {
-         return "Work slip date " + workSlip.getDate() + " for Activity " + assignment.getActivity().getName() + " and resource " + assignment.getResource().getName();
+         return "{Work slip date:" + workSlip.getDate() + " Activity: " + assignment.getActivity().getName() + " resource: " + assignment.getResource().getName()+" effort: "+getActualEffort()+"}";
       }
       else {
          return super.toString();

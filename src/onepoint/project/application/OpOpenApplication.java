@@ -6,8 +6,6 @@ package onepoint.project.application;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.project.OpInitializer;
-import onepoint.project.OpInitializerFactory;
 import onepoint.project.util.OpProjectConstants;
 
 
@@ -28,11 +26,11 @@ public class OpOpenApplication extends OpBasicApplication {
       super.start(arguments);
    }
 
-   protected OpInitializer getInitializer() {
-      OpInitializerFactory factory = OpInitializerFactory.getInstance();
-      factory.setInitializer(OpInitializer.class);
-      return factory.getInitializer();
-   }
+//   protected OpInitializer getInitializer() {
+//      OpInitializerFactory factory = OpInitializerFactory.getInstance();
+//      factory.setInitializer(OpInitializer.class);
+//      return factory.getInitializer();
+//   }
 
    public static void main(String[] args) {
       OpOpenApplication application = new OpOpenApplication();

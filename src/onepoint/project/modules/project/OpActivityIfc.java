@@ -12,7 +12,7 @@ import onepoint.persistence.OpLocatable;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 
-public interface OpActivityIfc extends OpLocatable, OpGanttValidator.ProgressTrackableEntityIfc {
+public interface OpActivityIfc extends OpLocatable, OpActivityValuesIfc {
 
    // Activity attributes
    public final static int MANDATORY = OpGanttValidator.MANDATORY;
@@ -33,21 +33,23 @@ public interface OpActivityIfc extends OpLocatable, OpGanttValidator.ProgressTra
    public final static byte SCHEDULED_TASK = OpGanttValidator.SCHEDULED_TASK;
    public final static byte ADHOC_TASK = OpGanttValidator.ADHOC_TASK;
 
-   public String locator();
+   public void addWorkBreak(OpWorkBreak workBreak);
 
-   public void setName(String name);
+   public double calculateActualCost();
 
-   public String getName();
+   public double calculateBaseCost();
 
-   public void setDescription(String description);
+   public void cloneSimpleMembers(OpActivityIfc src, boolean progressTracked);
 
-   public String getDescription();
+   public Set<? extends OpActionIfc> getActions();
 
-   public void setType(byte type);
+   public OpActivity getActivity();
 
-   public Byte getType();
+   public OpActivity getActivityForAdditionalObjects();
+   
+   public Set<? extends OpAssignmentIfc> getAssignments();
 
-   public void setAttributes(int attributes);
+   public Set<? extends OpAttachmentIfc> getAttachments();
 
    /**
     * Gets the attributes of this activity.
@@ -57,107 +59,37 @@ public interface OpActivityIfc extends OpLocatable, OpGanttValidator.ProgressTra
     */
    public int getAttributes();
 
-   public boolean hasAttribute(int attribute);
-   
-   public void setCategory(OpActivityCategory category);
-
    public OpActivityCategory getCategory();
 
-   public void setSequence(int sequence);
-
-   public int getSequence();
-
-   public void setOutlineLevel(byte outlineLevel);
-
-   public byte getOutlineLevel();
-
-   public void setStart(Date start);
-
-   public Date getStart();
-
-   public void setFinish(Date finish);
-
-   public Date getFinish();
-
-   public void setDuration(double duration);
-
-   public double getDuration();
-
-   public void setComplete(double complete);
+   public Set<OpAssignment> getCheckedInAssignments();
 
    public double getComplete();
 
-   public void setPriority(byte priority);
+   public String getDescription();
 
-   public byte getPriority();
+   public double getEffortBillable();
 
-   public void setBaseEffort(double baseEffort);
-
-   public double getBaseEffort();
-
-   public void setBaseTravelCosts(double baseTravelCosts);
-
-   public double getBaseTravelCosts();
-
-   public void setBasePersonnelCosts(double basePersonnelCosts);
-
-   public double getBasePersonnelCosts();
-
-   public void setBaseMaterialCosts(double baseMaterialCosts);
-
-   public double getBaseMaterialCosts();
-
-   public void setBaseExternalCosts(double baseExternalCosts);
-
-   public double getBaseExternalCosts();
-
-   public void setBaseMiscellaneousCosts(double baseMiscellaneousCosts);
-
-   public double getBaseMiscellaneousCosts();
-
-   public void setExpanded(boolean expanded);
+   public OpActivityValuesIfc getElementForActualValues();
 
    public boolean getExpanded();
 
-   public void setTemplate(boolean template);
+   public String getName();
 
-   public boolean getTemplate();
+   public Object getObject(String key);
 
-   // FIXME(dfreis Feb 21, 2008 7:55:53 AM) - should also use a base ifc for
-   // OpAssignments
-   // public void setProjectPlan(OpProjectPlan projectPlan);
-   //
-   // public OpProjectPlan getProjectPlan();
-
-   // FIXME(dfreis Feb 21, 2008 7:55:53 AM) - should also use a base ifc for
-   // OpAssignments
-   // public void setAssignments(Set<OpAssignment> assignments);
-   //
-   // public Set<OpAssignment> getAssignments();
-
-   // FIXME(dfreis Feb 21, 2008 7:55:53 AM) - should also use a base ifc for
-   // OpAssignments
-   // public void setWorkPeriods(Set<OpWorkPeriod> workPeriods);
-   //
-   // public Set<OpWorkPeriod> getWorkPeriods();
-
-   // FIXME(dfreis Feb 21, 2008 7:55:53 AM) - should also use a base ifc for
-   // OpAssignments
-   // public void setAttachments(Set<OpAttachment> attachments);
-   //
-   // public Set<OpAttachment> getAttachments();
-
-   public OpResource getResponsibleResource();
-
-   public void setResponsibleResource(OpResource responsibleResource);
-
-   public double getBaseProceeds();
-
-   public void setBaseProceeds(Double baseProceeds);
+   public byte getOutlineLevel();
 
    public double getPayment();
 
-   public void setPayment(Double payment);
+   public Set<? extends OpDependencyIfc> getPredecessorDependencies();
+
+   public byte getPriority();
+
+   public OpProjectPlan getProjectPlan();
+
+   public OpResource getResponsibleResource();
+
+   public int getSequence();
 
    /**
     * Returns a <code>List</code> containing two dates: a start date and an
@@ -178,108 +110,72 @@ public interface OpActivityIfc extends OpLocatable, OpGanttValidator.ProgressTra
     */
    public List<Date> getStartEndDateByType();
 
-   public double getEffortBillable();
-
-   public void setEffortBillable(Double billable);
-
-   public OpProjectPlan getProjectPlan();
-
-   public Set<? extends OpActionIfc> getActions();
-
-   public double getLeadTime();
-
-   public void setLeadTime(double leadTime);
-
-   public double getFollowUpTime();
-
-   public void setFollowUpTime(double followUpTime);
-    
-    public Set<? extends OpAssignmentIfc> getAssignments();
-
-   public Object getObject(String key);
-
-   public void setObject(String key, Object obj);
-
-   public Set<OpWorkBreak> getWorkBreaks();
-
-   public void addWorkBreak(OpWorkBreak workBreak);
-
-   public void removeWorkBreak(OpWorkBreak workBreak);
+   public Set<? extends OpDependencyIfc> getSuccessorDependencies();
 
    public OpActivityIfc getSuperActivityIfc();
 
-   public Set<? extends OpAttachmentIfc> getAttachments();
-   
-   public Set<OpAssignment> getCheckedInAssignments();
+   public boolean getTemplate();
 
-   public OpActivity getActivityForActualValues();
+   public byte getType();
 
-   public void cloneSimpleMembers(OpActivityIfc src, boolean progressTracked);
-   
-   public double getUnassignedEffort();
+   public Set<OpWorkBreak> getWorkBreaks();
 
-   public void setUnassignedEffort(double unassignedEffort);
-   
-   public void addUnassignedEffort(double effort);
-   
-   public boolean effortCalculatedFromChildren();
-   
-   public void resetAggregatedValuesForCollection();
+   public Set<? extends OpWorkPeriodIfc> getWorkPeriods();
 
-   public Set<? extends OpDependencyIfc> getPredecessorDependencies();
+   public boolean hasAggregatedValues();
 
-   public Set<? extends OpDependencyIfc> getSuccessorDependencies();
+   public boolean hasAttribute(int attribute);
 
    /**
     * @return true, if the activity is a collection activity.
     */
    public boolean hasSubActivities();
 
-   public Set<? extends OpWorkPeriodIfc> getWorkPeriods();
-
-   public double getOpenEffort();
-
-   public double getActualEffort();
-
-   public OpActivity getActivity();
-
-   public double getActualProceeds();
-
-   public double getActualMiscellaneousCosts();
-
-   public double getActualExternalCosts();
-
-   public double getActualTravelCosts();
-
-   public double getActualMaterialCosts();
-
-   public double getActualPersonnelCosts();
-
-   public double getRemainingPersonnelCosts();
-
-   public double getRemainingMaterialCosts();
-
-   public double getRemainingTravelCosts();
-
-   public double getRemainingExternalCosts();
-
-   public double getRemainingMiscellaneousCosts();
-
-   public double getRemainingProceeds();
-
-   public void setRemainingMaterialCosts(Double costs);
-
-   public void setRemainingTravelCosts(Double costs);
-
-   public void setRemainingExternalCosts(Double costs);
-
-   public void setRemainingMiscellaneousCosts(Double costs);
-
    public boolean isEnabledForActions();
+   
+   public boolean isImported();
 
-   public double calculateBaseCost();
-
-   public double calculateActualCost();
-
+   public boolean isProgressTracked();
+   
    public boolean isTimeTrackable();
+
+   public String locator();
+
+   public void removeWorkBreak(OpWorkBreak workBreak);
+   
+   public void resetAggregatedValues();
+   
+   public void setAttributes(int attributes);
+   
+   public void setCategory(OpActivityCategory category);
+
+   public void setDescription(String description);
+
+   public void setEffortBillable(Double billable);
+
+   public void setExpanded(boolean expanded);
+
+   public void setName(String name);
+
+   public void setObject(String key, Object obj);
+
+   public void setOutlineLevel(byte outlineLevel);
+
+   public void setPayment(double payment);
+
+   public void setPriority(byte priority);
+
+   public void setResponsibleResource(OpResource responsibleResource);
+   
+   public void setSequence(int sequence);
+   
+   public void setTemplate(boolean template);
+
+   public void setType(byte type);
+
+   public boolean isSubProjectReference();
+
+   public boolean hasDerivedStartFinish();
+
+   public String getPredecessorDependenciesAsString();
 }

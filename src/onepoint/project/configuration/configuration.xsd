@@ -112,12 +112,14 @@
                   <xsd:enumeration value="none"/>
                   <xsd:enumeration value="simple"/>
                   <xsd:enumeration value="strong"/>
+                  <xsd:enumeration value="external"/>
                </xsd:restriction>
             </xsd:simpleType>
          </xsd:element>
          <xsd:element name="security-principal" type="xsd:string"/>
          <xsd:element name="security-credentials" type="xsd:string"/>
          <xsd:element name="security-protocol" type="xsd:string" minOccurs="0"/>
+         <xsd:element name="security-tls" type="xsd:boolean" default="false" minOccurs="0"/>
          <xsd:element name="password-hash-algorithm" type="xsd:string" minOccurs="0"/>
       </xsd:sequence>
    </xsd:complexType>

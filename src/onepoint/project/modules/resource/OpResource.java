@@ -428,7 +428,7 @@ public class OpResource extends OpCustomizableObject implements OpPermissionable
    }
 
    public void setArchived(Boolean archived) {
-	   this.archived = archived;
+	   this.archived = (archived == null ? false : archived);
    }
 
    public void updateInternalHourlyRate(double newRate) {

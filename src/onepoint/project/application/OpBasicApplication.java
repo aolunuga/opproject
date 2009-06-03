@@ -112,11 +112,8 @@ public class OpBasicApplication extends XExpressApplication implements XExitHand
    protected void start(String[] arguments) {
 
       //perform initialization
-      OpInitializer initializer = getInitializer();
-      if (arguments.length >= 1) {
-         initializer.setConfigurationFileName(arguments[0]);
-      }
-      Map<String, Object> initParams = initializer.init(this.getProductCode());
+      OpInitializer initializer = getInitializer(this.getProductCode(),arguments.length >= 1 ? arguments[0] : null);
+      Map<String, Object> initParams = initializer.getInitParams();
 
       //set up the resource cache max size
       OpConfiguration config = initializer.getConfiguration();
@@ -148,10 +145,17 @@ public class OpBasicApplication extends XExpressApplication implements XExitHand
    protected void postStart(Map<String, Object> initParams) {
    }
 
-   protected OpInitializer getInitializer() {
+   protected OpInitializer getInitializer(String productCode, String configFileName) {
       OpInitializerFactory factory = OpInitializerFactory.getInstance();
-      factory.setInitializer(OpInitializer.class);
-      return factory.getInitializer();
+      OpInitializer initializer = factory.getInitializer();
+      if (initializer == null) {
+         initializer = factory.setInitializer(OpInitializer.class);
+         if (configFileName != null) {
+            initializer.setConfigurationFileName(configFileName);
+         }
+         initializer.init(productCode);
+      }
+      return initializer;
    }
 
    /**

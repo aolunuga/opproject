@@ -225,9 +225,6 @@ public class OpProjectAdministrationService extends OpProjectService {
          project.setPlan(projectPlan);
          broker.makePersistent(projectPlan);
 
-         //allow a template to be set
-         this.insertProjectAdditional(session, broker, request, project_data, project);
-
          // Insert goals
          XComponent goalsDataSet = (XComponent) (request.getArgument(GOALS_SET));
          reply = insertGoals(session, broker, project, goalsDataSet);
@@ -248,6 +245,9 @@ public class OpProjectAdministrationService extends OpProjectService {
             reply.setError(result);
             return reply;
          }
+
+         //allow a template to be set
+         this.insertProjectAdditional(session, broker, request, project_data, project);
 
          t.commit();
          return reply;
@@ -423,7 +423,7 @@ public class OpProjectAdministrationService extends OpProjectService {
 
          byte projectAccesssLevel = session.effectiveAccessLevel(broker, project.getId());
          byte projectPermission = session.effectivePermissions(broker, project.getId());
-
+ 
          if (projectPermission < OpPermission.MANAGER) {
             logger.warn("ERROR: Udpate access to project denied; ID = " + id_string);
             reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
@@ -435,8 +435,8 @@ public class OpProjectAdministrationService extends OpProjectService {
             OpProjectNode dummy = new OpProjectNode();
             dummy.fillProjectNode(project_data);
 
-            if (!checkPermissionsForChange(session, reply, projectPermission, OpPermission.ADMINISTRATOR, project.getBudget() != dummy.getBudget(), OpProjectError.NO_RIGHTS_CHANGING_BUDGET_ERROR) ||
-                  !checkPermissionsForChange(session, reply, projectPermission, OpPermission.ADMINISTRATOR, project.getArchived() != dummy.getArchived(), OpProjectError.NO_PERMISSION_CHANGING_ARCHIVED_STATE_ERROR)) {
+            if (!checkPermissionsForChange(session, reply, projectPermission, OpPermission.ADMINISTRATOR, !equals(project.getBudget(), dummy.getBudget()), OpProjectError.NO_RIGHTS_CHANGING_BUDGET_ERROR) ||
+                  !checkPermissionsForChange(session, reply, projectPermission, OpPermission.ADMINISTRATOR, !equals(project.getArchived(), dummy.getArchived()), OpProjectError.NO_PERMISSION_CHANGING_ARCHIVED_STATE_ERROR)) {
                return reply;
             }
             
@@ -602,6 +602,16 @@ public class OpProjectAdministrationService extends OpProjectService {
       }
 
       return null;
+   }
+
+   private boolean equals(Object obj1, Object obj2) {
+      if (obj1 == obj2) {
+         return true;
+      }
+      if (obj1 == null) {
+         return obj2 == null;
+      }
+      return obj1.equals(obj2);
    }
 
    private boolean checkPermissionsForChange(OpProjectSession session,
@@ -1378,6 +1388,8 @@ public class OpProjectAdministrationService extends OpProjectService {
          break;
       case OpProjectNode.PROJECT:
          removable = !hasWorkRecords(node, broker);
+         removable = removable && (node.getProgramActivities() == null || node.getProgramActivities().isEmpty());
+         removable = removable && (node.getProgramActivityVersions() == null || node.getProgramActivityVersions().isEmpty());
          break;
       default:
          break;

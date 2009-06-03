@@ -36,6 +36,7 @@ public class OpGraph {
   private LinkedHashSet rootNodes;
   private HashMap mapping;
   
+  private final static Integer DEFAULT_EDGE_CLASS = new Integer(0);
   /**
    * Default Constructor
    */
@@ -77,6 +78,10 @@ public class OpGraph {
    * @param source the starting point for the edge.
    * @param destination the endpoint for the edge.
    */
+  public synchronized void addEdge(Entry source, Entry destination) {
+     addEdge(source, destination, DEFAULT_EDGE_CLASS);
+  }
+  
   public synchronized void addEdge(Entry source, Entry destination, Object edgeClass) {
      if (!destination.hasBackEdges()) {
         rootNodes.remove(destination);

@@ -300,6 +300,7 @@
         <resource id="InvalidProjectNodeTypeForImport">Nur für Projekte können Daten importiert werden</resource>
         <resource id="InvalidProjectNodeTypeForExport">Nur bei Projekten können Daten exportiert werden</resource>
         <resource id="CalendarsModifiedWarning">Die Projektplanung wurde aufgrund einer Änderung der Kalendereinstellungen neuberechnet</resource>
+        <resource id="SubProjectLoopError">Die Einbindung von <parameter name="project.name"/> als Unterprojekt würde eine Schleife in der Programm-Hierarchie erzeugen</resource>
     </resource-map>
     <resource-map id="project_planning.ChooseImportSource">
         <resource id="ImportSource">Wählen Sie eine Import-Quelle</resource>

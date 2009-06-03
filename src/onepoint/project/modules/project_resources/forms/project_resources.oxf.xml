@@ -1,4 +1,4 @@
-<form id="ProjectResourcesForm" layout="border" resource-map-ref="project_resources.project_resources" provider-class="onepoint.project.modules.project_resources.forms.OpProjectResourcesFormProvider" script="/modules/project_resources/scripts/project_resources.jes">
+ <form id="ProjectResourcesForm" layout="border" resource-map-ref="project_resources.project_resources" provider-class="onepoint.project.modules.project_resources.forms.OpProjectResourcesFormProvider" script="/modules/project_resources/scripts/project_resources.jes">
    <data-field id="ProjectIDField"/>
    <data-field id="PrintTitle"/>
    <data-field id="Total" text="${Total}"/>

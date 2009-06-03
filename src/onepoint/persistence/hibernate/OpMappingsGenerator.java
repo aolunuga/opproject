@@ -57,8 +57,8 @@ public class OpMappingsGenerator {
    /**
     * 
     */
-   private static final String TYPE_SUFFIX = "_TYPE";
-   private static final String ID_SUFFIX = "_ID";
+   public static final String TYPE_SUFFIX = "_TYPE";
+   public static final String ID_SUFFIX = "_ID";
 
    // The logger used in this class.
    private static final XLog logger = XLogFactory.getLogger(OpMappingsGenerator.class);
@@ -162,7 +162,7 @@ public class OpMappingsGenerator {
       buffer.append("<?xml version=\"1.0\"?>\n");
       buffer.append("<!DOCTYPE hibernate-mapping PUBLIC \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\" \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n");
       // FIXME(dfreis Oct 11, 2007 6:35:57 AM) OPP 8.1: direct field access - will break backup/restore
-//      buffer.append("<hibernate-mapping default-access=\"onepoint.persistence.hibernate.OpPropertyAccessor\">").append(NEW_LINE);
+ //     buffer.append("<hibernate-mapping default-access=\"onepoint.persistence.hibernate.OpPropertyAccessor\">").append(NEW_LINE);
       buffer.append("<hibernate-mapping>").append(NEW_LINE);
 
       //Process all root types
@@ -302,8 +302,8 @@ public class OpMappingsGenerator {
       appendLine(buffer, "</generator>", level + 2);
       appendLine(buffer, "</id>", level + 1);
       // add hardcoded created and modified fields
-      appendLine(buffer, "<property name=\"Created\" type=\"timestamp\" not-null=\"true\"><column name=\"op_created\" not-null=\"true\"/></property>", level+1);
-      appendLine(buffer, "<property name=\"Modified\" type=\"timestamp\" not-null=\"true\"><column name=\"op_modified\" not-null=\"true\"/></property>", level+1);
+//      appendLine(buffer, "<property name=\"Created\" type=\"timestamp\" not-null=\"true\"><column name=\"op_created\" not-null=\"true\"/></property>", level+1);
+//      appendLine(buffer, "<property name=\"Modified\" type=\"timestamp\" not-null=\"true\"><column name=\"op_modified\" not-null=\"true\"/></property>", level+1);
 
       // Add interfaces
       addInterfaces(buffer, rootType, level);
@@ -433,7 +433,7 @@ public class OpMappingsGenerator {
     * @pre
     * @post
     */
-   private String getIdForImplementingType(OpPrototype type) {
+   public static String getIdForImplementingType(OpPrototype type) {
       String shortName = shortNameMap.get(type.getInstanceClass());
       if (shortName == null) {
          shortName = type.getInstanceClass().getSimpleName()+":"+type.getInstanceClass().getPackage().getName();
@@ -536,6 +536,9 @@ public class OpMappingsGenerator {
       if (defaultValue != null && defaultValue.trim().length() != 0) {
          if (field.getTypeID() == OpType.BOOLEAN) {
             defaultValue = getDefautBooleanValue(defaultValue, databaseType);
+         }
+         if (field.getTypeID() == OpType.STRING || field.getTypeID() == OpType.TEXT) {
+            defaultValue = "'" + defaultValue + "'";
          }
          buffer.append(" default=\"").append(defaultValue).append("\"");
 //         buffer.append(" not-null=\"false\"");
@@ -1089,9 +1092,7 @@ public class OpMappingsGenerator {
       XResourceBroker.setResourcePath("onepoint/project");
       // initialize factory
       OpInitializerFactory factory = OpInitializerFactory.getInstance();
-      factory.setInitializer(OpInitializer.class);
-
-      OpInitializer initializer = factory.getInitializer();
+      OpInitializer initializer = factory.setInitializer(OpInitializer.class);
       initializer.init(OpProjectConstants.OPEN_EDITION_CODE);
       OpMappingsGenerator generator = new OpMappingsGenerator(dbType);
       generator.init(OpTypeManager.getPrototypes());

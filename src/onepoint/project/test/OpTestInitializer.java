@@ -12,11 +12,8 @@ import java.util.Set;
 import net.sf.cglib.proxy.Enhancer;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.log.server.XLog4JLog;
 import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpSource;
-import onepoint.project.OpProjectSession;
 import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.modules.custom_attribute.OpCustomAttribute;
 import onepoint.project.modules.custom_attribute.OpCustomType;
@@ -64,33 +61,6 @@ public abstract class OpTestInitializer {
     */
    public String getSourceName() {
       return OpSource.DEFAULT_SOURCE_NAME;
-   }
-
-
-   /**
-    * This method checks if the objects from remaining list can be left into database or  not.
-    *
-    * @param session session to use
-    */
-   final public void checkObjects(OpProjectSession session) {
-      OpBroker broker = session.newBroker();
-      try {
-         OpQuery query = broker.newQuery("select op from OpObject as op");
-         List<OpPermissionable> remaining = broker.list(query, OpPermissionable.class);
-
-         validateRemaningObjects(broker, remaining);
-         if (logger.isLoggable(XLog4JLog.ERROR)) {
-            for (OpPermissionable current : remaining) {
-               logger.error("Object not deleted: " + current + ", id: " + current.getId() + ", type: " + current.getClass().getName());
-            }
-         }
-         if (remaining.size() != 0) {
-            throw new RuntimeException("Database still contains invalid objects. " + remaining);
-         }
-      }
-      finally {
-         broker.close();
-      }
    }
 
    /**

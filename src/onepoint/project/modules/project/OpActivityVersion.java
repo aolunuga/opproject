@@ -12,17 +12,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import onepoint.persistence.hibernate.OpPropertyAccessor;
-import onepoint.project.modules.custom_attribute.OpCustomAttribute;
-import onepoint.project.modules.custom_attribute.OpCustomAttributeManager;
-import onepoint.project.modules.custom_attribute.OpCustomizableObject;
 import onepoint.project.modules.project.OpActivity.OpProgressDelta;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.work.OpCostRecord;
 
-public class OpActivityVersion extends OpCustomizableObject implements OpActivityIfc {
-
+public class OpActivityVersion extends OpActivityBase implements OpActivityIfc, OpGanttValidator.ProgressTrackableEntityIfc {
    public final static String ACTIVITY_VERSION = "OpActivityVersion";
 
    public final static String NAME = "Name";
@@ -171,7 +166,7 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
       this.type = type;
    }
 
-   public Byte getType() {
+   public byte getType() {
       return type;
    }
 
@@ -350,11 +345,21 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
       this.activity = activity;
    }
 
-   public OpActivity getActivityForActualValues() {
+   public OpActivityValuesIfc getElementForActualValues() {
       if (getMasterActivityVersion() != null) {
          return getMasterActivityVersion().getActivity();
       }
-      return activity;
+      else if (getSubProject() != null) {
+         return getSubProject().getPlan();
+      }
+      return getActivity();
+   }
+
+   public OpActivity getActivityForAdditionalObjects() {
+      if (getMasterActivityVersion() != null) {
+         return getMasterActivityVersion().getActivity();
+      }
+      return getActivity();
    }
 
    public OpActivity getActivity() {
@@ -479,33 +484,16 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
       return baseProceeds;
    }
 
-   public void setBaseProceeds(Double baseProceeds) {
-      setBaseProceedsInternal(baseProceeds);
-   }
-
-   /**
-    * called internally by hibernate
-    * @param actualProceeds
-    * @see OpPropertyAccessor
-    */
-   private void setBaseProceedsInternal(Double baseProceeds) {
-      this.baseProceeds = (baseProceeds != null) ? baseProceeds : 0;
+   public void setBaseProceeds(double baseProceeds) {
+      this.baseProceeds = baseProceeds;
    }
 
    public double getPayment() {
       return payment;
    }
 
-   public void setPayment(Double payment) {
-      setPaymentInternal(payment);
-   }
-
-   /**
-    * called internally by hibernate
-    * @see OpPropertyAccessor
-    */
-   private void setPaymentInternal(Double payment) {
-      this.payment = (payment != null) ? payment : 0;
+   public void setPayment(double payment) {
+      this.payment = payment;
    }
 
    /**
@@ -577,11 +565,10 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
                }
                complete = complete / factor;
             }
-            else if (getActivityForActualValues() != null) {
-               complete = getActivityForActualValues().getComplete();
+            else if (getElementForActualValues() != null) {
+               complete = getElementForActualValues().getComplete();
             }
             setComplete(complete);
-            delta.setWeigthedCompleteDelta(getComplete() - oldComplete);
          }
          else {
             setComplete(OpGanttValidator.calculateCompleteValue(getActualEffort(), getBaseEffort(), getOpenEffort()));
@@ -593,36 +580,19 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
    }
    
    public boolean hasSubActivities() {
-      return getType() == OpActivity.COLLECTION
-            || getType() == OpActivity.COLLECTION_TASK
-            || getType() == OpActivity.SCHEDULED_TASK;
+      return OpActivity.hasSubActivities(this);
    }
 
-   public boolean effortCalculatedFromChildren() {
-      return getType() == OpActivity.COLLECTION
-            || getType() == OpActivity.COLLECTION_TASK
-            || getType() == OpActivity.SCHEDULED_TASK;
+   public boolean hasAggregatedValues() {
+      return OpActivity.hasSubActivities(this) && !isImported();
    }
 
-   public void resetAggregatedValuesForCollection() {
-      setBaseEffort(0d);
-      setBaseExternalCosts(0d);
-      setBaseMaterialCosts(0d);
-      setBaseMiscellaneousCosts(0d);
-      setBasePersonnelCosts(0d);
-      setBasePersonnelCosts(0d);
-      setBaseProceeds(0d);
-      setBaseTravelCosts(0d);
-      
-      if (!definesStartFinish()) {
-         setStart(null);
-         setFinish(null);
-         setLeadTime(0d);
-         setFollowUpTime(0d);
-      }
+   public void resetActualValues() {
       actualValues = null;
-
-      setUnassignedEffort(getBaseEffort());
+   }
+   
+   public void resetAggregatedValues() {
+      OpActivity.resetValues(this);
    }
    
    public boolean definesStartFinish() {
@@ -636,22 +606,22 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
    }
    
    
-   public void addActualEffort(double actualEffort) {
+   public void setActualEffort(double actualEffort) {
       initActualValues();
-      actualValues.setActualEffort(actualValues.getActualEffort() + actualEffort);
+      actualValues.setActualEffort(actualEffort);
    }
    
-   public void addRemainingEffort(double remainingEffort) {
+   public void setRemainingEffort(double remainingEffort) {
       initActualValues();
-      actualValues.setRemainingEffort(actualValues.getRemainingEffort() + remainingEffort);
+      actualValues.setRemainingEffort(remainingEffort);
    }
 
    public double getActualEffort() {
       if (actualValues != null) {
          return actualValues.getActualEffort();
       }
-      else if (getActivityForActualValues() != null) {
-         return getActivityForActualValues().getActualEffort();
+      else if (getElementForActualValues() != null) {
+         return getElementForActualValues().getActualEffort();
       }
       else {
          return 0d;
@@ -662,8 +632,8 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
       if (actualValues != null) {
          return actualValues.getRemainingEffort() + getUnassignedEffort();
       }
-      if (getActivityForActualValues() != null) {
-         return getActivityForActualValues().getOpenEffort();
+      if (getElementForActualValues() != null) {
+         return getElementForActualValues().getOpenEffort();
       }
       return getBaseEffort();
    }
@@ -672,8 +642,8 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
       if (actualValues != null) {
          return actualValues.getRemainingEffort();
       }
-      else if (getActivityForActualValues() != null) {
-         return getActivityForActualValues().getRemainingEffort();
+      else if (getElementForActualValues() != null) {
+         return getElementForActualValues().getRemainingEffort();
       }
       else {
          return 0d;
@@ -690,10 +660,13 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
    
    public boolean isProgressTracked() {
       return getPlanVersion().getProjectPlan().getProgressTracked()
-            || getType() == OpActivityVersion.ADHOC_TASK || hasSubActivities();
+            || getType() == OpActivityVersion.ADHOC_TASK || hasAggregatedValues();
    }
    
    public double getCompleteFromTracking(boolean progressTracked) {
+      if (isImported()) {
+         return getComplete();
+      }
       return OpGanttValidator.getCompleteFromTracking(this, progressTracked);
    }
    
@@ -879,6 +852,7 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
 
    public void setSubProject(OpProjectNode subProject) {
       this.subProject = subProject;
+      updateImported();
    }
    
    public boolean isExported() {
@@ -891,10 +865,16 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
 
    public boolean isImported() {
       return (getAttributes() & OpActivity.IMPORTED_FROM_SUBPROJECT) == OpActivity.IMPORTED_FROM_SUBPROJECT;
+      // return isImportedActivity() || isImportedSubProject();
    }
    
-   public void setImported() {
-      setAttributes(getAttributes() | OpActivity.IMPORTED_FROM_SUBPROJECT);
+   public void updateImported() {
+      if (getMasterActivityVersion() != null || getSubProject() != null) {
+         setAttributes(getAttributes() | OpActivity.IMPORTED_FROM_SUBPROJECT);
+      }
+      else {
+         setAttributes(getAttributes() - (getAttributes() & OpActivity.IMPORTED_FROM_SUBPROJECT));
+      }
    }
 
    public OpActivityIfc getSuperActivityIfc() {
@@ -902,8 +882,7 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
    }
 
    public Set<OpAssignment> getCheckedInAssignments() {
-      // TODO: check: use simple getActivity()?
-      return getActivityForActualValues() != null ? getActivityForActualValues().getAssignments() : null;
+      return getActivity() != null ? getActivity().getAssignments() : null;
    }
    
    public double getUnassignedEffort() {
@@ -919,10 +898,6 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
       this.unassignedEffort = uae != null ? uae.doubleValue() : 0d;
    }
 
-   public void addUnassignedEffort(double effort) {
-      setUnassignedEffort(getUnassignedEffort() + effort);
-   }
-
    public void cloneSimpleMembers(OpActivityIfc src, boolean progressTracked) {
       OpActivity.cloneSimpleMembers(src, this, progressTracked);
       if (src instanceof OpActivityVersion) {
@@ -936,14 +911,6 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
             subProject.addProgramActivityVersion(this);
          }
       }
-      // copy all custom attributes
-      OpCustomAttributeManager caManager = OpCustomAttributeManager.getInstance();
-      if (caManager != null) {
-         Map<String, OpCustomAttribute> map = caManager.getCustomAttributesMap(OpActivityVersion.class, null);
-         for (String key : map.keySet()) {
-            this.setObject(key, src.getObject(key));
-         }
-      }
       // responsible resource is easy:
       if (src.getResponsibleResource() != null) {
          src.getResponsibleResource().addActivityVersion(this);
@@ -951,25 +918,21 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
    }
 
    private void applyDelta(OpProgressDelta delta) {
-      addUnassignedEffort(delta.getUnassignedEffort());
+      setUnassignedEffort(getUnassignedEffort() + delta.getUnassignedEffort());
       setBasePersonnelCosts(getBasePersonnelCosts() + delta.getBasePersonnelCosts());
       setBaseProceeds(getBaseProceeds() + delta.getBaseProceeds());
    }
    
    public void handleAssigmentProgress(OpProgressDelta delta) {
       applyDelta(delta);
-      if (getSuperActivityVersion() != null) {
-         getSuperActivityVersion().handleSubActivityProgress(delta);
-      }
+      OpActivity.propagateProgressToParent(this, delta);
    }
 
-   private void handleSubActivityProgress(OpProgressDelta delta) {
-      applyDelta(delta);
-      if (getSuperActivityVersion() != null) {
-         getSuperActivityVersion().handleSubActivityProgress(delta);
-      }
+   public void addChildComplete(double childComplete, double childBaseEffort) {
+      OpActivity.addWeightedComplete(this, childComplete, childBaseEffort);
    }
-
+   
+   
    /* (non-Javadoc)
     * @see onepoint.project.modules.project.OpActivityIfc#hasAttribute(int)
     */
@@ -1080,6 +1043,7 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
 
    public void setMasterActivityVersion(OpActivityVersion masterActivityVersion) {
       this.masterActivityVersion = masterActivityVersion;
+      updateImported();
    }
 
    public Set<OpActivityVersion> getShallowCopies() {
@@ -1126,52 +1090,52 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
       this.masterActivity = masterActivity;
    }
    
-   public void setRemainingExternalCosts(Double value) {
+   public void setRemainingExternalCosts(double value) {
       initActualValues();
       actualValues.setRemainingCosts(OpCostRecord.EXTERNAL_COST, value);
    }
-   public void setRemainingMaterialCosts(Double value) {
+   public void setRemainingMaterialCosts(double value) {
       initActualValues();
       actualValues.setRemainingCosts(OpCostRecord.MATERIAL_COST, value);
    }
-   public void setRemainingMiscellaneousCosts(Double value) {
+   public void setRemainingMiscellaneousCosts(double value) {
       initActualValues();
       actualValues.setRemainingCosts(OpCostRecord.MISCELLANEOUS_COST, value);
    }
-   public void setRemainingPersonnelCosts(Double value) {
+   public void setRemainingPersonnelCosts(double value) {
       initActualValues();
       actualValues.setRemainingCosts(OpCostRecord.PERSONELL_COSTS, value);
    }
-   public void setRemainingProceeds(Double value) {
+   public void setRemainingProceeds(double value) {
       initActualValues();
       actualValues.setRemainingCosts(OpCostRecord.PROCEEDS, value);
    }
-   public void setRemainingTravelCosts(Double value) {
+   public void setRemainingTravelCosts(double value) {
       initActualValues();
       actualValues.setRemainingCosts(OpCostRecord.TRAVEL_COST, value);
    }
 
-   public void setActualExternalCosts(Double value) {
+   public void setActualExternalCosts(double value) {
       initActualValues();
       actualValues.setActualCosts(OpCostRecord.EXTERNAL_COST, value);
    }
-   public void setActualMaterialCosts(Double value) {
+   public void setActualMaterialCosts(double value) {
       initActualValues();
       actualValues.setActualCosts(OpCostRecord.MATERIAL_COST, value);
    }
-   public void setActualMiscellaneousCosts(Double value) {
+   public void setActualMiscellaneousCosts(double value) {
       initActualValues();
       actualValues.setActualCosts(OpCostRecord.MISCELLANEOUS_COST, value);
    }
-   public void setActualPersonnelCosts(Double value) {
+   public void setActualPersonnelCosts(double value) {
       initActualValues();
       actualValues.setActualCosts(OpCostRecord.PERSONELL_COSTS, value);
    }
-   public void setActualProceeds(Double value) {
+   public void setActualProceeds(double value) {
       initActualValues();
       actualValues.setActualCosts(OpCostRecord.PROCEEDS, value);
    }
-   public void setActualTravelCosts(Double value) {
+   public void setActualTravelCosts(double value) {
       initActualValues();
       actualValues.setActualCosts(OpCostRecord.TRAVEL_COST, value);
    }
@@ -1180,8 +1144,8 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
       if (actualValues != null) {
          return actualValues.getRemainingCosts(OpCostRecord.EXTERNAL_COST);
       }
-      else if (getActivityForActualValues() != null) {
-         return getActivityForActualValues().getRemainingExternalCosts();
+      else if (getElementForActualValues() != null) {
+         return getElementForActualValues().getRemainingExternalCosts();
       }
       return getBaseExternalCosts();
    }
@@ -1189,8 +1153,8 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
       if (actualValues != null) {
          return actualValues.getRemainingCosts(OpCostRecord.MATERIAL_COST);
       }
-      else if (getActivityForActualValues() != null) {
-         return getActivityForActualValues().getRemainingMaterialCosts();
+      else if (getElementForActualValues() != null) {
+         return getElementForActualValues().getRemainingMaterialCosts();
       }
       return getBaseMaterialCosts();
    }
@@ -1198,8 +1162,8 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
       if (actualValues != null) {
          return actualValues.getRemainingCosts(OpCostRecord.MISCELLANEOUS_COST);
       }
-      else if (getActivityForActualValues() != null) {
-         return getActivityForActualValues().getRemainingMiscellaneousCosts();
+      else if (getElementForActualValues() != null) {
+         return getElementForActualValues().getRemainingMiscellaneousCosts();
       }
       return getBaseMiscellaneousCosts();
    }
@@ -1207,8 +1171,8 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
       if (actualValues != null) {
          return actualValues.getRemainingCosts(OpCostRecord.PERSONELL_COSTS);
       }
-      else if (getActivityForActualValues() != null) {
-         return getActivityForActualValues().getRemainingPersonnelCosts();
+      else if (getElementForActualValues() != null) {
+         return getElementForActualValues().getRemainingPersonnelCosts();
       }
       return getBasePersonnelCosts();
    }
@@ -1216,8 +1180,8 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
       if (actualValues != null) {
          return actualValues.getRemainingCosts(OpCostRecord.PROCEEDS);
       }
-      else if (getActivityForActualValues() != null) {
-         return getActivityForActualValues().getRemainingProceeds();
+      else if (getElementForActualValues() != null) {
+         return getElementForActualValues().getRemainingProceeds();
       }
       return getBaseProceeds();
    }
@@ -1225,8 +1189,8 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
       if (actualValues != null) {
          return actualValues.getRemainingCosts(OpCostRecord.TRAVEL_COST);
       }
-      else if (getActivityForActualValues() != null) {
-         return getActivityForActualValues().getRemainingTravelCosts();
+      else if (getElementForActualValues() != null) {
+         return getElementForActualValues().getRemainingTravelCosts();
       }
       return getBaseTravelCosts();
    }
@@ -1235,8 +1199,8 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
       if (actualValues != null) {
          return actualValues.getActualCosts(OpCostRecord.EXTERNAL_COST);
       }
-      else if (getActivityForActualValues() != null) {
-         return getActivityForActualValues().getActualExternalCosts();
+      else if (getElementForActualValues() != null) {
+         return getElementForActualValues().getActualExternalCosts();
       }
       return 0d;
    }
@@ -1244,8 +1208,8 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
       if (actualValues != null) {
          return actualValues.getActualCosts(OpCostRecord.MATERIAL_COST);
       }
-      else if (getActivityForActualValues() != null) {
-         return getActivityForActualValues().getActualMaterialCosts();
+      else if (getElementForActualValues() != null) {
+         return getElementForActualValues().getActualMaterialCosts();
       }
       return 0d;
    }
@@ -1253,8 +1217,8 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
       if (actualValues != null) {
          return actualValues.getActualCosts(OpCostRecord.MISCELLANEOUS_COST);
       }
-      else if (getActivityForActualValues() != null) {
-         return getActivityForActualValues().getActualMiscellaneousCosts();
+      else if (getElementForActualValues() != null) {
+         return getElementForActualValues().getActualMiscellaneousCosts();
       }
       return 0d;
    }
@@ -1262,8 +1226,8 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
       if (actualValues != null) {
          return actualValues.getActualCosts(OpCostRecord.PERSONELL_COSTS);
       }
-      else if (getActivityForActualValues() != null) {
-         return getActivityForActualValues().getActualPersonnelCosts();
+      else if (getElementForActualValues() != null) {
+         return getElementForActualValues().getActualPersonnelCosts();
       }
       return 0d;
    }
@@ -1271,8 +1235,8 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
       if (actualValues != null) {
          return actualValues.getActualCosts(OpCostRecord.PROCEEDS);
       }
-      else if (getActivityForActualValues() != null) {
-         return getActivityForActualValues().getActualProceeds();
+      else if (getElementForActualValues() != null) {
+         return getElementForActualValues().getActualProceeds();
       }
       return 0d;
    }
@@ -1280,8 +1244,8 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
       if (actualValues != null) {
          return actualValues.getActualCosts(OpCostRecord.TRAVEL_COST);
       }
-      else if (getActivityForActualValues() != null) {
-         return getActivityForActualValues().getActualTravelCosts();
+      else if (getElementForActualValues() != null) {
+         return getElementForActualValues().getActualTravelCosts();
       }
       return 0d;
    }
@@ -1295,11 +1259,26 @@ public class OpActivityVersion extends OpCustomizableObject implements OpActivit
    }
 
    public boolean isIndivisible() {
-      return OpGanttValidator.isIndivisibleElemen(this);
+      return OpGanttValidator.isIndivisibleElement(this);
    }
 
    public boolean isTimeTrackable() {
       return OpActivity.isTimeTrackable(this);
    }
    
+   public OpActivityValuesIfc getParent() {
+      if (getSuperActivityVersion() != null) {
+         return getSuperActivityVersion();
+      }
+      return getPlanVersion();
+   }
+
+   public boolean isSubProjectReference() {
+      return getSubProject() != null;
+   }
+
+   public boolean hasDerivedStartFinish() {
+      return OpActivity.hasDerivedStartFinish(this);
+   }
+
 }

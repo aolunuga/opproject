@@ -431,7 +431,7 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
          OpActivity projectActivity = null;
          OpActivity adhocTaskActivity = null;
          for (OpActivity activity : project.getPlan().getActivities()) {
-            if (activity.getType().equals(OpActivity.STANDARD)) {
+            if (activity.getType() == OpActivity.STANDARD) {
                projectActivity = activity;
             }
             else {
@@ -788,7 +788,7 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
             assertNull(activity.getSuperActivity());
             if (activity.getName().equals("proj1Activity1")) {
                proj1Activity1 = activity;
-               assertEquals((Byte) OpActivity.STANDARD, activity.getType());
+               assertEquals((Byte) OpActivity.STANDARD, new Byte(activity.getType()));
                assertEquals(new Date(getCalendarWithExactDaySet(2008, 1, 11).getTimeInMillis()), activity.getStart());
                assertEquals(new Date(getCalendarWithExactDaySet(2008, 1, 15).getTimeInMillis()), activity.getFinish());
                assertEquals(40d, activity.getDuration());
@@ -805,7 +805,7 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
                assertEquals(75d, activity.getRemainingProceeds());
             }
             if (activity.getName().equals("proj1Activity2")) {
-               assertEquals((Byte) OpActivity.MILESTONE, activity.getType());
+               assertEquals((Byte) OpActivity.MILESTONE, new Byte(activity.getType()));
                assertEquals(new Date(getCalendarWithExactDaySet(2008, 1, 21).getTimeInMillis()), activity.getStart());
                assertEquals(new Date(getCalendarWithExactDaySet(2008, 1, 21).getTimeInMillis()), activity.getFinish());
                assertEquals(0d, activity.getDuration());
@@ -916,7 +916,7 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
             proj2Activity1 = activity;
             assertTrue(activity.getName().equals("proj2Activity1"));
             assertNull(activity.getDescription());
-            assertEquals((Byte) OpActivity.STANDARD, activity.getType());
+            assertEquals((Byte) OpActivity.STANDARD, new Byte(activity.getType()));
             assertEquals(new Date(getCalendarWithExactDaySet(2008, 1, 5).getTimeInMillis()), activity.getStart());
             assertEquals(new Date(getCalendarWithExactDaySet(2008, 1, 7).getTimeInMillis()), activity.getFinish());
             assertEquals(24d, activity.getDuration());

@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import onepoint.log.XLog;
@@ -24,8 +25,10 @@ import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpObjectIfc;
 import onepoint.persistence.OpOrigObject;
 import onepoint.persistence.OpPrototype;
+import onepoint.persistence.OpRelationship;
 import onepoint.persistence.OpSource;
 import onepoint.persistence.OpSourceManager;
+import onepoint.persistence.OpTransaction;
 import onepoint.persistence.OpTypeManager;
 import onepoint.persistence.hibernate.OpHibernateConnection;
 import onepoint.persistence.hibernate.OpHibernateSchemaUpdater;
@@ -37,6 +40,12 @@ import onepoint.project.modules.custom_attribute.OpCustomValuePage;
 import onepoint.project.modules.custom_attribute.OpCustomizable;
 import onepoint.project.modules.documents.OpDynamicResource;
 import onepoint.project.modules.documents.OpDynamicResourceable;
+import onepoint.project.modules.external_applications.OpExternalApplication;
+import onepoint.project.modules.external_applications.OpExternalApplicationParameter;
+import onepoint.project.modules.external_applications.OpExternalApplicationUser;
+import onepoint.project.modules.external_applications.OpExternalApplicationUserParameter;
+import onepoint.project.modules.project.OpActivityVersionWorkBreak;
+import onepoint.project.modules.project.OpActivityWorkBreak;
 import onepoint.project.modules.user.OpLock;
 import onepoint.project.modules.user.OpLockable;
 import onepoint.project.modules.user.OpPermission;
@@ -54,8 +63,6 @@ import org.hibernate.dialect.Dialect;
 
 public final class OpModuleManager {
 
-	public final static String MODULE_REGISTRY_FILE_NAME = "registry.oxr.xml";
-
 	/**
 	 * This class' logger.
 	 */
@@ -63,7 +70,12 @@ public final class OpModuleManager {
 
 	private static OpModuleRegistry moduleRegistry;
 	private static OpModuleRegistryLoader opModuleRegistryLoader;
+   private static String registryFileName = "registry.oxr.xml";
 
+
+	public OpModuleManager() {
+   }
+	
 	/**
 	 * Sets the ModuleRegistryLoader to be used for loading the modules
 	 *
@@ -77,7 +89,7 @@ public final class OpModuleManager {
 	 * Read modules registry.
 	 */
 	public static void load() {
-		load(MODULE_REGISTRY_FILE_NAME);
+		load(getRegistryFileName());
 	}
 
 	/**
@@ -158,26 +170,48 @@ public final class OpModuleManager {
 	 * @param latestVersion an <code>int</code> representing the latest version.
 	 */
 	public static void upgrade(int dbVersion, int latestVersion) {
-		Collection<OpSource> allSources = OpSourceManager.getAllSources();
+      OpHibernateSource defaultSource = (OpHibernateSource)OpSourceManager.getDefaultSource();
+      boolean existsOldOpObjectTable = defaultSource.existsTable("op_object");
+      if (existsOldOpObjectTable) {
+         defaultSource.enableFilters(false);
+         try {
+            OpProjectSession session = new OpProjectSession(defaultSource.getName());
+            upgradeToNewDBVersion(session, defaultSource);
+            deleteOldOpObject();
+         }
+         finally {
+            defaultSource.enableFilters(true);
+         }
+      }
+
+      Collection<OpSource> allSources = OpSourceManager.getAllSources();
 		for (OpSource source : allSources) {
 			OpProjectSession session = new OpProjectSession(source.getName());
 			try {
-				if (((OpHibernateSource)source).existsTable("op_object")) {
-					upgradeToVersion81(session, source);
-				}
 				session.loadSettings(false);
 				for (int i = dbVersion + 1; i <= latestVersion; i++) {
-//					if (i == 81) {
-//						if (((OpHibernateSource)source).existsTable("op_object")) {
-//						upgradeToVersion81(session, source);
-//						}
-//					}
-					for (OpModule module : moduleRegistry) {
-						String methodName = "upgradeToVersion" + i;
-						try {
-							Method m = module.getClass().getMethod(methodName, OpProjectSession.class);
-							logger.info("Invoking " + methodName + " for module " + module.getName());
-							m.invoke(module, session);
+               String methodName = "upgradeToVersion" + i;
+               try {
+                  Method m = OpModuleManager.class.getMethod(methodName, OpProjectSession.class);
+                  logger.info("Invoking " + methodName + " for module manager");
+                  m.invoke(null, session);
+               }
+               catch (NoSuchMethodException e) {
+                  logger.debug("No upgrade method " + methodName + " found for module manager");
+               }
+               catch (IllegalAccessException e) {
+                  logger.debug("Cannot access upgrade method ", e);
+               }
+               catch (InvocationTargetException e) {
+                  logger.error("Cannot invoke upgrade method " + methodName + " for module manager");
+                  //allow exceptions thrown by upgrade methods to be handled by someone else as well
+                  throw new RuntimeException(e.getCause());
+               }
+               for (OpModule module : moduleRegistry) {
+                  try {
+                     Method m = module.getClass().getMethod(methodName, OpProjectSession.class);
+                     logger.info("Invoking " + methodName + " for module " + module.getName());
+                     m.invoke(module, session);
 						}
 						catch (NoSuchMethodException e) {
 							logger.debug("No upgrade method " + methodName + " found for module " + module.getName());
@@ -199,8 +233,69 @@ public final class OpModuleManager {
 		}
 	}
 
-	private static void upgradeToVersion81(OpProjectSession session, OpSource source) {
-		//if (!fromFile) {
+   public static void upgradeToVersion88(OpProjectSession session) {
+
+      OpHibernateSource hibernateSource = (OpHibernateSource)OpSourceManager.getDefaultSource();
+      Configuration configuration = hibernateSource.getConfiguration();
+      SessionFactory sf = configuration.buildSessionFactory();
+      Session s = sf.openSession();
+      try {
+         moveCustomValuePagesToVersion81(s, hibernateSource);
+      }
+      finally {
+         s.close();
+         sf.close();
+      }
+
+
+      OpBroker broker = session.newBroker();
+      OpTransaction t = broker.newTransaction();
+      try {
+         HashMap<OpPrototype, Set<OpPrototype>> ptmap = new HashMap<OpPrototype, Set<OpPrototype>>();
+         Iterator<OpPrototype> prototypes = OpTypeManager.getPrototypes();
+         while (prototypes.hasNext()) {
+            OpPrototype ptype = prototypes.next();
+            for (OpPrototype impType : ptype.getImplementedTypes()) {
+               Set<OpPrototype> ptypeset = ptmap.get(impType);
+               if (ptypeset == null) {
+                  ptypeset = new HashSet<OpPrototype>();
+                  ptmap.put(impType, ptypeset);
+               }
+               ptypeset.add(ptype);
+            }
+         }
+
+         for (Map.Entry<OpPrototype, Set<OpPrototype>> entry : ptmap.entrySet()) {
+            List<OpRelationship> relations = entry.getKey().getRelationships();
+            for (OpRelationship relation : relations) {
+               if (relation.getBackRelationship() != null) {
+                  StringBuffer query = new StringBuffer();
+                  query.append("delete from "+OpTypeManager.getPrototype(relation.getTypeName()).getInstanceClass().getName()+" as o where o."+relation.getBackRelationship().getName()+" is null");
+                  broker.execute(broker.newQuery(query.toString()));
+
+                  query = new StringBuffer();                  
+                  query.append("delete from "+OpTypeManager.getPrototype(relation.getTypeName()).getInstanceClass().getName()+" as o where");
+                  boolean first = true;
+                  for (OpPrototype implementor : entry.getValue()) {
+                     if (!first) {
+                        query.append(" and");
+                     }
+                     first = false;
+                     query.append(" not exists (from "+implementor.getInstanceClass().getName()+" as i where i.id = o."+relation.getBackRelationship().getName()+".id)");
+                  }
+                  broker.execute(broker.newQuery(query.toString()));
+               }
+            }
+         }
+         t.commit();
+      }
+      finally {
+         broker.closeAndEvict();
+      }
+	}
+	
+	private static void upgradeToNewDBVersion(OpProjectSession session, OpSource source) {
+		//if (!fromFile) 
 		//   OpProjectSession session = new OpProjectSession(source.getName());
 		OpHibernateSource hibernateSource = (OpHibernateSource)source;
 		Configuration configuration = hibernateSource.getConfiguration();
@@ -209,6 +304,7 @@ public final class OpModuleManager {
 		OpHibernateSource hsource = (OpHibernateSource)source;
 		try {
 			moveOpObjectToVersion81(s, hsource);
+         moveCustomValuePagesToVersion81(s, hsource);
 			movePermissionsToVersion81(s, hsource);
 			moveLocksToVersion81(s, hsource);
 			moveDynamicResourcesToVersion81(s, hsource);
@@ -218,19 +314,23 @@ public final class OpModuleManager {
 			sf.close();
 		}
 
-		OpBroker broker = session.newBroker();
+		Configuration newConfiguration = hibernateSource.getNewConfiguration();
+      if (newConfiguration != null) {
+         hsource.setConfiguration(newConfiguration);
+         hsource.setNewConfiguration(null);
+      }
+	}
+
+   private static void deleteOldOpObject() {
+      OpProjectSession session = new OpProjectSession();
+      OpBroker broker = session.newBroker();
 		try {
 			((OpHibernateConnection)(broker.getConnection())).deleteOldOpObject();
 		}
 		finally {
-			Configuration newConfiguration = hibernateSource.getNewConfiguration();
-			if (newConfiguration != null) {
-				hsource.setConfiguration(newConfiguration);
-				hsource.setNewConfiguration(null);
-			}
 			broker.close();
 		}
-	}
+   }
 
 	private static void moveOpObjectToVersion81(Session s, OpHibernateSource hsource) {
 		long count = 0;
@@ -273,10 +373,35 @@ public final class OpModuleManager {
 						start = System.currentTimeMillis();
 					}
 				}
+            if (pt.getInstanceClass() == OpExternalApplication.class || 
+                  pt.getInstanceClass() == OpExternalApplicationParameter.class || 
+                  pt.getInstanceClass() == OpExternalApplicationUser.class || 
+                  pt.getInstanceClass() == OpExternalApplicationUserParameter.class ||
+                  pt.getInstanceClass() == OpActivityWorkBreak.class ||
+                  pt.getInstanceClass() == OpActivityVersionWorkBreak.class) {
+
+               // move created and modified columns
+                String objClassName = pt.getName();
+                OpHibernateSource source = (OpHibernateSource)OpSourceManager.getDefaultSource();
+                if (source.existsColumn(OpMappingsGenerator.generateTableName(objClassName), "created")) {
+                   renameColumn(s, objClassName, "created", "op_created");
+                }
+                if (source.existsColumn(OpMappingsGenerator.generateTableName(objClassName), "modified")) {
+                   renameColumn(s, objClassName, "modified", "op_modified");
+                }
+            }
 				t.commit();
 			}
 		}
-	}	
+	}
+
+   private static void renameColumn(Session s, String objClassName,
+         String jdbcObjectKey, String jdbcOldKey) {
+      s.createSQLQuery("update "+OpMappingsGenerator.generateTableName(objClassName)+" set "+jdbcOldKey+" = "+jdbcObjectKey).executeUpdate();
+//                   String tableName = OpMappingsGenerator.generateTableName(objClassName);
+//					    deleteKeyConstraints(s, hsource, jdbcObjectKey, tableName);
+       s.createSQLQuery("alter table "+OpMappingsGenerator.generateTableName(objClassName)+" drop column "+jdbcObjectKey).executeUpdate();
+   }	
 
 	/**
 	 * @param s
@@ -399,54 +524,103 @@ public final class OpModuleManager {
 		return permissionObjMap;
 	}
 
-	/**
-	 * @param s
-	 * @param hsource 
-	 * @param source 
-	 * @param count
-	 * @pre
-	 * @post
-	 */
-	private static void moveLocksToVersion81(Session s, OpHibernateSource hsource) {
-		// create mapping from op_object to op_id
-		Class lockClass = OpLock.class;
-		String jdbcObjectKey = "op_target";
-		String tableName = OpMappingsGenerator.generateTableName(lockClass.getSimpleName());
-		if (!hsource.existsColumn(tableName, jdbcObjectKey)) { // no old tables -> do nothing
-			return;
-		}
+   /**
+    * @param s
+    * @param hsource 
+    * @param source 
+    * @param count
+    * @pre
+    * @post
+    */
+   private static void moveLocksToVersion81(Session s, OpHibernateSource hsource) {
+      // create mapping from op_object to op_id
+      Class lockClass = OpLock.class;
+      String jdbcObjectKey = "op_target";
+      String tableName = OpMappingsGenerator.generateTableName(lockClass.getSimpleName());
+      if (!hsource.existsColumn(tableName, jdbcObjectKey)) { // no old tables -> do nothing
+         return;
+      }
 
-		Transaction t = s.beginTransaction();
-		HashMap<Long, Set<OpLock>> lockMap = createMapping(s, jdbcObjectKey, lockClass);
+      Transaction t = s.beginTransaction();
+      HashMap<Long, Set<OpLock>> lockMap = createMapping(s, jdbcObjectKey, lockClass);
 
-		long count = 0;
-		Query query = s.createQuery("from "+OpLockable.class.getName());
-		Iterator iter = query.iterate();
-		while (iter.hasNext()) {
-			OpLockable objWithLocks = (OpLockable) iter.next();
-			Set<OpLock> objLocks = objWithLocks.getLocks();
-			Set<OpLock> locksToSet = lockMap.get(objWithLocks.getId());
-			if (locksToSet != null) {
-				for (OpLock lock : locksToSet) {
-					if (lock.getTarget() == null) {
-						lock.setTarget(objWithLocks);
-						s.update(lock);
-					}
-				}
-			}
-			count++;
-			if (count % 1000 == 0) {
-				s.flush();
-				s.clear();
-				logger.info("commiting 1000 updates of locks");
-			}
-		}
-		// delete op_object column
-		deleteKeyConstraints(s, hsource, jdbcObjectKey, tableName);
-		s.createSQLQuery("alter table "+OpMappingsGenerator.generateTableName(lockClass.getSimpleName())+" drop column "+jdbcObjectKey).executeUpdate();
-		t.commit();
-		s.clear();
-	}
+      long count = 0;
+      Query query = s.createQuery("from "+OpLockable.class.getName());
+      Iterator iter = query.iterate();
+      while (iter.hasNext()) {
+         OpLockable objWithLocks = (OpLockable) iter.next();
+         Set<OpLock> objLocks = objWithLocks.getLocks();
+         Set<OpLock> locksToSet = lockMap.get(objWithLocks.getId());
+         if (locksToSet != null) {
+            for (OpLock lock : locksToSet) {
+               if (lock.getTarget() == null) {
+                  lock.setTarget(objWithLocks);
+                  s.update(lock);
+               }
+            }
+         }
+         count++;
+         if (count % 1000 == 0) {
+            s.flush();
+            s.clear();
+            logger.info("commiting 1000 updates of locks");
+         }
+      }
+      // delete op_object column
+      deleteKeyConstraints(s, hsource, jdbcObjectKey, tableName);
+      s.createSQLQuery("alter table "+OpMappingsGenerator.generateTableName(lockClass.getSimpleName())+" drop column "+jdbcObjectKey).executeUpdate();
+      t.commit();
+      s.clear();
+   }
+
+   /**
+    * @param s
+    * @param hsource 
+    * @param source 
+    * @param count
+    * @pre
+    * @post
+    */
+   private static void moveCustomValuePagesToVersion81(Session s, OpHibernateSource hsource) {
+      // create mapping from op_object to op_id
+      Class customValuePageClass = OpCustomValuePage.class;
+      String jdbcObjectKey = "op_object";
+      String tableName = OpMappingsGenerator.generateTableName(customValuePageClass.getSimpleName());
+      if (!hsource.existsColumn(tableName, jdbcObjectKey)) { // no old tables -> do nothing
+         return;
+      }
+
+      Transaction t = s.beginTransaction();
+      HashMap<Long, Set<OpCustomValuePage>> CustomValuePageMap = createMapping(s, jdbcObjectKey, customValuePageClass);
+
+      long count = 0;
+      Query query = s.createQuery("from "+OpCustomizable.class.getName() + " where op_customvaluepage is not null");
+      Iterator iter = query.iterate();
+      while (iter.hasNext()) {
+         OpCustomizable objWithCustomValuePages = (OpCustomizable) iter.next();
+         Set<OpCustomValuePage> objCustomValuePages = objWithCustomValuePages.getCustomValuePages();
+         Set<OpCustomValuePage> CustomValuePagesToSet = CustomValuePageMap.get(objWithCustomValuePages.getId());
+         if (CustomValuePagesToSet != null) {
+            for (OpCustomValuePage customValuePage : CustomValuePagesToSet) {
+               if (customValuePage.getObject() == null) {
+                  customValuePage.setObject(objWithCustomValuePages);
+                  s.update(customValuePage);
+               }
+            }
+         }
+         count++;
+         if (count % 1000 == 0) {
+            s.flush();
+            s.clear();
+            logger.info("commiting 1000 updates of CustomValuePages");
+         }
+      }
+      // delete op_object column
+      deleteKeyConstraints(s, hsource, jdbcObjectKey, tableName);
+      s.createSQLQuery("alter table "+OpMappingsGenerator.generateTableName(customValuePageClass.getSimpleName())+" drop column "+jdbcObjectKey).executeUpdate();
+      t.commit();
+      s.clear();
+   }
 
 	/**
 	 * @param s
@@ -521,4 +695,13 @@ public final class OpModuleManager {
 	public static OpModuleRegistry getModuleRegistry() {
 		return moduleRegistry;
 	}
+	
+   public static void setRegistryFileName(String fileName) {
+      registryFileName = fileName;
+   }
+   
+   public static String getRegistryFileName() {
+      return registryFileName;
+   }
+
 }

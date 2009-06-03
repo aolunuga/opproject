@@ -3,9 +3,12 @@
  */
 package onepoint.project.modules.my_tasks.test;
 
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
+
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
-import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
 import onepoint.project.modules.my_tasks.OpMyTasksError;
 import onepoint.project.modules.my_tasks.OpMyTasksService;
@@ -18,10 +21,6 @@ import onepoint.project.test.OpBaseOpenTestCase;
 import onepoint.project.test.OpTestDataFactory;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
-
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This class test project service methods.
@@ -114,7 +113,7 @@ public class OpMyTasksServiceTest extends OpBaseOpenTestCase {
       OpActivity activity = dataFactory.getActivityByName(ACTIVITY_NAME);
       assertNotNull(activity);
       assertEquals(5, activity.getPriority());
-      assertEquals(OpActivity.ADHOC_TASK, activity.getType().byteValue());
+      assertEquals(OpActivity.ADHOC_TASK, activity.getType());
       assertEquals(1, activity.getAssignments().size());
       assertEquals(duedate, activity.getFinish());
       assertEquals(planId, activity.getProjectPlan().locator());

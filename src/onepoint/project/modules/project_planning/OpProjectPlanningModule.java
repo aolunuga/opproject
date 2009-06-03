@@ -214,8 +214,6 @@ public class OpProjectPlanningModule extends OpModule {
                totalRemainingPersonnelCosts -= assignment.getRemainingPersonnelCosts();
                totalRemainingProceeds -= assignment.getRemainingProceeds();
             }
-            activity.updateRemainingPersonnelCosts(totalRemainingPersonnelCosts);
-            activity.updateRemainingProceeds(totalRemainingProceeds);
             broker.updateObject(activity);
          }
 

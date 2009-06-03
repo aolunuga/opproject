@@ -36,6 +36,7 @@ import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.work.validators.OpWorkEffortValidator;
+import onepoint.project.util.OpBulkFetchIterator;
 import onepoint.project.util.OpProjectCalendar;
 import onepoint.project.validators.OpProjectValidator;
 
@@ -114,7 +115,7 @@ public class OpWorkSlipDataSetFactory {
    public static Iterator<Object[]> getAssignments(OpBroker broker, Set resourceIds, List activityTypes,
         Date start, OpObjectOrderCriteria activityOrderCriteria, long projectNodeId, boolean allowArchivedProjects) {
       StringBuffer buffer = new StringBuffer();
-      buffer.append("select assignment, activity from OpAssignment as assignment inner join assignment.Activity as activity ");
+      buffer.append("select assignment.id from OpAssignment as assignment inner join assignment.Activity as activity ");
       buffer.append("where assignment.Resource.id in (:resourceIds) and assignment.Complete < 100 and activity.Type in (:type) and activity.Deleted = false ");
       if (start != null) {
          buffer.append(" and (activity.Start < :startBefore or activity.Start is null) ");
@@ -137,14 +138,33 @@ public class OpWorkSlipDataSetFactory {
       if (projectNodeId != ALL_PROJECTS_ID) {
          query.setLong("projectNodeId", projectNodeId);
       }
+      Set<Long> ids = new HashSet<Long>();
+      Iterator<Long> idit = broker.iterate(query);
+      while (idit.hasNext()) {
+         ids.add(idit.next());
+      }
+      
+      idit = ids.iterator(); 
+      OpBulkFetchIterator<OpAssignment, Long> bit = new OpBulkFetchIterator<OpAssignment, Long>(
+            broker, idit,
+            broker.newQuery(
+                  		"select ass from " +
+                  		" OpAssignment as ass " +
+                  		" left join fetch ass.Activity as act " +
+                  		" left join fetch act.Actions as a " +
+                  		"where ass.id in (:bulk_ids)"),
+            new OpBulkFetchIterator.LongIdConverter(), "bulk_ids");
+
 
       List<Object[]> result = new ArrayList<Object[]>();
       List<Object[]> adHocActivities = new ArrayList<Object[]>();
-      Iterator<Object[]> it = broker.iterate(query);
-      while (it.hasNext()) {
-         Object[] record = it.next();
-         OpActivityIfc activity = (OpActivityIfc) record[1];
-         if (activity.getType() == OpActivity.ADHOC_TASK) {
+      while (bit.hasNext()) {
+         Object[] record = new Object[2];
+         OpAssignment ass = bit.next(); 
+         OpActivity act = ass.getActivity();
+         record[0] = ass;
+         record[1] = act;
+         if (act.getType() == OpActivity.ADHOC_TASK) {
             adHocActivities.add(record);
          }
          else {
@@ -851,6 +871,8 @@ public class OpWorkSlipDataSetFactory {
     * 2 - assignment' remaining effort
     * 3 - boolean value indicating if the remaining effort was modified
     * manually by the user
+    * @param broker 
+    * @param session 
     *
     * @param assignmentList - the <code>List</code> of <code>OpAssignment</code> entities from which the map will be created.
     * @return a <code>Map</code>: Key:assignment.activity choice - assignment.resource choice
@@ -860,7 +882,7 @@ public class OpWorkSlipDataSetFactory {
     *         3 - boolean value indicating if the remaining effort was modified
     *         manually by the user
     */
-   public Map<String, List> createAssignmentMap(List<OpAssignment> assignmentList) {
+   public Map<String, List> createAssignmentMap(OpProjectSession session, OpBroker broker, List<OpAssignment> assignmentList) {
       Map<String, List> assignmentMap = new HashMap<String, List>();
       List dataList;
       OpActivity activity;

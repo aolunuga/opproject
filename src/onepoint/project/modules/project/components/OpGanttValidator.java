@@ -137,6 +137,7 @@ public class OpGanttValidator extends OpProjectValidator {
    public final static byte COLLECTION_TASK = 4;
    public final static byte SCHEDULED_TASK = 5;
    public final static byte ADHOC_TASK = 6;
+   public final static byte PROJECT_PLAN = 99;
 
    // Action types (bits/flags)
    public static final byte NO_ACTIONS = 0;
@@ -168,7 +169,7 @@ public class OpGanttValidator extends OpProjectValidator {
 
    private final static Pattern PREDECESSOR_PATTERN = Pattern.compile("\\s*([0-9]+)(.{0,1})\\s*");
    private static final int PREDECESSOR_PATTERN_INDEX_GROUP = 1;
-   private final static String[] DEP_TYPE_MAP = {">"};
+   protected final static String[] DEP_TYPE_MAP = {">", "<", "[", "]"};
 
    //Default Priority Value
    public final static byte DEFAULT_PRIORITY = 5;
@@ -252,6 +253,7 @@ public class OpGanttValidator extends OpProjectValidator {
    public final static String FIXED_FINISH_EXCEPTION = "FixedFinishException";
    public final static String WORK_DAY_BEFORE_START_EXCEPTION = "WorkDayBeforeStartException";
    public final static String ITERATION_EXCEPTION = "IterationException";
+   public final static String SUBPROJECT_LOOP_EXCEPTION = "SubProjectLoopException";
    
    public final static double INVALID_ASSIGNMENT = -1;
 
@@ -437,6 +439,11 @@ public class OpGanttValidator extends OpProjectValidator {
       return columnHoldsValue(dataRow, Map.class, WORKRECORDS_COLUMN_INDEX) ? (Map) getSomething(
             dataRow, WORKRECORDS_COLUMN_INDEX)
             : null;
+   }
+
+   public static void addWorkRecords(XComponent dataRow, String resourceLocator) {
+      Map workRecordsMap = getWorkRecords(dataRow);
+      workRecordsMap.put(resourceLocator, Boolean.TRUE);
    }
 
    public static void setResponsibleResource(XComponent dataRow, String newValue) {
@@ -2103,11 +2110,11 @@ public class OpGanttValidator extends OpProjectValidator {
    }
    
    public static double getCompleteFromTracking(ProgressTrackableEntityIfc element, boolean progressTracked) {
-      // check, whether use 
+      // check, whether use
       if (element.isTrackingLeaf() && !progressTracked) {
          return element.getComplete();
       }
-      if (isIndivisibleElemen(element)) {
+      if (isIndivisibleElement(element)) {
          double completedSubElements = 0;
          Set tse = element.getTrackedSubElements();
          if (tse == null || tse.isEmpty()) {
@@ -2128,16 +2135,40 @@ public class OpGanttValidator extends OpProjectValidator {
             return 100d * completedSubElements / tse.size();
          }
       }
-      return OpGanttValidator.calculateCompleteValue(element.getActualEffort(),
-            element.getBaseEffort(), element.getOpenEffort());
+      if (progressTracked) {
+         return OpGanttValidator.calculateCompleteValue(element.getActualEffort(),
+               element.getBaseEffort(), element.getOpenEffort());
+      }
+      else {
+         // OPP-1158!
+         Set tse = element.getTrackedSubElements();
+         if (tse == null || tse.isEmpty()) {
+            return element.getComplete();
+         }
+         Iterator sit = tse.iterator();
+         double weightedCompleteSum = 0d;
+         double baseEffortSum = 0d;
+         while (sit.hasNext()) {
+            ProgressTrackableEntityIfc se = (ProgressTrackableEntityIfc) sit.next();
+            weightedCompleteSum += se.getComplete() * se.getBaseEffort();
+            baseEffortSum += se.getBaseEffort();
+         }
+         boolean zeroBase = OpGanttValidator.isZeroWithTolerance(baseEffortSum,
+               baseEffortSum);
+         double complete = zeroBase ? 0d : weightedCompleteSum / baseEffortSum;
+         return complete;
+      }
    }
    
-   public static boolean isIndivisibleElemen(ProgressTrackableEntityIfc element) {
-      return (OpGanttValidator.isZeroWithTolerance(element.getBaseEffort(),
-            element.getBaseEffort()) || OpGanttValidator.isZeroWithTolerance(
-            element.getActualEffort(), element.getBaseEffort()))
-            && OpGanttValidator.isZeroWithTolerance(element.getOpenEffort(),
-                  element.getBaseEffort());
+   public static boolean isIndivisibleElement(ProgressTrackableEntityIfc element) {
+      boolean zeroBaseEffort = OpGanttValidator.isZeroWithTolerance(element.getBaseEffort(),
+            element.getBaseEffort());
+      boolean zeroActualEffort = OpGanttValidator.isZeroWithTolerance(
+            element.getActualEffort(), element.getBaseEffort());
+      boolean zeroOpenEffort = OpGanttValidator.isZeroWithTolerance(element.getOpenEffort(),
+            element.getBaseEffort());
+      return (zeroBaseEffort || zeroActualEffort)
+            && zeroOpenEffort;
    }
    
    /**
@@ -2914,7 +2945,7 @@ public class OpGanttValidator extends OpProjectValidator {
       return resourceAvailability;
    }
 
-   private boolean isEffortBasedProject() {
+   public boolean isEffortBasedProject() {
       byte effortBasedByte = EFFORT_BASED;
       Byte calculationSetting = getCalculationMode();
       if (calculationSetting != null) {
@@ -3073,6 +3104,11 @@ public class OpGanttValidator extends OpProjectValidator {
             addAnonymousResource, userInput, pCal,
             getResourceCalendarMap(), getAssignmentSet());
    }
+
+   public void updateResources(XComponent dataRow) {
+      List resources = setupResources(getDuration(dataRow), getBaseEffort(dataRow), getResources(dataRow), getResourceAssignmentRule(dataRow), !isEffortBasedProject(), false);
+      setResources(dataRow, resources);
+   }
    
    public final static int ASSIGNMENT_ADJUSTMENT_LOWER_EFFORT_ONLY = 1;
    public final static int ASSIGNMENT_ADJUSTMENT_IF_ALL_ASSIGNED = 2;
@@ -3111,6 +3147,9 @@ public class OpGanttValidator extends OpProjectValidator {
          String assignment = (String) rit.next();
          String resourceId = choiceID(assignment);
          String resourceName = getResourceName(choiceCaption(assignment), null);
+         if (resourceName == null) {
+            continue;
+         }
          
          OpProjectCalendar resCal = getCalendar(resourceId, OpProjectCalendar.getDefaultProjectCalendar(), pCal, resCals);
          double percentAvailable = getResourceAvailability(resourceId, assignmentSet) / 100;
@@ -5447,6 +5486,9 @@ public class OpGanttValidator extends OpProjectValidator {
    }
    
    public static String getResourceName(String caption, String expectedView) {
+      if (caption == null) {
+         return null;
+      }
       if (expectedView == null || expectedView.equals("h")) {
          Matcher m = HOURS_PATTERN.matcher(caption);
          if (m.matches()) {
@@ -5966,7 +6008,7 @@ public class OpGanttValidator extends OpProjectValidator {
       
       setResourceBaseEfforts(dataRow, callback.getResourceEffortsAccumulated());
       
-      if (isOfType(dataRow, EFFORT_TYPES)) {
+      if (hasEffort(dataRow)) {
          setAttribute(dataRow,INCOMPLETE_ASSIGNMENT, callback.getAssignedEffortAccumulated() != callback.getEffortAccumulated());
       }
       else if (isOfType(dataRow, NO_EFFORT_WITH_ASSIGNMENT_TYPES)) {
@@ -6344,7 +6386,10 @@ public class OpGanttValidator extends OpProjectValidator {
          
          currentDate = new Date(currentDate.getTime() + (forward ? XCalendar.MILLIS_PER_DAY : -XCalendar.MILLIS_PER_DAY));
          while (!executor.isFinished(this, currentDate, workDay, forward)) {
-            workDay = validator.getCalendar().isWorkDay(currentDate);
+            boolean afterProjectStart = (validator.getProjectStart() == null ? true
+                  : !validator.getProjectStart().after(currentDate));
+            workDay = validator.getCalendar().isWorkDay(currentDate)
+                  && (afterProjectStart || !forward);
             // call derived:
             executor.iteration(this, currentDate, workDay, breakDay > 0d, forward);
             
@@ -7608,7 +7653,7 @@ public class OpGanttValidator extends OpProjectValidator {
       }
 
       // correct new dependent start:
-      startDateLimit = (startDateLimit == null || getProjectStart() == null) ? getProjectStart()
+      Date newDependendStart = (startDateLimit == null || getProjectStart() == null) ? getProjectStart()
             : (startDateLimit.before(getProjectStart()) ? getProjectStart()
                   : startDateLimit);
       if (!validationCollection) {
@@ -7630,7 +7675,7 @@ public class OpGanttValidator extends OpProjectValidator {
             }
          }
          
-         if ((startDateLimit != null) && touched) {
+         if ((newDependendStart != null) && touched) {
             adjustActivityToResourcesAndDuration(dataRow, true, false);
             updateCollectionTreeValues(dataRow);
          }
@@ -7679,6 +7724,7 @@ public class OpGanttValidator extends OpProjectValidator {
    }
 
    public void mergeInSubset(int offset, List subset, Map subsetIndexMap, boolean replace) {
+      logger.warn("How did I get here?");
    }
    
    protected Date updateDateDelimiter(XComponent dataRow, XComponent delimiter, Date currDelimitingDate, Set dateDelimiters, int depType) {
@@ -7724,8 +7770,9 @@ public class OpGanttValidator extends OpProjectValidator {
       else if (getEnd(delimiter) != null) {
          // somewhat starnage: we do not need to find the next workday, because ending between e.g. friday 
          // and saturday is perfectly ok. Only starting there will not work
-         entryDate = OpGanttValidator.getFollowUpFinish(getEnd(delimiter), getFollowUpTime(delimiter) + moveEndDateByWorkdays,
+         entryDate = OpGanttValidator.getFollowUpFinish(getEnd(delimiter), getFollowUpTime(delimiter),
                getCalendar());
+         entryDate = new Date(entryDate.getTime() + (long)(moveEndDateByWorkdays * XCalendar.MILLIS_PER_DAY));
       }
       // FIXME: OPP-1079... Base data defective???
       if (entryDate == null) {
@@ -7766,7 +7813,6 @@ public class OpGanttValidator extends OpProjectValidator {
       if (days == 0d) {
          return startDateToMove;
       }
-      resetWorkPhases(dataRow);
       boolean forward = days > 0d;
       MoveActivityDateCallback durCB = new MoveActivityDateCallback((int)(forward ? days : -days));
       // startDateToMove = new Date(startDateToMove.getTime() + (forward ? XCalendar.MILLIS_PER_DAY : - XCalendar.MILLIS_PER_DAY));

@@ -4,14 +4,14 @@
 
 package onepoint.project.modules.work;
 
+import java.sql.Date;
+import java.util.HashSet;
+import java.util.Set;
+
 import onepoint.persistence.OpEntityException;
 import onepoint.persistence.OpObject;
 import onepoint.project.modules.project.OpAssignmentIfc;
 import onepoint.project.modules.user.OpUser;
-
-import java.sql.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 public class OpWorkSlip extends OpObject {
 
@@ -126,9 +126,15 @@ public class OpWorkSlip extends OpObject {
       buffer.append("<").append(getClass().getSimpleName()).append(">\n");
       buffer.append("<date=").append(date).append("/>\n");
       buffer.append("<creator=").append(creator).append("/>\n");
+      buffer.append("<effort=").append(totalActualEffort).append("/>\n");
       buffer.append("<records>");
       if (records != null) {
+         boolean first = true;
          for (OpWorkRecord record : records) {
+            if (!first) {
+               buffer.append("; ");
+            }
+            first = false;
             buffer.append(record);
          }
       }

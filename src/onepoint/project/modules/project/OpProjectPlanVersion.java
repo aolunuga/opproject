@@ -11,15 +11,20 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 import onepoint.persistence.OpObject;
 import onepoint.persistence.hibernate.OpPropertyAccessor;
 import onepoint.project.modules.calendars.OpHasWorkCalendar;
 import onepoint.project.modules.calendars.OpWorkCalendar;
+import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project_controlling.OpControllingSheet;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPermissionable;
 
-public class OpProjectPlanVersion extends OpObject implements OpPermissionable, OpHasWorkCalendar {
+public class OpProjectPlanVersion extends OpObject implements OpPermissionable, OpHasWorkCalendar, OpActivityValuesIfc {
+
+   private static final XLog logger = XLogFactory.getLogger(OpProjectPlanVersion.class);
 
    public final static String PROJECT_PLAN_VERSION = "OpProjectPlanVersion";
 
@@ -53,9 +58,28 @@ public class OpProjectPlanVersion extends OpObject implements OpPermissionable, 
    private Set<OpWorkBreak> workBreaks;
    private Set<OpPermission> permissions;
    
+   private double duration = 0d;
+   private double leadTime = 0d;
+   private double followUpTime = 0d;
+   private double complete = 0d;
+
+   private double baseEffort = 0d; // Person hours
+   private double baseTravelCosts = 0d;
+   private double basePersonnelCosts = 0d;
+   private double baseMaterialCosts = 0d;
+   private double baseExternalCosts = 0d;
+   private double baseMiscellaneousCosts = 0d;
+
+   private double unassignedEffort = 0d; // Person hours
+   
+   private double baseProceeds = 0d;
+
    private OpWorkCalendar workCalendar = null;
  
    transient private Map<Long, OpActivityVersion> allActivityVersionsByActivityId = null;
+
+   // transient...
+   private Set<OpActivityValuesIfc> topLevelActivities = null;
 
    public void setVersionNumber(int versionNumber) {
       this.versionNumber = versionNumber;
@@ -365,4 +389,287 @@ public class OpProjectPlanVersion extends OpObject implements OpPermissionable, 
          workPeriod.setPlanVersion(null);
       }
    }
+
+   public double getBaseEffort() {
+      return baseEffort;
+   }
+
+   public void setBaseEffort(double baseEffort) {
+      this.baseEffort = baseEffort;
+   }
+
+   public double getBaseTravelCosts() {
+      return baseTravelCosts;
+   }
+
+   public void setBaseTravelCosts(double baseTravelCosts) {
+      this.baseTravelCosts = baseTravelCosts;
+   }
+
+   public double getBasePersonnelCosts() {
+      return basePersonnelCosts;
+   }
+
+   public void setBasePersonnelCosts(double basePersonnelCosts) {
+      this.basePersonnelCosts = basePersonnelCosts;
+   }
+
+   public double getBaseMaterialCosts() {
+      return baseMaterialCosts;
+   }
+
+   public void setBaseMaterialCosts(double baseMaterialCosts) {
+      this.baseMaterialCosts = baseMaterialCosts;
+   }
+
+   public double getBaseExternalCosts() {
+      return baseExternalCosts;
+   }
+
+   public void setBaseExternalCosts(double baseExternalCosts) {
+      this.baseExternalCosts = baseExternalCosts;
+   }
+
+   public double getBaseMiscellaneousCosts() {
+      return baseMiscellaneousCosts;
+   }
+
+   public void setBaseMiscellaneousCosts(double baseMiscellaneousCosts) {
+      this.baseMiscellaneousCosts = baseMiscellaneousCosts;
+   }
+
+   public double getUnassignedEffort() {
+      return unassignedEffort;
+   }
+
+   public void setUnassignedEffort(double unassignedEffort) {
+      this.unassignedEffort = unassignedEffort;
+   }
+
+   public double getActualEffort() {
+      return getProjectPlan().getActualEffort();
+   }
+
+   public void setActualEffort(double actualEffort) {
+   }
+
+   public double getActualTravelCosts() {
+      return getProjectPlan().getActualTravelCosts();
+   }
+
+   public void setActualTravelCosts(double actualTravelCosts) {
+   }
+
+   public double getRemainingTravelCosts() {
+      return getProjectPlan().getRemainingTravelCosts();
+   }
+
+   public void setRemainingTravelCosts(double remainingTravelCosts) {
+   }
+
+   public double getActualPersonnelCosts() {
+      return getProjectPlan().getActualPersonnelCosts();
+   }
+
+   public void setActualPersonnelCosts(double actualPersonnelCosts) {
+   }
+
+   public double getRemainingPersonnelCosts() {
+      return getProjectPlan().getRemainingPersonnelCosts();
+   }
+
+   public void setRemainingPersonnelCosts(double remainingPersonnelCosts) {
+   }
+
+   public double getActualMaterialCosts() {
+      return getProjectPlan().getActualMaterialCosts();
+   }
+
+   public void setActualMaterialCosts(double actualMaterialCosts) {
+   }
+
+   public double getRemainingEffort() {
+      return getProjectPlan().getRemainingEffort();
+   }
+
+   public void setRemainingEffort(double remainingEffort) {
+   }
+
+   public double getRemainingMaterialCosts() {
+      return getProjectPlan().getRemainingMaterialCosts();
+   }
+
+   public void setRemainingMaterialCosts(double remainingMaterialCosts) {
+   }
+
+   public double getActualExternalCosts() {
+      return getProjectPlan().getActualExternalCosts();
+   }
+
+   public void setActualExternalCosts(double actualExternalCosts) {
+   }
+
+   public double getRemainingExternalCosts() {
+      return getProjectPlan().getRemainingExternalCosts();
+   }
+
+   public void setRemainingExternalCosts(double remainingExternalCosts) {
+   }
+
+   public double getActualMiscellaneousCosts() {
+      return getProjectPlan().getActualMiscellaneousCosts();
+   }
+
+   public void setActualMiscellaneousCosts(double actualMiscellaneousCosts) {
+   }
+
+   public double getRemainingMiscellaneousCosts() {
+      return getProjectPlan().getRemainingMiscellaneousCosts();
+   }
+
+   public void setRemainingMiscellaneousCosts(double remainingMiscellaneousCosts) {
+   }
+
+   public double getBaseProceeds() {
+      return baseProceeds;
+   }
+
+   public void setBaseProceeds(double baseProceeds) {
+      this.baseProceeds = baseProceeds;
+   }
+
+   public double getActualProceeds() {
+      return getProjectPlan().getActualProceeds();
+   }
+
+   public void setActualProceeds(double actualProceeds) {
+   }
+
+   public double getRemainingProceeds() {
+      return getProjectPlan().getRemainingProceeds();
+   }
+
+   public void setRemainingProceeds(double remainingProceeds) {
+   }
+
+   public Boolean getBaseline() {
+      return baseline;
+   }
+
+   public double getDuration() {
+      return duration;
+   }
+
+   public void setDuration(double duration) {
+      this.duration = duration;
+   }
+
+   public double getLeadTime() {
+      return leadTime;
+   }
+
+   public void setLeadTime(double leadTime) {
+      this.leadTime = leadTime;
+   }
+
+   public double getFollowUpTime() {
+      return followUpTime;
+   }
+
+   public void setFollowUpTime(double followUpTime) {
+      this.followUpTime = followUpTime;
+   }
+
+   public double getComplete() {
+      return complete;
+   }
+
+   public void setComplete(double complete) {
+      this.complete = complete;
+   }
+
+   public double getCompleteFromTracking(boolean progressTracked) {
+      return OpGanttValidator.getCompleteFromTracking(this, progressTracked);
+   }
+
+   public void addChildComplete(double childComplete, double childBaseEffort) {
+      OpActivity.addWeightedComplete(this, childComplete, childBaseEffort);
+   }
+   
+   public OpActivityValuesIfc getParent() {
+      return null;
+   }
+
+   public byte getType() {
+      return OpGanttValidator.PROJECT_PLAN;
+   }
+
+   public boolean isImported() {
+      return false;
+   }
+
+   public void resetActualValues() {
+      OpActivity.resetActualValues(this);
+   }
+   
+   public void resetAggregatedValues() {
+      OpActivity.resetValues(this);
+
+      setStart(null);
+      setFinish(null);
+   }
+
+   public void addTopLevelActivity(OpActivityValuesIfc a) {
+      if (topLevelActivities == null) {
+         topLevelActivities = new HashSet<OpActivityValuesIfc>();
+      }
+      topLevelActivities.add(a);
+   }
+
+   private void updateTopLevelActivities() {
+      for(OpActivityVersion a : getActivityVersions()) {
+         if (a.getOutlineLevel() == 0) {
+            addTopLevelActivity(a);
+         }
+      }
+   }
+
+   public void handleSubActivityProgress(OpActivity.OpProgressDelta delta) {
+      updateTopLevelActivities();
+      OpActivity.applyDelta(this, delta);
+   }
+
+   public double getOpenEffort() {
+      return getRemainingEffort() + getUnassignedEffort();
+   }
+
+   public Set getTrackedSubElements() {
+      return topLevelActivities;
+   }
+
+   public boolean isIndivisible() {
+      return OpGanttValidator.isIndivisibleElement(this);
+   }
+
+   public boolean isTrackingLeaf() {
+      return false;
+   }
+
+   @Override
+   public String toString() {
+      StringBuffer b = new StringBuffer();
+      b.append(locator());
+      b.append(":");
+      if (getProjectPlan() != null && getProjectPlan().getProjectNode() != null) {
+         b.append(getProjectPlan().getProjectNode().getName());
+      }
+      b.append(":");
+      b.append(getVersionNumber());
+      return b.toString();
+   }
+
+   public boolean hasSubActivities() {
+      return true;
+   }
+
 }

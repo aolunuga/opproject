@@ -21,7 +21,7 @@
       </data-set>
 
       <panel layout="border" style-ref="tool-panel-default" y="-1" id="ToolBarPanel">
-         <tool-bar x="-1" id="ToolBar">
+         <tool-bar x="-1" id="ToolBar" >
             <tool-button text="${NewWorkSlip}" id="NewWorkSlip" icon="/modules/work/icons/new_work_slip.png"
                          disabled-icon="/modules/work/icons/new_work_slip_disabled.png" on-button-pressed="newWorkSlip"
                          tooltip="${NewWorkSlipTooltip}"/>
